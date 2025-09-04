@@ -39,7 +39,7 @@ class AdminPanelProvider extends PanelProvider
         EmailAuthentication::make()
           ->codeExpiryMinutes(10),
       ])
-      ->favicon(asset('favicon.ico'))
+      ->favicon(asset('favicon.png'))
       ->databaseNotifications()
       ->sidebarCollapsibleOnDesktop()
       ->maxContentWidth(Width::Full)
