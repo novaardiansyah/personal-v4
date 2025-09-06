@@ -45,7 +45,10 @@ class AdminPanelProvider extends PanelProvider
       ->sidebarCollapsibleOnDesktop()
       ->maxContentWidth(Width::Full)
       ->emailVerification()
-      ->unsavedChangesAlerts()
+      ->when(
+        config('app.env') !== 'local',
+        fn($panel) => $panel->unsavedChangesAlerts()
+      )
       ->colors([
         'primary' => Color::Cyan,
       ])

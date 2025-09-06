@@ -3,13 +3,18 @@
 namespace App\Filament\Resources\PaymentAccounts;
 
 use BackedEnum;
+use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
+use UnitEnum;
+
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\FileUpload;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
-use UnitEnum;
 
 use App\Filament\Resources\PaymentAccounts\Pages\ManagePaymentAccounts;
 use App\Models\PaymentAccount;
@@ -32,6 +37,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use function Filament\Support\format_money;
 
 class PaymentAccountResource extends Resource
 {
@@ -96,7 +102,7 @@ class PaymentAccountResource extends Resource
         TextColumn::make('name')
           ->searchable(),
         TextColumn::make('deposit')
-          ->money('IDR', locale: 'id', decimalPlaces: 0)
+          ->formatStateUsing(fn ($state) => toIndonesianCurrency((float) $state ?? 0))
           ->sortable(),
         ImageColumn::make('logo')
           ->checkFileExistence(false)
@@ -125,6 +131,16 @@ class PaymentAccountResource extends Resource
           EditAction::make()
             ->modalWidth(Width::ExtraLarge),
 
+          Action::make('audit')
+            ->label('Audit')
+            ->color('danger')
+            ->icon('heroicon-o-scale')
+            ->modalHeading(fn (PaymentAccount $record) => 'Audit ' . $record->name)
+            ->modalWidth(Width::Medium)
+            ->form(fn (Schema $form) => ManagePaymentAccounts::formAudit($form))
+            ->fillForm(fn (PaymentAccount $record): array => ManagePaymentAccounts::fillFormAudit($record))
+            ->action(fn (Action $action, PaymentAccount $record, array $data) => ManagePaymentAccounts::actionAudit($action, $record, $data)),
+          
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
