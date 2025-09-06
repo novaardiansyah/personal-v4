@@ -18,11 +18,6 @@ class PaymentAccount extends Model
   public const GOPAY = 5;
   public const OVO = 6;
   public const SEA_BANK = 7;
-
-  public const PENGELUARAN = 1;
-  public const PEMASUKAN = 2;
-  public const TRANSFER = 3;
-  public const TARIK_TUNAI = 4;
   
   public function getPaymentAccountNameAttribute(): string
   {
