@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\Users;
 
+use App\Enums\NavigationGroup;
+use BackedEnum;
+use UnitEnum;
+
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\User;
-use BackedEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -13,8 +16,6 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -22,7 +23,6 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Enums\RecordActionsPosition;
 use Filament\Tables\Table;
 
 class UserResource extends Resource
@@ -30,6 +30,8 @@ class UserResource extends Resource
   protected static ?string $model = User::class;
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
+  protected static string | UnitEnum | null $navigationGroup = NavigationGroup::Settings;
+  protected static ?int $navigationSort = 10;
 
   protected static ?string $recordTitleAttribute = 'name';
 

@@ -2,9 +2,12 @@
 
 namespace App\Filament\Resources\Generates;
 
+use App\Enums\NavigationGroup;
+use BackedEnum;
+use UnitEnum;
+
 use App\Filament\Resources\Generates\Pages\ManageGenerates;
 use App\Models\Generate;
-use BackedEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -32,6 +35,8 @@ class GenerateResource extends Resource
   protected static ?string $model = Generate::class;
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
+  protected static string | UnitEnum | null $navigationGroup = NavigationGroup::Settings;
+  protected static ?int $navigationSort = 20;
 
   protected static ?string $recordTitleAttribute = 'name';
 
