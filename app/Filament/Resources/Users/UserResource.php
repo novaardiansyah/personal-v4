@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Users;
 
-use App\Enums\NavigationGroup;
 use BackedEnum;
 use UnitEnum;
 
@@ -30,7 +29,7 @@ class UserResource extends Resource
   protected static ?string $model = User::class;
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
-  protected static string | UnitEnum | null $navigationGroup = NavigationGroup::Settings;
+  protected static string | UnitEnum | null $navigationGroup = 'Settings';
   protected static ?int $navigationSort = 10;
 
   protected static ?string $recordTitleAttribute = 'name';

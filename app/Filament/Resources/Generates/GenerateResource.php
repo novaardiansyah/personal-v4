@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\Generates;
 
-use App\Enums\NavigationGroup;
 use BackedEnum;
 use UnitEnum;
 
@@ -35,7 +34,7 @@ class GenerateResource extends Resource
   protected static ?string $model = Generate::class;
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedIdentification;
-  protected static string | UnitEnum | null $navigationGroup = NavigationGroup::Settings;
+  protected static string | UnitEnum | null $navigationGroup = 'Settings';
   protected static ?int $navigationSort = 20;
 
   protected static ?string $recordTitleAttribute = 'name';
