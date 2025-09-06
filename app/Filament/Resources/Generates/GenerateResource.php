@@ -94,6 +94,11 @@ class GenerateResource extends Resource
           ->badge()
           ->color('info')
           ->numeric(),
+        TextEntry::make('review')
+          ->copyable()
+          ->badge()
+          ->color('info')
+          ->state(fn (Generate $record) => $record->getNextId()),
 
         Grid::make([
           'default' => 3
@@ -141,6 +146,12 @@ class GenerateResource extends Resource
           ->toggleable()
           ->badge()
           ->color('info'),
+        TextColumn::make('review')
+          ->copyable()
+          ->badge()
+          ->color('info')
+          ->toggleable()
+          ->state(fn (Generate $record) => $record->getNextId()),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
