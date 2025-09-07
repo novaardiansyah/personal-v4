@@ -1,23 +1,14 @@
 <?php
 
-namespace App\Filament\Resources\PaymentAccounts;
+namespace App\Filament\Resources\PaymentTypes;
 
 use BackedEnum;
-use Filament\Notifications\Notification;
-use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
+use Filament\Actions\ActionGroup;
+use Filament\Support\Enums\Width;
 use UnitEnum;
 
-use Filament\Actions\Action;
-use Filament\Actions\ActionGroup;
-use Filament\Forms\Components\FileUpload;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Schemas\Components\Grid;
-use Filament\Support\Enums\Width;
-use Filament\Tables\Columns\ImageColumn;
-
-use App\Filament\Resources\PaymentAccounts\Pages\ManagePaymentAccounts;
-use App\Models\PaymentAccount;
+use App\Filament\Resources\PaymentTypes\Pages\ManagePaymentTypes;
+use App\Models\PaymentType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -37,15 +28,15 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use function Filament\Support\format_money;
 
-class PaymentAccountResource extends Resource
+class PaymentTypeResource extends Resource
 {
-  protected static ?string $model = PaymentAccount::class;
+  protected static ?string $model = PaymentType::class;
 
-  protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedCreditCard;
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
   protected static string | UnitEnum | null $navigationGroup = 'Payments';
-  protected static ?int $navigationSort = 10;
+  protected static ?int $navigationSort = 100;
+
   protected static ?string $recordTitleAttribute = 'name';
 
   public static function form(Schema $schema): Schema
@@ -54,13 +45,6 @@ class PaymentAccountResource extends Resource
       ->components([
         TextInput::make('name')
           ->required(),
-        FileUpload::make('logo')
-          ->disk('public')
-          ->directory('images/payment_account')
-          ->image()
-          ->imageEditor()
-          ->enableOpen()
-          ->enableDownload(),
       ])
       ->columns(1);
   }
@@ -69,24 +53,16 @@ class PaymentAccountResource extends Resource
   {
     return $schema
       ->components([
-        TextEntry::make('name'),
-        TextEntry::make('deposit')
-          ->numeric(),
-        ImageEntry::make('logo')
-          ->checkFileExistence(false)
-          ->circular()
-          ->size(70),
-        Grid::make(3)
-          ->columnSpanFull()
-          ->schema([
-            TextEntry::make('created_at')
-              ->dateTime(),
-            TextEntry::make('updated_at')
-              ->sinceTooltip()
-              ->dateTime(),
-            TextEntry::make('deleted_at')
-              ->dateTime(),
-          ])
+        TextEntry::make('name')
+          ->columnSpanFull(),
+        
+        TextEntry::make('created_at')
+          ->dateTime(),
+        TextEntry::make('updated_at')
+          ->sinceTooltip()
+          ->dateTime(),
+        TextEntry::make('deleted_at')
+          ->dateTime(),
       ])
       ->columns(3);
   }
@@ -101,12 +77,6 @@ class PaymentAccountResource extends Resource
           ->rowIndex(),
         TextColumn::make('name')
           ->searchable(),
-        TextColumn::make('deposit')
-          ->formatStateUsing(fn ($state) => toIndonesianCurrency((float) $state ?? 0))
-          ->sortable(),
-        ImageColumn::make('logo')
-          ->checkFileExistence(false)
-          ->circular(),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
@@ -117,31 +87,20 @@ class PaymentAccountResource extends Resource
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('updated_at')
           ->dateTime()
-          ->sinceTooltip()
           ->sortable()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->sinceTooltip()
+          ->toggleable(),
       ])
-      ->defaultSort('updated_at', 'desc')
       ->filters([
         TrashedFilter::make(),
       ])
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          
-          EditAction::make()
-            ->modalWidth(Width::ExtraLarge),
 
-          Action::make('audit')
-            ->label('Audit')
-            ->color('danger')
-            ->icon('heroicon-o-scale')
-            ->modalHeading(fn (PaymentAccount $record) => 'Audit ' . $record->name)
-            ->modalWidth(Width::Medium)
-            ->form(fn (Schema $form) => ManagePaymentAccounts::formAudit($form))
-            ->fillForm(fn (PaymentAccount $record): array => ManagePaymentAccounts::fillFormAudit($record))
-            ->action(fn (Action $action, PaymentAccount $record, array $data) => ManagePaymentAccounts::actionAudit($action, $record, $data)),
-          
+          EditAction::make()
+            ->modalWidth(Width::Medium),
+
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
@@ -159,7 +118,7 @@ class PaymentAccountResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index' => ManagePaymentAccounts::route('/'),
+      'index' => ManagePaymentTypes::route('/'),
     ];
   }
 
