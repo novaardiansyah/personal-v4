@@ -28,6 +28,11 @@ class Payment extends Model
     return $this->belongsTo(PaymentAccount::class, 'payment_account_to_id');
   }
 
+  public function payment_type(): BelongsTo
+  {
+    return $this->belongsTo(PaymentType::class, 'type_id');
+  }
+
   public static function mutateDataPayment(array $data): array
   {
     $data['user_id'] = auth()->id();

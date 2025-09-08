@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\PaymentAccounts;
 
+use App\Models\Setting;
 use BackedEnum;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Utilities\Get;
@@ -102,7 +103,7 @@ class PaymentAccountResource extends Resource
         TextColumn::make('name')
           ->searchable(),
         TextColumn::make('deposit')
-          ->formatStateUsing(fn ($state) => toIndonesianCurrency((float) $state ?? 0))
+          ->formatStateUsing(fn ($state) => toIndonesianCurrency((float) $state ?? 0, showCurrency: Setting::showPaymentCurrency()))
           ->sortable(),
         ImageColumn::make('logo')
           ->checkFileExistence(false)

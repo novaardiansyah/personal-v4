@@ -30,6 +30,7 @@ class CreatePayment extends CreateRecord
 
     return $data;
   }
+  
   protected function getRedirectUrl(): string
   {
     $resource = static::getResource();
