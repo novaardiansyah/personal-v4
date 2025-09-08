@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments\Tables;
 
+use App\Filament\Resources\Settings\Schemas\PaymentAction;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
@@ -92,20 +93,21 @@ class PaymentsTable
       ])
       ->defaultSort('date', 'desc')
       ->filters([
-        TrashedFilter::make(),
+        TrashedFilter::make()
+          ->native(false),
       ])
       ->recordActions([
         ActionGroup::make([
           EditAction::make(),
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
+          
+          DeleteAction::make()
+            ->after(fn(Payment $record) => PaymentAction::deleteAfter($record)),
+
           RestoreAction::make(),
         ])
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
           RestoreBulkAction::make(),
         ]),
       ]);
