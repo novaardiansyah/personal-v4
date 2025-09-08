@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources\Settings\Tables;
 
+use App\Filament\Resources\Settings\Schemas\SettingAction;
+use App\Models\Setting;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -11,6 +14,7 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
@@ -60,10 +64,22 @@ class SettingsTable
       ->filters([
         TrashedFilter::make(),
       ])
+      ->recordAction('change_value')
+      ->recordUrl(null)
       ->recordActions([
         ActionGroup::make([
           EditAction::make()
             ->modalWidth(Width::Medium),
+          
+          Action::make('change_value')
+            ->label('Change Value')
+            ->icon('heroicon-o-arrows-right-left')
+            ->modalWidth(Width::ExtraLarge)
+            ->modalHeading('Change setting value')
+            ->color('primary')
+            ->form(fn (Schema $form) => SettingAction::formChangeValue($form))
+            ->fillForm(fn (Setting $record): array => SettingAction::fillFormChangeValue($record))
+            ->action(fn (Action $action, Setting $record, array $data) => SettingAction::actionChangeValue($action, $record, $data)),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),
