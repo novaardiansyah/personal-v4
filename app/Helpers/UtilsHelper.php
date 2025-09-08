@@ -15,12 +15,13 @@ use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Notification AS NotificationFacade;
 use Filament\Notifications\Actions\Action;
 
-// function getSetting(string $key, $default = null)
-// {
-//   return cache()->rememberForever("setting.{$key}", function () use ($key, $default) {
-//     return Setting::where('key', $key)->first()?->value ?? $default;
-//   });
-// }
+function getSetting(string $key, $default = null)
+{
+  return cache()->rememberForever("setting.{$key}", function () use ($key, $default) {
+    $setting = Setting::where('key', $key)->first()?->value ?? $default;
+    return $setting ? textLower($setting) : $setting;
+  });
+}
 
 function carbonTranslatedFormat(string $date, string $format = 'd/m/Y H:i'): string
 {
