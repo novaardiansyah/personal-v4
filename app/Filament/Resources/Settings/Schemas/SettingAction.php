@@ -78,6 +78,8 @@ class SettingAction
       ->title('Sucessfully Changed')
       ->body('Setting value has been successfully changed.')
       ->send();
+
+    $action->getLivewire()->redirect(request()->header('Referer'));
   }
   // ! End Change Value
 }

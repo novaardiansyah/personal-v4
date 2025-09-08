@@ -18,8 +18,7 @@ use Filament\Notifications\Actions\Action;
 function getSetting(string $key, $default = null)
 {
   return cache()->rememberForever("setting.{$key}", function () use ($key, $default) {
-    $setting = Setting::where('key', $key)->first()?->value ?? $default;
-    return $setting ? textLower($setting) : $setting;
+    return Setting::where('key', $key)->first()?->value ?? $default;
   });
 }
 
