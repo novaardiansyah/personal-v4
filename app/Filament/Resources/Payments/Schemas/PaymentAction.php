@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Settings\Schemas;
+namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\Payment;
 use App\Models\PaymentType;

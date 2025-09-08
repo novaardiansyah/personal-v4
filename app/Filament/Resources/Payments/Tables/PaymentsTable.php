@@ -2,20 +2,16 @@
 
 namespace App\Filament\Resources\Payments\Tables;
 
-use App\Filament\Resources\Settings\Schemas\PaymentAction;
+use App\Filament\Resources\Payments\Schemas\PaymentAction;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
