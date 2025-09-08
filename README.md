@@ -11,10 +11,9 @@ While this repository is public, please note that important configuration files 
 ## Dazzling Tech Stack! ⚡
 
 - [Laravel 12](https://laravel.com/)
-- [Filament PHP 3](https://filamentphp.com/)
+- [Filament PHP 4](https://filamentphp.com/)
 - [PHP 8.2+](https://www.php.net/)
 - [MySQL](https://www.mysql.com/)
-- [Spatie Laravel Permission](https://spatie.be/docs/laravel-permission/v6/introduction)
 
 ## Licensing Groove 🕺
 
