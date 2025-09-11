@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Users;
 
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
+use Filament\Tables\Columns\ImageColumn;
 use UnitEnum;
 
 use App\Filament\Resources\Users\Pages\ManageUsers;
@@ -47,7 +49,16 @@ class UserResource extends Resource
         DateTimePicker::make('email_verified_at'),
         TextInput::make('password')
           ->password()
-          ->required(),
+          ->required(fn (string $operation): bool => $operation === 'create'),
+        FileUpload::make('avatar_url')
+          ->label('Profile picture')
+          ->disk('public')
+          ->directory('images/avatar')
+          ->image()
+          ->imageEditor()
+          ->enableDownload()
+          ->enableOpen()
+          ->columnSpanFull(),
       ]);
   }
 
@@ -74,6 +85,15 @@ class UserResource extends Resource
     return $table
       ->recordTitleAttribute('name')
       ->columns([
+        TextColumn::make('index')
+          ->label('#')
+          ->rowIndex(),
+        ImageColumn::make('avatar_url')
+          ->label('Profile picture')
+          ->disk('public')
+          ->circular()
+          ->size(30)
+          ->toggleable(),
         TextColumn::make('name')
           ->searchable(),
         TextColumn::make('email')
@@ -100,7 +120,16 @@ class UserResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          EditAction::make(),
+          
+          EditAction::make()
+            ->mutateFormDataUsing(function (array $data): array {
+              if (!$data['password']) {
+                unset($data['password']);
+              }
+              
+              return $data;
+            }),
+
           DeleteAction::make()
         ]),
       ])
