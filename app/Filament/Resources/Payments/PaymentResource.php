@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments;
 
+use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use BackedEnum;
 use UnitEnum;
 
@@ -48,7 +49,7 @@ class PaymentResource extends Resource
   public static function getRelations(): array
   {
     return [
-      //
+      ItemsRelationManager::class,
     ];
   }
 

@@ -112,6 +112,7 @@ class ItemResource extends Resource
           ->label('#')
           ->rowIndex(),
         TextColumn::make('code')
+          ->label('Item ID')
           ->searchable()
           ->toggleable(),
         TextColumn::make('type_id')

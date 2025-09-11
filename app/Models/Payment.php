@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Payment extends Model
@@ -31,6 +32,11 @@ class Payment extends Model
   public function payment_type(): BelongsTo
   {
     return $this->belongsTo(PaymentType::class, 'type_id');
+  }
+
+  public function items(): BelongsToMany
+  {
+    return $this->belongsToMany(Item::class, 'payment_item')->withPivot(['item_code', 'quantity', 'price', 'total'])->withTimestamps();
   }
 
   public static function mutateDataPayment(array $data): array
