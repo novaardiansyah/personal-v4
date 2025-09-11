@@ -3,13 +3,16 @@
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\Item;
+use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use Filament\Actions\AttachAction;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -127,32 +130,7 @@ class PaymentAction
 
   public static function itemAttachAfter(array $data, Model $record, RelationManager $livewire, AttachAction $action)
   {
-    $owner = $livewire->getOwnerRecord();
-
-    // * Update item price
-    $record->update(['amount' => $data['amount']]);
-
-    // * Count total expense
-    $expense = $owner->amount + (int) $data['total'];
-
-    // * Count deposit change
-    $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
-
-    $is_scheduled = $owner->is_scheduled ?? false;
-
-    if (!$is_scheduled) {
-      // * Update deposit payment account
-      $owner->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    // * Add item name to Notes parent form
-    $note = trim(($owner->name ?? '') . ', ' . "{$record->name} (x{$data['quantity']})", ', ');
-
-    // * Update notes and amount
-    $owner->update(['amount' => $expense, 'name' => $note]);
-
-    // * refresh parent form
-    $action->getLivewire()->dispatch('refreshForm');
+    return self::_afterItemAttach($data, $record, $livewire, $action);
   }
   // ! End ItemRelationManager::Attach
 
@@ -184,4 +162,103 @@ class PaymentAction
     $action->getLivewire()->dispatch('refreshForm');
   }
   // ! ItemRelationManager::Detach
+
+  // ! ItemRelationManager::CreateAction
+  public static function itemCreateForm(Schema $schema, CreateAction $action)
+  {
+    return $schema
+      ->components([
+        TextInput::make('name')
+          ->required()
+          ->maxLength(255),
+
+        Select::make('type_id')
+          ->relationship('type', 'name')
+          ->default(ItemType::PRODUCT)
+          ->native(false)
+          ->preload()
+          ->required(),
+
+        Grid::make([
+          'default' => 3
+        ])
+          ->schema([
+            TextInput::make('amount')
+              ->required()
+              ->numeric()
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->afterStateUpdated(function($state, $set, $get): void {
+                $get('quantity') && $set('total', $state * $get('quantity'));
+              })
+              ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+
+            TextInput::make('quantity')
+              ->required()
+              ->numeric()
+              ->default(1)
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->afterStateUpdated(function($state, $set, $get): void {
+                $get('amount') && $set('total', $state * $get('amount'));
+              })
+              ->hint( fn (?string $state) => number_format($state ?? 0, 0, ',', '.')),
+
+            TextInput::make('total')
+              ->label('Total')
+              ->numeric()
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->readOnly()
+              ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+          ])
+          ->columnSpanFull()
+      ])
+      ->columns(2);
+  }
+
+  public static function itemMutateFormDataUsing(array $data): array
+  {
+    $data['code']      = getCode('item');
+    $data['item_code'] = getCode('payment_item');
+    $data['price']     = $data['amount'];
+
+    return $data;
+  }
+
+  public static function itemCreateAfter(array $data, Model $record, RelationManager $livewire, CreateAction $action)
+  {
+    return self::_afterItemAttach($data, $record, $livewire, $action);
+  }
+  // ! ItemRelationManager::CreateAction
+
+  private static function _afterItemAttach(array $data, Model $record, RelationManager $livewire, $action)
+  {
+    $owner = $livewire->getOwnerRecord();
+
+    // * Update item price
+    $record->update(['amount' => $data['amount']]);
+
+    // * Count total expense
+    $expense = $owner->amount + (int) $data['total'];
+
+    // * Count deposit change
+    $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
+
+    $is_scheduled = $owner->is_scheduled ?? false;
+
+    if (!$is_scheduled) {
+      // * Update deposit payment account
+      $owner->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    // * Add item name to Notes parent form
+    $note = trim(($owner->name ?? '') . ', ' . "{$record->name} (x{$data['quantity']})", ', ');
+
+    // * Update notes and amount
+    $owner->update(['amount' => $expense, 'name' => $note]);
+
+    // * refresh parent form
+    $action->getLivewire()->dispatch('refreshForm');
+  }
 }

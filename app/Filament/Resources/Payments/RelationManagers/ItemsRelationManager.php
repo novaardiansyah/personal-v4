@@ -75,7 +75,11 @@ class ItemsRelationManager extends RelationManager
       ])
       ->defaultSort('pivot_updated_at', 'desc')
       ->headerActions([
-        CreateAction::make(),
+        CreateAction::make()
+          ->modalWidth(Width::FourExtraLarge)
+          ->form(fn (Schema $form, CreateAction $action): Schema => PaymentAction::itemCreateForm($form, $action))
+          ->mutateFormDataUsing(fn (array $data): array => PaymentAction::itemMutateFormDataUsing($data))
+          ->after(fn (array $data, Model $record, RelationManager $livewire, CreateAction $action) => PaymentAction::itemCreateAfter($data, $record, $livewire, $action)),
         
         AttachAction::make()
           ->modalWidth(Width::ThreeExtraLarge)
@@ -91,6 +95,7 @@ class ItemsRelationManager extends RelationManager
             ->color('danger')
             ->before(fn (Model $record, RelationManager $livewire, DetachAction $action) => PaymentAction::itemDetachBefore($record, $livewire, $action))
         ])
-      ]);
+      ])
+      ->bulkActions([]);
   }
 }
