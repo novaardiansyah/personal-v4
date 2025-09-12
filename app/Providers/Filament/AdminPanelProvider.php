@@ -65,6 +65,7 @@ class AdminPanelProvider extends PanelProvider
         'Payments',
         'Items',
         'Settings',
+        'Logs',
       ])
       ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
       ->widgets([
