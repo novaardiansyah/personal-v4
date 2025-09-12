@@ -98,7 +98,7 @@ class GenerateResource extends Resource
           ->badge()
           ->color('info')
           ->numeric(),
-        TextEntry::make('review')
+        TextEntry::make('preview')
           ->copyable()
           ->badge()
           ->color('info')
@@ -150,7 +150,7 @@ class GenerateResource extends Resource
           ->toggleable()
           ->badge()
           ->color('info'),
-        TextColumn::make('review')
+        TextColumn::make('preview')
           ->copyable()
           ->badge()
           ->color('info')
@@ -167,6 +167,7 @@ class GenerateResource extends Resource
         TextColumn::make('updated_at')
           ->dateTime()
           ->sortable()
+          ->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: false),
       ])
       ->filters([
