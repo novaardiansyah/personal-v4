@@ -125,13 +125,14 @@ class ActivityLogResource extends Resource
           ->wrap()
           ->limit(80)
           ->searchable(),
-        TextColumn::make('subject_type')
+        TextColumn::make('subject_id')
           ->label('Subject')
           ->formatStateUsing(function ($state, Model $record) {
             if (!$state) return '-';
-            return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
+            return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
           })
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable()
+          ->searchable(),
         TextColumn::make('causer.name')
           ->label('Causer')
           ->searchable()
