@@ -2,9 +2,12 @@
 
 namespace App\Models;
 
+use App\Observers\PaymentAccountObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy([PaymentAccountObserver::class])]
 class PaymentAccount extends Model
 {
   use SoftDeletes;

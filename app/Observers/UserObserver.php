@@ -35,7 +35,7 @@ class UserObserver
    */
   public function restored(User $user): void
   {
-    //
+    $this->_log('Restored', $user);
   }
 
   /**
@@ -43,7 +43,7 @@ class UserObserver
    */
   public function forceDeleted(User $user): void
   {
-    //
+    $this->_log('Force Deleted', $user);
   }
 
   private function _log(string $event, User $user): void

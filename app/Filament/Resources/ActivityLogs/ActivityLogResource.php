@@ -183,9 +183,11 @@ class ActivityLogResource extends Resource
   public static function getEventColor(string $event): string
   {
     $colors = [
-      'Updated' => 'info',
-      'Created' => 'success',
-      'Deleted' => 'danger',
+      'Updated'       => 'info',
+      'Created'       => 'success',
+      'Deleted'       => 'danger',
+      'Force Deleted' => 'danger',
+      'Restored'      => 'warning',
     ];
 
     return $colors[$event] ?? 'primary';
