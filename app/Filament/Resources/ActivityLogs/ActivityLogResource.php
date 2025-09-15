@@ -63,13 +63,14 @@ class ActivityLogResource extends Resource
             ->sinceTooltip(),
 
           TextEntry::make('log_name')
-            ->label('Logname')
+            ->label('Group')
             ->badge()
             ->formatStateUsing(fn($state) => ucwords($state)),
           
           TextEntry::make('event')
             ->label('Event')
-            ->badge(),
+            ->badge()
+            ->color(fn ($state) => self::getEventColor($state)),
 
           TextEntry::make('description')
             ->label('Description')
@@ -83,13 +84,19 @@ class ActivityLogResource extends Resource
 
         Section::make([
           KeyValueEntry::make('prev_properties')
-            ->label('Previous properties'),
+            ->label('Previous properties')
+            ->hidden(fn ($state) => !$state),
 
           KeyValueEntry::make('properties')
-            ->label('Properties'),
+            ->label('Properties')
+            ->hidden(fn ($state) => !$state),
         ])
           ->description('Properties information')
-          ->collapsible(),
+          ->collapsible()
+          ->visible(fn (ActivityLog $record): bool =>
+            $record->properties->isNotEmpty() ||
+            $record->prev_properties->isNotEmpty()
+          )
       ])
         ->columns(1);
   }
@@ -103,13 +110,14 @@ class ActivityLogResource extends Resource
           ->label('#')
           ->rowIndex(),
         TextColumn::make('log_name')
-          ->label('Logname')
+          ->label('Group')
           ->badge()
           ->formatStateUsing(fn($state) => ucwords($state))
           ->toggleable(),
         TextColumn::make('event')
           ->label('Event')
           ->badge()
+          ->color(fn ($state) => self::getEventColor($state))
           ->toggleable(),
         TextColumn::make('description')
           ->label('Description')
@@ -140,6 +148,7 @@ class ActivityLogResource extends Resource
       ->filters([
         // TrashedFilter::make(),
       ])
+      ->defaultSort('updated_at', 'desc')
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
@@ -168,5 +177,16 @@ class ActivityLogResource extends Resource
       ->withoutGlobalScopes([
         SoftDeletingScope::class,
       ]);
+  }
+
+  public static function getEventColor(string $event): string
+  {
+    $colors = [
+      'Updated' => 'info',
+      'Created' => 'success',
+      'Deleted' => 'danger',
+    ];
+
+    return $colors[$event] ?? 'primary';
   }
 }

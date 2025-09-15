@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Observers\UserObserver;
 use Filament\Auth\MultiFactor\Email\Contracts\HasEmailAuthentication;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasAvatar;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,6 +15,7 @@ use Filament\Panel;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Illuminate\Support\Facades\Storage;
 
+#[ObservedBy([UserObserver::class])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, HasAppAuthentication, HasEmailAuthentication, HasAvatar
 {
   /** @use HasFactory<\Database\Factories\UserFactory> */
@@ -28,6 +31,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
     'email',
     'password',
     'avatar_url',
+    'email_verified_at',
+    'has_email_authentication',
+    'app_authentication_secret',
   ];
 
   /**

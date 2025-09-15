@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\Users;
 
 use BackedEnum;
+use UnitEnum;
 use Filament\Forms\Components\FileUpload;
 use Filament\Tables\Columns\ImageColumn;
-use UnitEnum;
-
 use App\Filament\Resources\Users\Pages\ManageUsers;
 use App\Models\User;
 use Filament\Actions\ActionGroup;
@@ -46,7 +45,9 @@ class UserResource extends Resource
           ->label('Email address')
           ->email()
           ->required(),
-        DateTimePicker::make('email_verified_at'),
+        DateTimePicker::make('email_verified_at')
+          ->native(false)
+          ->default(now()),
         TextInput::make('password')
           ->password()
           ->required(fn (string $operation): bool => $operation === 'create'),
@@ -71,8 +72,8 @@ class UserResource extends Resource
           ->label('Email address'),
         TextEntry::make('email_verified_at')
           ->dateTime(),
-        IconEntry::make('has_email_authentication')
-          ->boolean(),
+        // IconEntry::make('has_email_authentication')
+        //   ->boolean(),
         TextEntry::make('created_at')
           ->dateTime(),
         TextEntry::make('updated_at')
@@ -102,8 +103,8 @@ class UserResource extends Resource
         TextColumn::make('email_verified_at')
           ->dateTime()
           ->sortable(),
-        IconColumn::make('has_email_authentication')
-          ->boolean(),
+        // IconColumn::make('has_email_authentication')
+        //   ->boolean(),
         TextColumn::make('created_at')
           ->dateTime()
           ->sortable()

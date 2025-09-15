@@ -123,4 +123,7 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    'system' => [
+      'user_id' => env('SYSTEM_USER_ID', 1)
+    ]
 ];

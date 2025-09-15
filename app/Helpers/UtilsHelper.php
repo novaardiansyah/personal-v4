@@ -223,3 +223,35 @@ function textLower($text)
 //     \Log::info('674 --> Telegram location notification sent');
 //   }
 // }
+
+function saveActivityLog(array $data = [], $modelMorp = null)
+{
+  $causer = auth()->user() ?? User::find(config('app.system.user_id'));
+
+  
+  $model    = $data['model'] ?? '';
+  $event    = $data['event'] ?? '';
+  $changes  = [];
+  $oldValue = [];
+
+  if ($modelMorp) {
+    $changes = collect($modelMorp->getDirty())
+    ->except($modelMorp->getHidden());
+
+    if ($event == 'Updated') {
+      $oldValue = $changes->mapWithKeys(fn ($value, $key) => [$key => $modelMorp->getOriginal($key)])->toArray();
+    }
+
+    $changes  = $changes->toArray();
+  }
+
+  ActivityLog::create(array_merge([
+    'log_name'        => 'Resource',
+    'description'     => "{$model} {$event} by {$causer->name}",
+    'event'           => $event,
+    'causer_type'     => User::class,
+    'causer_id'       => $causer->id,
+    'prev_properties' => $oldValue,
+    'properties'      => $changes,
+  ], $data));
+}

@@ -10,7 +10,7 @@ class ActivityLog extends Model
 {
   use SoftDeletes;
 
-  protected $guard = ['id'];
+  protected $guarded = ['id'];
 
   protected $table = 'activity_logs';
 
