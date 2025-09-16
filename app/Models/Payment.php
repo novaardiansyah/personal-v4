@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -88,5 +89,50 @@ class Payment extends Model
     $data['code'] = getCode('payment');
 
     return ['status' => true, 'message' => 'Transaction data has been successfully transferred and saved.', 'data' => $data];
+  }
+
+  public static function scheduledPayment(): array
+  {
+    $today    = Carbon::now()->format('Y-m-d');
+    $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
+
+    $scheduledPayments = Payment::with(['payment_account:id,name,deposit', 'payment_account_to:id,name,deposit'])->where('is_scheduled', true)
+      ->whereBetween('date', [$today, $tomorrow])
+      ->orderBy('type_id', 'desc')
+      ->get();
+
+    if ($scheduledPayments->isEmpty()) {
+      return ['status' => false, 'message' => 'No scheduled payments found for today.'];
+    }
+
+    $scheduledPayments->each(function (Payment $payment) {
+      $payment->is_scheduled = false;
+      $payment->save();
+
+      if ((int) $payment->type_id === PaymentType::EXPENSE) {
+        $payment->payment_account->deposit -= $payment->amount;
+      } else if ((int) $payment->type_id === PaymentType::INCOME) {
+        $payment->payment_account->deposit += $payment->amount;
+      }
+
+      if ($payment->payment_account_to && ((int) $payment->type_id === PaymentType::TRANSFER || (int) $payment->type_id === PaymentType::WITHDRAWAL)) {
+        $payment->payment_account->deposit -= $payment->amount;
+        $payment->payment_account_to->deposit += $payment->amount;
+      }
+
+      if ($payment->payment_account->isDirty()) {
+        $payment->payment_account->save();
+      }
+
+      if ($payment->payment_account_to && $payment->payment_account_to->isDirty()) {
+        $payment->payment_account_to->save();
+      }
+
+      if ($payment->billing) {
+        $payment->billing->afterSuccessPaid();
+      }
+    });
+
+    return ['status' => true, 'message' => 'Scheduled payments processed successfully.'];
   }
 }
