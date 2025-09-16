@@ -24,11 +24,11 @@ class PaymentStatsWidget extends StatsOverviewWidget
     $totalAfterScheduledExpense = $total_saldo + $scheduled_income - $scheduled_expense;
 
     return [
-      Stat::make('Income (' . $month_str . ')', toIndonesianCurrency($payments->all_income, showCurrency: Setting::showPaymentCurrency()))
+      Stat::make('Income (' . $month_str . ')', toIndonesianCurrency($payments->all_income ?? 0, showCurrency: Setting::showPaymentCurrency()))
         ->description(toIndonesianCurrency($scheduled_income, showCurrency: Setting::showPaymentCurrency()) . ' scheduled income')
         ->descriptionIcon('heroicon-m-arrow-trending-up')
         ->descriptionColor('success'),
-      Stat::make('Expense (' . $month_str . ')', toIndonesianCurrency($payments->all_expense, showCurrency: Setting::showPaymentCurrency()))
+      Stat::make('Expense (' . $month_str . ')', toIndonesianCurrency($payments->all_expense ?? 0, showCurrency: Setting::showPaymentCurrency()))
         ->description(toIndonesianCurrency($scheduled_expense, showCurrency: Setting::showPaymentCurrency()) . ' scheduled expense')
         ->descriptionIcon('heroicon-m-arrow-trending-down')
         ->descriptionColor('danger'),
