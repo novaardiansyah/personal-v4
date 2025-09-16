@@ -60,6 +60,7 @@ class ScheduledPaymentJob implements ShouldQueue
     ")->whereBetween('date', [$today, $tomorrow])->first();
 
     $data = [
+      'author_name'      => getSetting('author_name'),
       'log_name'         => 'scheduled_payment_notification',
       'email'            => getSetting('scheduled_payment_email'),
       'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Terjadwal',

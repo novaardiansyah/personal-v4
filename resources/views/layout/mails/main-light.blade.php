@@ -1,3 +1,7 @@
+@php
+  $author_name = getSetting('author_name');
+@endphp
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -106,11 +110,11 @@
       <p style="margin-bottom: 26px">Terima kasih atas perhatian Anda.</p>
 
       <p>Salam Hangat,</p>
-      <p>{{ explode(' ', config('app.author_name'))[0] }}</p>
+      <p>{{ explode(' ', $author_name)[0] }}</p>
     </div>
 
     <div class="footer">
-      &copy; {{ date('Y') }} <a href="https://novaardiansyah.my.id">{{ config('app.author_name') }}</a>. All rights reserved.
+      &copy; {{ date('Y') }} <a href="https://novaardiansyah.my.id">{{ $author_name }}</a>. All rights reserved.
     </div>
   </div>
 </body>

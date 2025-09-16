@@ -5,7 +5,7 @@
 @endsection
 
 @section('header')
-  Hai {{ explode(' ', config('app.author_name'))[0] }},
+  Hai {{ explode(' ', $data['author_name'])[0] }},
 @endsection
 
 @section('content')

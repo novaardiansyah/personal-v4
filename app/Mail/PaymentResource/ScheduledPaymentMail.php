@@ -31,7 +31,7 @@ class ScheduledPaymentMail extends Mailable implements ShouldQueue
     return new Envelope(
       subject: $this->data['subject'],
       replyTo: [
-        new Address(getSetting('reply_email_to'), config('app.author_name')),
+        new Address(getSetting('reply_email_to'), getSetting('author_name')),
       ]
     );
   }

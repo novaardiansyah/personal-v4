@@ -126,6 +126,4 @@ return [
     'system' => [
       'user_id' => env('SYSTEM_USER_ID', 1)
     ],
-
-    'author_name' => env('APP_AUTHOR_NAME')
 ];
