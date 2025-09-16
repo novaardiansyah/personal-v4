@@ -29,6 +29,7 @@ class AdminPanelProvider extends PanelProvider
   {
     return $panel
       ->default()
+      ->brandName(fn() => getSetting('site_name'))
       ->spa()
       ->id('admin')
       ->path('admin')
