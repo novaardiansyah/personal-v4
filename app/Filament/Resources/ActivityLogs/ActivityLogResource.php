@@ -83,12 +83,12 @@ class ActivityLogResource extends Resource
           ->columns(3),
 
         Section::make([
-          KeyValueEntry::make('prev_properties')
-            ->label('Previous properties')
-            ->hidden(fn ($state) => !$state),
-
           KeyValueEntry::make('properties')
             ->label('Properties')
+            ->hidden(fn ($state) => !$state),
+
+          KeyValueEntry::make('prev_properties')
+            ->label('Previous properties')
             ->hidden(fn ($state) => !$state),
         ])
           ->description('Properties information')
