@@ -70,7 +70,7 @@ class ActivityLogResource extends Resource
           TextEntry::make('event')
             ->label('Event')
             ->badge()
-            ->color(fn ($state) => self::getEventColor($state)),
+            ->color(fn ($state) => ActivityLog::getEventColor($state)),
 
           TextEntry::make('description')
             ->label('Description')
@@ -117,7 +117,7 @@ class ActivityLogResource extends Resource
         TextColumn::make('event')
           ->label('Event')
           ->badge()
-          ->color(fn ($state) => self::getEventColor($state))
+          ->color(fn ($state) => ActivityLog::getEventColor($state))
           ->toggleable(),
         TextColumn::make('description')
           ->label('Description')
@@ -178,18 +178,5 @@ class ActivityLogResource extends Resource
       ->withoutGlobalScopes([
         SoftDeletingScope::class,
       ]);
-  }
-
-  public static function getEventColor(string $event): string
-  {
-    $colors = [
-      'Updated'       => 'info',
-      'Created'       => 'success',
-      'Deleted'       => 'danger',
-      'Force Deleted' => 'danger',
-      'Restored'      => 'warning',
-    ];
-
-    return $colors[$event] ?? 'primary';
   }
 }

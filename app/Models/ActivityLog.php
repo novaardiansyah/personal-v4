@@ -28,4 +28,17 @@ class ActivityLog extends Model
   {
     return $this->morphTo();
   }
+
+  public static function getEventColor(string $event): string
+  {
+    $colors = [
+      'Updated'       => 'info',
+      'Created'       => 'success',
+      'Deleted'       => 'danger',
+      'Force Deleted' => 'danger',
+      'Restored'      => 'warning',
+    ];
+
+    return $colors[$event] ?? 'primary';
+  }
 }
