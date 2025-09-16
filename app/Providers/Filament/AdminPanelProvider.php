@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Enums\NavigationGroup;
+use App\Livewire\PaymentStatsWidget;
 use Filament\Auth\MultiFactor\Email\EmailAuthentication;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -68,10 +69,8 @@ class AdminPanelProvider extends PanelProvider
         'Settings',
         'Logs',
       ])
-      ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
       ->widgets([
-        AccountWidget::class,
-        FilamentInfoWidget::class,
+        PaymentStatsWidget::class,
       ])
       ->middleware([
         EncryptCookies::class,
