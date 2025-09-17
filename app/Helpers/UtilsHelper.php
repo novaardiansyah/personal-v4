@@ -1,19 +1,16 @@
 <?php
 
 use App\Models\ActivityLog;
+use App\Models\File;
 use App\Models\Generate;
-// use App\Models\ScheduledFileDeletion;
 use App\Models\Setting;
 use App\Models\User;
-// use App\Notifications\TelegramLocationNotification;
-// use App\Notifications\TelegramNotification;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
-// use Illuminate\Support\Facades\Notification AS NotificationFacade;
 use Filament\Actions\Action;
 
 function getSetting(string $key, $default = null)
@@ -101,28 +98,19 @@ function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview =
       ->sendToDatabase($user);
   }
 
-  // ScheduledFileDeletion::create([
-  //   'user_id' => $user->id,
-  //   'file_name' => $filename,
-  //   'file_path' => $filepath,
-  //   'download_url' => $fileUrl,
-  //   'scheduled_deletion_time' => $expiration,
-  // ]);
+  File::create([
+    'user_id'                 => $user->id,
+    'file_name'               => $filename,
+    'file_path'               => $filepath,
+    'download_url'            => $fileUrl,
+    'scheduled_deletion_time' => $expiration,
+  ]);
 
   $properties = [
-    'filename' => $filename,
-    'filepath' => $filepath,
+    'filename'   => $filename,
+    'filepath'   => $filepath,
     'signed_url' => $fileUrl,
   ];
-
-  // ActivityLog::create([
-  //   'log_name'    => 'Export',
-  //   'description' => "{$user->name} Export {$name}.{$extension}",
-  //   'event'       => 'Export PDF',
-  //   'causer_type' => 'App\Models\User',
-  //   'causer_id'   => $user->id,
-  //   'properties'  => $properties
-  // ]);
 
   return $properties;
 }
