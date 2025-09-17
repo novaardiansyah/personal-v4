@@ -5,6 +5,7 @@ namespace App\Jobs\PaymentResource;
 use App\Mail\PaymentResource\ScheduledPaymentMail;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
+use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -40,15 +41,15 @@ class ScheduledPaymentJob implements ShouldQueue
     $today    = Carbon::now()->format('Y-m-d');
     $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
 
-    // $send = [
-    //   'filename'   => 'scheduled-payment-report',
-    //   'title'      => 'Laporan keuangan terjadwal',
-    //   'start_date' => $today,
-    //   'end_date'   => $today,
-    //   'now'        => $now,
-    // ];
+    $send = [
+      'filename'   => 'scheduled-payment-report',
+      'title'      => 'Laporan keuangan terjadwal',
+      'start_date' => $today,
+      'end_date'   => $tomorrow,
+      'now'        => $now,
+    ];
 
-    // $pdf = PaymentService::make_pdf($send);
+    $pdf = PaymentService::make_pdf($send);
     
     $payment = Payment::selectRaw("
       SUM(CASE WHEN type_id = 1 THEN amount ELSE 0 END) AS daily_expense,
@@ -68,9 +69,9 @@ class ScheduledPaymentJob implements ShouldQueue
       'payment'          => $payment->toArray(),
       'date'             => carbonTranslatedFormat($now, 'd F Y'),
       'created_at'       => $now,
-      // 'attachments' => [
-      //   storage_path('app/' . $pdf['filepath']),
-      // ],
+      'attachments' => [
+        storage_path('app/' . $pdf['filepath']),
+      ],
     ];
 
     // $mailObj = new ScheduledPaymentMail($data);

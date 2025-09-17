@@ -2,18 +2,19 @@
 
 use App\Models\ActivityLog;
 use App\Models\Generate;
-use App\Models\ScheduledFileDeletion;
+// use App\Models\ScheduledFileDeletion;
 use App\Models\Setting;
 use App\Models\User;
-use App\Notifications\TelegramLocationNotification;
-use App\Notifications\TelegramNotification;
+// use App\Notifications\TelegramLocationNotification;
+// use App\Notifications\TelegramNotification;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Notification AS NotificationFacade;
-use Filament\Notifications\Actions\Action;
+// use Illuminate\Support\Facades\Notification AS NotificationFacade;
+use Filament\Actions\Action;
 
 function getSetting(string $key, $default = null)
 {
@@ -44,87 +45,87 @@ function toIndonesianCurrency(float $number = 0, int $precision = 0, string $cur
   return $replace;
 }
 
-// function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview = false, $notification = true, $auto_close_tbody = true): array
-// {
-//   $user ??= User::find(4); // ! Default user if not provided
+function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview = false, $notification = true, $auto_close_tbody = true): array
+{
+  $user ??= getUser();
 
-//   $extension = 'pdf';
-//   $directory = 'filament-pdf';
-//   $filenameWithoutExtension = Uuid::uuid4() . "-{$name}";
-//   $filename = "{$filenameWithoutExtension}.{$extension}";
-//   $filepath = "{$directory}/{$filename}";
+  $extension                = 'pdf';
+  $directory                = 'filament-pdf';
+  $filenameWithoutExtension = Uuid::uuid4() . "-{$name}";
+  $filename                 = "{$filenameWithoutExtension}.{$extension}";
+  $filepath                 = "{$directory}/{$filename}";
 
-//   $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
+  $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
 
-//   $mpdf->WriteHTML($end_tbody . '
-//         </table>
-//       </body>
-//     </html>
-//   ');
+  $mpdf->WriteHTML($end_tbody . '
+        </table>
+      </body>
+    </html>
+  ');
 
-//   $mpdf->SetHTMLFooter(view('layout.footer')->render());
+  $mpdf->SetHTMLFooter(view('layout.footer')->render());
 
-//   if ($preview) {
-//     $mpdf->Output('', 'I'); // ! Output to browser for preview
-//     return [
-//       'filename' => $filename,
-//       'filepath' => $filepath,
-//       'signed_url' => null, // No signed URL for preview
-//     ];
-//   }
+  if ($preview) {
+    $mpdf->Output('', 'I'); // ! Output to browser for preview
+    return [
+      'filename'   => $filename,
+      'filepath'   => $filepath,
+      'signed_url' => null, // ! No signed URL for preview
+    ];
+  }
 
-//   $mpdf->Output(storage_path("app/{$filepath}"), 'F');
+  $mpdf->Output(storage_path("app/{$filepath}"), 'F');
 
-//   $expiration = now()->addHours(24);
+  $expiration = now()->addHours(24);
 
-//   $fileUrl = URL::temporarySignedRoute(
-//     'download',
-//     $expiration,
-//     ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
-//   );
+  $fileUrl = URL::temporarySignedRoute(
+    'download',
+    $expiration,
+    ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
+  );
 
-//   if ($notification) {
-//     Notification::make()
-//       ->title('Cetak PDF Selesai')
-//       ->body('File Anda siap untuk diunduh.')
-//       ->icon('heroicon-o-arrow-down-tray')
-//       ->iconColor('success')
-//       ->actions([
-//         Action::make('download')
-//           ->label('Unduh')
-//           ->url($fileUrl)
-//           ->openUrlInNewTab()
-//           ->markAsRead()
-//           ->button()
-//       ])
-//       ->sendToDatabase($user);
-//   }
+  if ($notification) {
+    Notification::make()
+      ->title('Cetak PDF Selesai')
+      ->body('File Anda siap untuk diunduh.')
+      ->icon('heroicon-o-arrow-down-tray')
+      ->iconColor('success')
+      ->actions([
+        Action::make('download')
+          ->label('Unduh')
+          ->url($fileUrl)
+          ->openUrlInNewTab()
+          ->markAsRead()
+          ->button()
+      ])
+      ->sendToDatabase($user);
+  }
 
-//   ScheduledFileDeletion::create([
-//     'user_id' => $user->id,
-//     'file_name' => $filename,
-//     'file_path' => $filepath,
-//     'download_url' => $fileUrl,
-//     'scheduled_deletion_time' => $expiration,
-//   ]);
+  // ScheduledFileDeletion::create([
+  //   'user_id' => $user->id,
+  //   'file_name' => $filename,
+  //   'file_path' => $filepath,
+  //   'download_url' => $fileUrl,
+  //   'scheduled_deletion_time' => $expiration,
+  // ]);
 
-//   $properties = [
-//     'filename' => $filename,
-//     'filepath' => $filepath,
-//     'signed_url' => $fileUrl,
-//   ];
+  $properties = [
+    'filename' => $filename,
+    'filepath' => $filepath,
+    'signed_url' => $fileUrl,
+  ];
 
-//   ActivityLog::create([
-//     'log_name' => 'Export',
-//     'description' => "{$user->name} Export {$name}.{$extension}",
-//     'event' => 'Export PDF',
-//     'causer_type' => 'App\Models\User',
-//     'causer_id' => $user->id,
-//     'properties' => $properties
-//   ]);
+  // ActivityLog::create([
+  //   'log_name'    => 'Export',
+  //   'description' => "{$user->name} Export {$name}.{$extension}",
+  //   'event'       => 'Export PDF',
+  //   'causer_type' => 'App\Models\User',
+  //   'causer_id'   => $user->id,
+  //   'properties'  => $properties
+  // ]);
 
-//   return $properties;
-// }
+  return $properties;
+}
 
 function getCode(string $alias, bool $isNotPreview = true)
 {
@@ -226,8 +227,7 @@ function textLower($text)
 
 function saveActivityLog(array $data = [], $modelMorp = null)
 {
-  $causer = auth()->user() ?? User::find(config('app.system.user_id'));
-
+  $causer = getUser();
   
   $model    = $data['model'] ?? '';
   $event    = $data['event'] ?? '';
@@ -254,4 +254,9 @@ function saveActivityLog(array $data = [], $modelMorp = null)
     'prev_properties' => $oldValue,
     'properties'      => $changes,
   ], $data));
+}
+
+function getUser(): Collection | User | null
+{
+  return auth()->user() ?? User::find(config('app.system.user_id'));
 }
