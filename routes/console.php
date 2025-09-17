@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -9,6 +10,10 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 
-// ! Proses: Pembayaran Terjadwal
-  Schedule::job(new ScheduledPaymentJob())
-    ->dailyAt('00:05');
+// ! Scheduled Payment
+Schedule::job(new ScheduledPaymentJob())
+  ->dailyAt('00:05');
+
+// ! Scheduled File Deletion
+Schedule::job(new RemoveFileJob())
+  ->everyTwoHours();
