@@ -15,12 +15,13 @@ use Filament\Panel;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, HasAppAuthentication, HasEmailAuthentication, HasAvatar
 {
   /** @use HasFactory<\Database\Factories\UserFactory> */
-  use HasFactory, Notifiable, HasApiTokens;
+  use HasFactory, Notifiable, HasApiTokens, SoftDeletes;
 
   /**
    * The attributes that are mass assignable.
@@ -29,6 +30,7 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
    */
   protected $fillable = [
     'name',
+    'code',
     'email',
     'password',
     'avatar_url',

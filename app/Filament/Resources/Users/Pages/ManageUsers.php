@@ -8,12 +8,16 @@ use Filament\Resources\Pages\ManageRecords;
 
 class ManageUsers extends ManageRecords
 {
-    protected static string $resource = UserResource::class;
+  protected static string $resource = UserResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+  protected function getHeaderActions(): array
+  {
+    return [
+      CreateAction::make()
+        ->mutateFormDataUsing(function (array $data): array {
+          $data['code'] = getCode('user');
+          return $data;
+        }),
+    ];
+  }
 }

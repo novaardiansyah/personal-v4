@@ -14,6 +14,10 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\IconEntry;
@@ -24,15 +28,14 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\TrashedFilter;
 
 class UserResource extends Resource
 {
   protected static ?string $model = User::class;
-
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
   protected static string | UnitEnum | null $navigationGroup = 'Settings';
   protected static ?int $navigationSort = 10;
-
   protected static ?string $recordTitleAttribute = 'name';
 
   public static function form(Schema $schema): Schema
@@ -50,6 +53,7 @@ class UserResource extends Resource
           ->default(now()),
         TextInput::make('password')
           ->password()
+          ->revealable()
           ->required(fn (string $operation): bool => $operation === 'create'),
         FileUpload::make('avatar_url')
           ->label('Profile picture')
@@ -89,6 +93,10 @@ class UserResource extends Resource
         TextColumn::make('index')
           ->label('#')
           ->rowIndex(),
+        TextColumn::make('code')
+          ->label('User ID')
+          ->toggleable()
+          ->searchable(),
         ImageColumn::make('avatar_url')
           ->label('Profile picture')
           ->disk('public')
@@ -113,30 +121,43 @@ class UserResource extends Resource
           ->dateTime()
           ->sortable()
           ->toggleable(),
+        TextColumn::make('deleted_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->defaultSort('updated_at', 'desc')
       ->filters([
-        //
+        TrashedFilter::make()
+          ->native(false),
       ])
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          
+
           EditAction::make()
-            ->mutateFormDataUsing(function (array $data): array {
+            ->mutateFormDataUsing(function (array $data, User $record): array {
+              if (!$record->code) {
+                $data['code'] = getCode('user');
+              }
+
               if (!$data['password']) {
                 unset($data['password']);
               }
-              
+
               return $data;
             }),
 
-          DeleteAction::make()
+          DeleteAction::make(),
+          ForceDeleteAction::make(),
+          RestoreAction::make(),
         ]),
       ])
       ->toolbarActions([
         BulkActionGroup::make([
           DeleteBulkAction::make(),
+          ForceDeleteBulkAction::make(),
+          RestoreBulkAction::make(),
         ]),
       ]);
   }
