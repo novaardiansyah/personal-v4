@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Enums\NavigationGroup;
+use App\Filament\Widgets\PaymentChartWidget;
 use App\Livewire\ActivityLogTableWidget;
 use App\Livewire\PaymentStatsWidget;
 use Filament\Auth\MultiFactor\Email\EmailAuthentication;
@@ -72,6 +73,7 @@ class AdminPanelProvider extends PanelProvider
       ])
       ->widgets([
         PaymentStatsWidget::class,
+        PaymentChartWidget::class,
         ActivityLogTableWidget::class,
       ])
       ->middleware([

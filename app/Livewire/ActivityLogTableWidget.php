@@ -14,7 +14,7 @@ use Str;
 class ActivityLogTableWidget extends TableWidget
 {
   protected static ?string $heading = 'Latest Activity Logs';
-  protected int | string | array $columnSpan = 'full';
+  protected int | string | array $columnSpan = 1;
 
   public function table(Table $table): Table
   {

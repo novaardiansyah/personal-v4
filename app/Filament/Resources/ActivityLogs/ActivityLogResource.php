@@ -100,7 +100,7 @@ class ActivityLogResource extends Resource
           TextEntry::make('user_agent')
             ->columnSpan(2),
         ])
-          ->description('Location information')
+          ->description('Location and client information')
           ->collapsible()
           ->visible(fn (ActivityLog $record): bool =>
             !!$record->ip_address
