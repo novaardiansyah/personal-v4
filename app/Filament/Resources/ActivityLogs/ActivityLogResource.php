@@ -112,6 +112,7 @@ class ActivityLogResource extends Resource
         TextColumn::make('log_name')
           ->label('Group')
           ->badge()
+          ->color(fn ($state) => ActivityLog::getLognameColor($state))
           ->formatStateUsing(fn($state) => ucwords($state))
           ->toggleable(),
         TextColumn::make('event')

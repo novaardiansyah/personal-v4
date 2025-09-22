@@ -37,6 +37,17 @@ class ActivityLog extends Model
       'Deleted'       => 'danger',
       'Force Deleted' => 'danger',
       'Restored'      => 'warning',
+      'Login'         => 'danger',
+    ];
+
+    return $colors[$event] ?? 'primary';
+  }
+
+  public static function getLognameColor(string $event): string
+  {
+    $colors = [
+      'Resource'     => 'primary',
+      'Notification' => 'success',
     ];
 
     return $colors[$event] ?? 'primary';
