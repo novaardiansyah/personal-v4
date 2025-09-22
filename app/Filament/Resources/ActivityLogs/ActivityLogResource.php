@@ -83,6 +83,31 @@ class ActivityLogResource extends Resource
           ->columns(3),
 
         Section::make([
+          TextEntry::make('ip_address'),
+
+          TextEntry::make('timezone'),
+
+          TextEntry::make('geolocation'),
+
+          TextEntry::make('country'),
+
+          TextEntry::make('city'),
+
+          TextEntry::make('region'),
+
+          TextEntry::make('postal'),
+
+          TextEntry::make('user_agent')
+            ->columnSpan(2),
+        ])
+          ->description('Location information')
+          ->collapsible()
+          ->visible(fn (ActivityLog $record): bool =>
+            !!$record->ip_address
+          )
+          ->columns(3),
+
+        Section::make([
           KeyValueEntry::make('properties')
             ->label('Properties')
             ->hidden(fn ($state) => !$state),
@@ -96,7 +121,7 @@ class ActivityLogResource extends Resource
           ->visible(fn (ActivityLog $record): bool =>
             $record->properties->isNotEmpty() ||
             $record->prev_properties->isNotEmpty()
-          )
+        )
       ])
         ->columns(1);
   }
