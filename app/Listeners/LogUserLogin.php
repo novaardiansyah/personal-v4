@@ -64,11 +64,6 @@ class LogUserLogin
       'user_agent' => $user_agent,
     ];
 
-    if ($existingLog) {
-      \Log::info('3467 --> Login Silent Notification', $silentLog);
-      return;
-    }
-
     $url = getSetting('ipinfo_api_url');
     
     $replace = [
@@ -118,6 +113,9 @@ class LogUserLogin
       ],
     ]);
 
+    // ! If it already exists and is still within the delay period, then no email notification needs to be sent again
+    if ($existingLog) return;
+
     $emailData = [
       'email'       => getSetting('login_email_notification'),
       'author_name' => getSetting('author_name'),
@@ -133,8 +131,11 @@ class LogUserLogin
       'created_at'  => $now,
     ];
 
-    \Log::info('3468 --> Sent email login notification', $silentLog);
+    $enableEmailLogin = textLower(getSetting('enable_login_email_notification', 'Yes')) === 'yes' ? true : false;
 
-    Mail::to($emailData['email'])->queue(new NotifUserLoginMail($emailData));
+    if ($enableEmailLogin) {
+      \Log::info('3468 --> Sent email login notification', $silentLog);
+      Mail::to($emailData['email'])->queue(new NotifUserLoginMail($emailData));
+    }
   }
 }
