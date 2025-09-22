@@ -95,6 +95,7 @@ class UserResource extends Resource
           ->rowIndex(),
         TextColumn::make('code')
           ->label('User ID')
+          ->copyable()
           ->toggleable()
           ->searchable(),
         ImageColumn::make('avatar_url')

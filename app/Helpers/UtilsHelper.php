@@ -246,5 +246,6 @@ function saveActivityLog(array $data = [], $modelMorp = null)
 
 function getUser(): Collection | User | null
 {
-  return auth()->user() ?? User::find(config('app.system.user_id'));
+  $user_code = getSetting('default_system_user');
+  return auth()->user() ?? User::where('code', $user_code)->first();
 }
