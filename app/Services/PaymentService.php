@@ -37,7 +37,7 @@ class PaymentService
     $totalExpense  = 0;
     $totalIncome   = 0;
     $totalTransfer = 0;
-    $user          = getUser();
+    $user          = $data['user'] ?? getUser();
 
     $mpdf->WriteHTML(view('payment-resource.make-pdf.header', [
       'title'   => $data['title'] ?? 'Laporan keuangan',

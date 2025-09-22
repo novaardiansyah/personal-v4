@@ -83,13 +83,13 @@ function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview =
 
   if ($notification) {
     Notification::make()
-      ->title('Cetak PDF Selesai')
-      ->body('File Anda siap untuk diunduh.')
+      ->title('PDF file ready')
+      ->body('Your file is ready to download')
       ->icon('heroicon-o-arrow-down-tray')
       ->iconColor('success')
       ->actions([
         Action::make('download')
-          ->label('Unduh')
+          ->label('Download')
           ->url($fileUrl)
           ->openUrlInNewTab()
           ->markAsRead()
@@ -244,8 +244,12 @@ function saveActivityLog(array $data = [], $modelMorp = null)
   ], $data));
 }
 
-function getUser(): Collection | User | null
+function getUser(?int $userId = null): Collection | User | null
 {
+  if ($userId) {
+    return User::find($userId);
+  }
+
   $user_code = getSetting('default_system_user');
   return auth()->user() ?? User::where('code', $user_code)->first();
 }

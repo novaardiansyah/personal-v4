@@ -3,15 +3,18 @@
 namespace App\Filament\Resources\Payments\Tables;
 
 use App\Filament\Resources\Payments\Schemas\PaymentAction;
+use App\Jobs\PaymentResource\PaymentReportPdf;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Notifications\Notification;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -91,6 +94,30 @@ class PaymentsTable
       ->filters([
         TrashedFilter::make()
           ->native(false),
+      ])
+      ->headerActions([
+        Action::make('print_pdf')
+          ->label('PDF')
+          ->color('primary')
+          ->icon('heroicon-o-printer')
+          ->action(function (Action $action): void {
+            $livewire = $action->getLivewire();
+            $filter   = $livewire->getTableFilterState('date') ?? [];
+            
+            $params = [
+              'start_date' => $filter['from_created_at'] ?? now()->startOfMonth(),
+              'end_date'   => $filter['end_created_at'] ?? now()->endOfMonth(),
+              'user'       => getUser(),
+            ];
+            
+            PaymentReportPdf::dispatch($params);
+
+            Notification::make()
+              ->title('Print PDF in process')
+              ->body('PDF print has been processed. You will be notified when the file is ready to download.')
+              ->success()
+              ->send();
+          })
       ])
       ->recordActions([
         ActionGroup::make([
