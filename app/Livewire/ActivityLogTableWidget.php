@@ -7,7 +7,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Filament\Widgets\TableWidget;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Str;
 
@@ -21,7 +20,7 @@ class ActivityLogTableWidget extends TableWidget
     return $table
       ->query(
         ActivityLog::query()
-            ->limit(10)
+          ->limit(10)
         )
       ->columns([
         TextColumn::make('#')
@@ -31,12 +30,12 @@ class ActivityLogTableWidget extends TableWidget
           ->label('Group')
           ->badge()
           ->formatStateUsing(fn($state) => ucwords($state))
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('event')
           ->label('Event')
           ->badge()
           ->color(fn ($state) => ActivityLog::getEventColor($state))
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('description')
           ->label('Description')
           ->toggleable()
@@ -49,8 +48,8 @@ class ActivityLogTableWidget extends TableWidget
             if (!$state) return '-';
             return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
           })
-          ->toggleable()
-          ->searchable(),
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('causer.name')
           ->label('Causer')
           ->searchable()

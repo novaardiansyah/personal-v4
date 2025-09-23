@@ -14,7 +14,7 @@ class PaymentChartWidget extends ChartWidget
   use HasFiltersSchema;
 
   protected ?string $heading = 'Payment Statistics';
-  protected int|string|array $columnSpan = 1;
+  protected int | string | array $columnSpan = 1;
   protected ?string $maxHeight = '600px';
 
   public function filtersSchema(Schema $schema): Schema
