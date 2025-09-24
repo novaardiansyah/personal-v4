@@ -60,16 +60,17 @@ class ShortUrlController extends Controller
 
     $ip_info = Http::get($url)->json();
 
-    $country = $ip_info['country'] ?? null;
-    $city    = $ip_info['city'] ?? null;
-    $region  = $ip_info['region'] ?? null;
-    $postal  = $ip_info['postal'] ?? null;
+    $country     = $ip_info['country'] ?? null;
+    $city        = $ip_info['city'] ?? null;
+    $region      = $ip_info['region'] ?? null;
+    $postal      = $ip_info['postal'] ?? null;
     $geolocation = $ip_info['loc'] ?? null;
     $geolocation = $geolocation ? str_replace(',', ', ', $geolocation) : null;
     $timezone    = $ip_info['timezone'] ?? null;
+    $user        = getUser();
 
     saveActivityLog([
-      'description'  => 'Short URL accessed',
+      'description'  => 'Short URL accessed by ' . $user->name,
       'event'        => 'Access',
       'subject_id'   => $shortUrl->id,
       'subject_type' => ShortUrl::class,
