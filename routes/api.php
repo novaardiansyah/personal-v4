@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\GalleryTagController;
 use App\Http\Controllers\Api\SkillController;
+use App\Http\Controllers\Api\ShortUrlController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -30,5 +31,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/', [GalleryController::class, 'index']);
     Route::get('/{id}', [GalleryController::class, 'show']);
     Route::get('/tag/{tagId}', [GalleryController::class, 'getByTag']);
+  });
+
+  Route::prefix('short-urls')->group(function () {
+    Route::get('/{short_code}', [ShortUrlController::class, 'redirect']);
   });
 });
