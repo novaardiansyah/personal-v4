@@ -8,6 +8,8 @@ use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Support\Enums\Width;
+use HeroQR\Core\QRCodeGenerator;
+use Illuminate\Support\Facades\Storage;
 use Str;
 
 class ManageShortUrls extends ManageRecords
@@ -53,6 +55,21 @@ class ManageShortUrls extends ManageRecords
           $data['str_code']   = $str;
 
           return $data;
+        })
+        ->after(function (ShortUrl $record) {
+          $qrCodeManager = new QRCodeGenerator();
+          $short_code    = $record->short_code;
+          
+          $qrCode = $qrCodeManager
+            ->setData( $short_code) 
+            ->generate();
+
+          $path = 'qrcodes/short-urls/' . $record->getCleanShortCode();
+          $qrCode->saveTo(Storage::disk('public')->path($path));
+
+          $record->update([
+            'qrcode' => $path . '.png'
+          ]);
         }),
     ];
   }
