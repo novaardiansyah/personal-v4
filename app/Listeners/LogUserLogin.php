@@ -10,7 +10,6 @@ use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 
 class LogUserLogin 
@@ -44,8 +43,6 @@ class LogUserLogin
     $ip_address = request()->ip();
     $user_agent = request()->userAgent();
 
-    $ip_address = explode(',', $ip_address)[0] ?? '127.0.0.2';
-
     // ! Check in ActivityLog by IP, if it already exists, no need to send the email again
     $interval = getSetting('interval_login_notification', '1 Hours');
     $interval = (int) preg_replace('/\D/', '', $interval);
@@ -56,7 +53,7 @@ class LogUserLogin
       ->where('subject_id', $user_id)
       ->where('created_at', '>=', now()->subHours($interval))
       ->first();
-    
+
     $silentLog = [
       'user_id'    => $user_id,
       'user_email' => $user_email,
@@ -64,33 +61,15 @@ class LogUserLogin
       'user_agent' => $user_agent,
     ];
 
-    $url = getSetting('ipinfo_api_url');
-    
-    $replace = [
-      'ip_address' => $ip_address,
-      'token'      => config(key: 'services.ipinfo.token')
-    ];
+    $ipInfo = getIpInfo($ip_address);
 
-    foreach ($replace as $key => $value) {
-      $url = str_replace('{' . $key . '}', $value, $url);
-    }
-    
-    $ip_info = Http::get($url)->json();
-
-    $country = $ip_info['country'] ?? null;
-    $city    = $ip_info['city'] ?? null;
-    $region  = $ip_info['region'] ?? null;
-    $postal  = $ip_info['postal'] ?? null;
-
-    $address = null;
-
-    if ($city) {
-      $address = trim("{$city}, {$region}, {$country} ({$postal})");
-    }
-
-    $geolocation = $ip_info['loc'] ?? null;
-    $geolocation = $geolocation ? str_replace(',', ', ', $geolocation) : null;
-    $timezone    = $ip_info['timezone'] ?? null;
+    $country     = $ipInfo['country'];
+    $city        = $ipInfo['city'];
+    $region      = $ipInfo['region'];
+    $postal      = $ipInfo['postal'];
+    $geolocation = $ipInfo['geolocation'];
+    $timezone    = $ipInfo['timezone'];
+    $address     = $ipInfo['address'];
     
     saveActivityLog([
       'log_name'     => 'Notification',

@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\ShortUrl;
 use App\Models\ActivityLog;
-use Illuminate\Support\Facades\Http;
 
 class ShortUrlController extends Controller
 {
@@ -46,27 +45,14 @@ class ShortUrlController extends Controller
     $ip_address = request()->ip();
     $user_agent = request()->userAgent();
 
-    $ip_address = explode(',', $ip_address)[0] ?? '127.0.0.2';
-    $url        = getSetting('ipinfo_api_url');
+    $ipInfo = getIpInfo($ip_address);
 
-    $replace = [
-      'ip_address' => $ip_address,
-      'token'      => config(key: 'services.ipinfo.token')
-    ];
-
-    foreach ($replace as $key => $value) {
-      $url = str_replace('{' . $key . '}', $value, $url);
-    }
-
-    $ip_info = Http::get($url)->json();
-
-    $country     = $ip_info['country'] ?? null;
-    $city        = $ip_info['city'] ?? null;
-    $region      = $ip_info['region'] ?? null;
-    $postal      = $ip_info['postal'] ?? null;
-    $geolocation = $ip_info['loc'] ?? null;
-    $geolocation = $geolocation ? str_replace(',', ', ', $geolocation) : null;
-    $timezone    = $ip_info['timezone'] ?? null;
+    $country     = $ipInfo['country'];
+    $city        = $ipInfo['city'];
+    $region      = $ipInfo['region'];
+    $postal      = $ipInfo['postal'];
+    $geolocation = $ipInfo['geolocation'];
+    $timezone    = $ipInfo['timezone'];
     $user        = getUser();
 
     saveActivityLog([

@@ -9,6 +9,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
@@ -252,4 +253,48 @@ function getUser(?int $userId = null): Collection | User | null
 
   $user_code = getSetting('default_system_user');
   return auth()->user() ?? User::where('code', $user_code)->first();
+}
+
+function getIpInfo(?string $ipAddress = null): array
+{
+  $ipAddress = $ipAddress ?? request()->ip();
+  $ipAddress = explode(',', $ipAddress)[0] ?? '127.0.0.2';
+
+  $url = getSetting('ipinfo_api_url');
+
+  $replace = [
+    'ip_address' => $ipAddress,
+    'token'      => config('services.ipinfo.token')
+  ];
+
+  foreach ($replace as $key => $value) {
+    $url = str_replace('{' . $key . '}', $value, $url);
+  }
+
+  $ipInfo = Http::get($url)->json();
+
+  $country     = $ipInfo['country'] ?? null;
+  $city        = $ipInfo['city'] ?? null;
+  $region      = $ipInfo['region'] ?? null;
+  $postal      = $ipInfo['postal'] ?? null;
+  $geolocation = $ipInfo['loc'] ?? null;
+  $geolocation = $geolocation ? str_replace(',', ', ', $geolocation) : null;
+  $timezone    = $ipInfo['timezone'] ?? null;
+
+  $address = null;
+  if ($city) {
+    $address = trim("{$city}, {$region}, {$country} ({$postal})");
+  }
+
+  return [
+    'ip_address'  => $ipAddress,
+    'country'     => $country,
+    'city'        => $city,
+    'region'      => $region,
+    'postal'      => $postal,
+    'geolocation' => $geolocation,
+    'timezone'    => $timezone,
+    'address'     => $address,
+    'raw_data'    => $ipInfo
+  ];
 }
