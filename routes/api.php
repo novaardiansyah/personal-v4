@@ -12,11 +12,16 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/user', function (Request $request) {
-    return $request->user();
+    $user = $request->user();
+    if ($user) {
+      $user->avatar_url = Storage::disk('public')->url($user->avatar_url);
+    }
+    return $user;
   });
 
   Route::prefix('auth')->group(function () {
     Route::post('/change-password', [AuthController::class, 'changePassword']);
+    Route::put('/profile', [AuthController::class, 'updateProfile']);
   });
 
   Route::prefix('skills')->group(function () {
