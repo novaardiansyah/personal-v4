@@ -80,6 +80,8 @@ This is a Laravel-based personal management system built with Filament admin pan
 ### 4. Helper Functions
 - `getSetting($key)` - Retrieve setting values
 - `getCode($type)` - Generate codes based on type
+- `getIpInfo($ipAddress)` - Get IP geolocation information from ipinfo.io
+- `getUser($userId)` - Get user by ID or current authenticated user
 
 ## Database Migrations
 - Recent ShortUrl improvements:
@@ -112,3 +114,8 @@ app/
 - Soft deletes enabled on appropriate models
 - Code generation uses both `code` and `short_code` fields
 - Settings system for dynamic configuration
+
+## Git Convention
+When making commits, ALWAYS push to all remote repositories:
+- Use `git push origin main && git push person main` to push to both remotes
+- This ensures changes are available in both novaardiansyah-org/personal-v4 and novaardiansyah/personal-v4 repositories
