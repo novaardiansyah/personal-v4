@@ -5,7 +5,9 @@ namespace App\Filament\Resources\ShortUrls;
 use BackedEnum;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Components\Grid;
+use Filament\Tables\Columns\ImageColumn;
 use Str;
 use UnitEnum;
 use App\Filament\Resources\ShortUrls\Pages\ManageShortUrls;
@@ -90,7 +92,9 @@ class ShortUrlResource extends Resource
           ->boolean(),
         TextEntry::make('clicks')
           ->numeric(),
-        TextEntry::make('qrcode'),
+        ImageEntry::make('qrcode')
+          ->size(100)
+          ->disk('public'),
 
         Grid::make([
           'default' => 3
@@ -120,6 +124,10 @@ class ShortUrlResource extends Resource
         TextColumn::make('code')
           ->searchable()
           ->copyable(),
+        ImageColumn::make('qrcode')
+          ->size(50)
+          ->disk('public')
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('note')
           ->searchable(),
         TextColumn::make('long_url')
