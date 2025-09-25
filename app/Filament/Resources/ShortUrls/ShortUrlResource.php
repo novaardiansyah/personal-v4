@@ -11,7 +11,9 @@ use Filament\Tables\Columns\ImageColumn;
 use Str;
 use UnitEnum;
 use App\Filament\Resources\ShortUrls\Pages\ManageShortUrls;
+use App\Filament\Resources\ShortUrls\Schemas\ShortUrlAction;
 use App\Models\ShortUrl;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -170,7 +172,16 @@ class ShortUrlResource extends Resource
               $data['str_code'] = $record->getCleanShortCode();
               return $data;
             }),
-          
+
+          Action::make('regenerate_qr')
+            ->label('Regenerate QR Code')
+            ->icon('heroicon-o-arrow-path')
+            ->color('warning')
+            ->requiresConfirmation()
+            ->modalHeading('Regenerate QR Code')
+            ->modalDescription('Are you sure you want to regenerate the QR code for this short URL?')
+            ->action(fn (Action $action, ShortUrl $record) => ShortUrlAction::regenerateQRCode($action, $record)),
+
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),

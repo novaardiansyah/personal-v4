@@ -22,7 +22,7 @@ class ShortUrl extends Model
     return $domain ? $domain . '/' . $value : $value;
   }
 
-  public function getCleanShortCode(): string 
+  public function getCleanShortCode(): string
   {
     $value = $this->short_code;
     $domain = getSetting('short_url_domain');
