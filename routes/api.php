@@ -10,11 +10,13 @@ use App\Http\Controllers\Api\ShortUrlController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
-
-// Protected routes
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/user', function (Request $request) {
     return $request->user();
+  });
+
+  Route::prefix('auth')->group(function () {
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
   });
 
   Route::prefix('skills')->group(function () {
