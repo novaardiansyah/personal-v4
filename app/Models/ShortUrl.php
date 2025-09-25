@@ -21,4 +21,11 @@ class ShortUrl extends Model
     $domain = getSetting('short_url_domain');
     return $domain ? $domain . '/' . $value : $value;
   }
+
+  public function getCleanShortCode(): string 
+  {
+    $value = $this->short_code;
+    $domain = getSetting('short_url_domain');
+    return str_replace($domain . '/', '', $value);
+  }
 }

@@ -6,7 +6,6 @@ use BackedEnum;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Str;
 use UnitEnum;
 use App\Filament\Resources\ShortUrls\Pages\ManageShortUrls;
@@ -156,8 +155,14 @@ class ShortUrlResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
+
           EditAction::make()
-            ->modalWidth(Width::Medium),
+            ->modalWidth(Width::Medium)
+            ->mutateRecordDataUsing(function (ShortUrl $record, array $data): array {
+              $data['str_code'] = $record->getCleanShortCode();
+              return $data;
+            }),
+          
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
