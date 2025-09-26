@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\PaymentAccount;
+use App\Http\Resources\PaymentResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -52,36 +53,11 @@ class PaymentController extends Controller
       ->orderBy('date', 'desc')
       ->orderBy('created_at', 'desc')
       ->limit($limit)
-      ->get()
-      ->map(function ($payment) {
-        $type = match($payment->type_id) {
-          PaymentType::INCOME     => 'income',
-          PaymentType::EXPENSE    => 'expense',
-          PaymentType::TRANSFER   => 'transfer',
-          PaymentType::WITHDRAWAL => 'withdrawal',
-          default => 'unknown'
-        };
-
-        $amount = match($payment->type_id) {
-          PaymentType::INCOME     => $payment->amount,
-          PaymentType::EXPENSE    => -$payment->amount,
-          PaymentType::TRANSFER   => $payment->amount,
-          PaymentType::WITHDRAWAL => -$payment->amount,
-          default => 0
-        };
-
-        return [
-          'id'       => $payment->id,
-          'title'    => $payment->name ?? $payment->payment_type->name,
-          'amount'   => $amount,
-          'type'     => strtolower($payment->payment_type->name),
-          'date'     => $payment->date,
-        ];
-      });
+      ->get();
 
     return response()->json([
       'success' => true,
-      'data'    => $transactions
+      'data'    => PaymentResource::collection($transactions)
     ]);
   }
 }

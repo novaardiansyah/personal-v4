@@ -114,6 +114,7 @@ app/
 - Soft deletes enabled on appropriate models
 - Code generation uses both `code` and `short_code` fields
 - Settings system for dynamic configuration
+- **Code Formatting**: Always use tab size = 2 for Laravel PHP files
 
 ## Git Convention
 When making commits, ALWAYS push to all remote repositories:
