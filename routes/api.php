@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\GalleryTagController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\ShortUrlController;
+use App\Http\Controllers\Api\PaymentController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -42,5 +43,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('short-urls')->group(function () {
     Route::get('/{short_code}', [ShortUrlController::class, 'redirect']);
+  });
+
+  Route::prefix('payments')->group(function () {
+    Route::get('/summary', [PaymentController::class, 'summary']);
+    Route::get('/recent-transactions', [PaymentController::class, 'recentTransactions']);
   });
 });
