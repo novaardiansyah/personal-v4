@@ -8,6 +8,7 @@ use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\PaymentAccount;
+use App\Models\PaymentItem;
 use App\Http\Resources\PaymentResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -375,14 +376,27 @@ class PaymentController extends Controller
       'total' => $total
     ]);
 
-    // Update payment amount and notes
+    // Update item price to match attachment price
+    $item->update(['amount' => $price]);
+
+    // Count total expense
     $expense = $payment->amount + $total;
+
+    // Count deposit change (following Filament logic)
+    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+
+    $is_scheduled = $payment->is_scheduled ?? false;
+
+    // Update deposit payment account if not scheduled
+    if (!$is_scheduled) {
+      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    // Update payment notes
     $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 
-    $payment->update([
-      'amount' => $expense,
-      'name' => $note
-    ]);
+    // Update payment
+    $payment->update(['amount' => $expense, 'name' => $note]);
 
     return response()->json([
       'success' => true,
@@ -453,14 +467,24 @@ class PaymentController extends Controller
       'total' => $total
     ]);
 
-    // Update payment amount and notes
+    // Count total expense
     $expense = $payment->amount + $total;
+
+    // Count deposit change (following Filament logic)
+    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+
+    $is_scheduled = $payment->is_scheduled ?? false;
+
+    // Update deposit payment account if not scheduled
+    if (!$is_scheduled) {
+      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    // Update payment notes
     $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 
-    $payment->update([
-      'amount' => $expense,
-      'name' => $note
-    ]);
+    // Update payment
+    $payment->update(['amount' => $expense, 'name' => $note]);
 
     return response()->json([
       'success' => true,
@@ -476,7 +500,7 @@ class PaymentController extends Controller
   /**
    * Detach item from payment
    */
-  public function detachItem(Request $request, $paymentId, $itemId): JsonResponse
+  public function detachItem(Request $request, $paymentId, $pivotId): JsonResponse
   {
     $payment = Payment::find($paymentId);
 
@@ -487,30 +511,41 @@ class PaymentController extends Controller
       ], 404);
     }
 
-    $item = $payment->items()->find($itemId);
+    // Find the pivot record
+    $paymentItem = PaymentItem::where('payment_id', $paymentId)
+      ->where('id', $pivotId)
+      ->first();
 
-    if (!$item) {
+    if (!$paymentItem) {
       return response()->json([
         'success' => false,
-        'message' => 'Item not found in this payment'
+        'message' => 'Payment item not found'
       ], 404);
     }
 
-    // Get pivot data before detaching
-    $pivot = $item->pivot;
+    // Get the related item
+    $item = $paymentItem->item;
 
-    // Detach item
-    $payment->items()->detach($itemId);
+    // Count expense after detach
+    $expense = $payment->amount - $paymentItem->total;
 
-    // Update payment amount and notes
-    $expense = $payment->amount - $pivot->total;
-    $itemName = $item->name . ' (x' . $pivot->quantity . ')';
+    // Count deposit change (following Filament logic)
+    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+
+    $is_scheduled = $payment->is_scheduled ?? false;
+
+    // Update deposit payment account if not scheduled
+    if (!$is_scheduled) {
+      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    // Update payment notes
+    $itemName = $item->name . ' (x' . $paymentItem->quantity . ')';
     $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
-    $payment->update([
-      'amount' => $expense,
-      'name' => $note
-    ]);
+    // Delete the pivot record and update payment
+    $paymentItem->delete();
+    $payment->update(['amount' => $expense, 'name' => $note]);
 
     return response()->json([
       'success' => true,
