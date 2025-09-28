@@ -48,5 +48,19 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('payments')->group(function () {
     Route::get('/summary', [PaymentController::class, 'summary']);
     Route::get('/recent-transactions', [PaymentController::class, 'recentTransactions']);
+    Route::get('/', [PaymentController::class, 'index']);
+    Route::post('/', [PaymentController::class, 'store']);
+    Route::get('/{id}', [PaymentController::class, 'show']);
+    Route::put('/{id}', [PaymentController::class, 'update']);
+    Route::delete('/{id}', [PaymentController::class, 'destroy']);
+    Route::get('/accounts', [PaymentController::class, 'getPaymentAccounts']);
+    Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
+
+    // Item management for payments
+    Route::get('/{id}/items/available', [PaymentController::class, 'getAvailableItems']);
+    Route::get('/item-types', [PaymentController::class, 'getItemTypes']);
+    Route::post('/{id}/items/attach', [PaymentController::class, 'attachItem']);
+    Route::post('/{id}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
+    Route::delete('/{id}/items/{itemId}', [PaymentController::class, 'detachItem']);
   });
 });

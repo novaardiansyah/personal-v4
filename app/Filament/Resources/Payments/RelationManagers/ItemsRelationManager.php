@@ -25,6 +25,16 @@ class ItemsRelationManager extends RelationManager
 
   protected static ?string $relatedResource = ItemResource::class;
 
+  public static function canViewForRecord(Model $ownerRecord, string $pageClass): bool
+  {
+    return (bool) $ownerRecord->has_items;
+  }
+
+  public function isReadOnly(): bool
+  {
+    return false;
+  }
+
   public function table(Table $table): Table
   {
     return $table

@@ -15,6 +15,7 @@ use App\Filament\Resources\Payments\Schemas\PaymentInfolist;
 use App\Filament\Resources\Payments\Tables\PaymentsTable;
 use App\Models\Payment;
 use Filament\Resources\Resource;
+use Illuminate\Database\Eloquent\Model;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -56,10 +57,10 @@ class PaymentResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index' => ListPayments::route('/'),
+      'index'  => ListPayments::route('/'),
       'create' => CreatePayment::route('/create'),
-      'view' => ViewPayment::route('/{record}'),
-      'edit' => EditPayment::route('/{record}/edit'),
+      'view'   => ViewPayment::route('/{record}'),
+      'edit'   => EditPayment::route('/{record}/edit'),
     ];
   }
 

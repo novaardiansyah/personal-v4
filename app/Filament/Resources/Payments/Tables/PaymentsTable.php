@@ -90,7 +90,7 @@ class PaymentsTable
           ->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: false),
       ])
-      ->defaultSort('date', 'desc')
+      ->defaultSort('updated_at', 'desc')
       ->filters([
         TrashedFilter::make()
           ->native(false),
