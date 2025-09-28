@@ -285,26 +285,7 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * Get payment accounts for dropdown
-   */
-  public function getPaymentAccounts(): JsonResponse
-  {
-    $accounts = PaymentAccount::select('id', 'name', 'deposit')
-      ->orderBy('name')
-      ->get()
-      ->map(function ($account) {
-        return [
-          'id' => $account->id,
-          'name' => $account->name,
-          'deposit' => $account->deposit,
-          'formatted_deposit' => toIndonesianCurrency($account->deposit)
-        ];
-      });
-
-    return response()->json($accounts);
-  }
-
+  
   /**
    * Get payment types for dropdown
    */
@@ -612,4 +593,6 @@ class PaymentController extends Controller
       'data' => $types
     ]);
   }
-}
+
+  
+  }

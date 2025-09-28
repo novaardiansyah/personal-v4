@@ -6,6 +6,7 @@ use App\Observers\PaymentAccountObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([PaymentAccountObserver::class])]
 class PaymentAccount extends Model
@@ -25,5 +26,10 @@ class PaymentAccount extends Model
   public function getPaymentAccountNameAttribute(): string
   {
     return $this->name ?? 'Unknown';
+  }
+
+  public function payments(): HasMany
+  {
+    return $this->hasMany(Payment::class);
   }
 }

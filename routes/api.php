@@ -8,6 +8,7 @@ use App\Http\Controllers\Api\GalleryTagController;
 use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\ShortUrlController;
 use App\Http\Controllers\Api\PaymentController;
+use App\Http\Controllers\Api\PaymentAccountController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -53,7 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{id}', [PaymentController::class, 'show']);
     Route::put('/{id}', [PaymentController::class, 'update']);
     Route::delete('/{id}', [PaymentController::class, 'destroy']);
-    Route::get('/accounts', [PaymentController::class, 'getPaymentAccounts']);
     Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
 
     // Item management for payments
@@ -62,5 +62,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/items/attach', [PaymentController::class, 'attachItem']);
     Route::post('/{id}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
     Route::delete('/{id}/items/{pivotId}', [PaymentController::class, 'detachItem']);
+  });
+
+  Route::prefix('payment-accounts')->group(function () {
+    Route::get('/', [PaymentAccountController::class, 'index']);
+    Route::post('/', [PaymentAccountController::class, 'store']);
+    Route::put('/{id}', [PaymentAccountController::class, 'update']);
+    Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);
   });
 });

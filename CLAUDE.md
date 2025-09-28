@@ -115,8 +115,14 @@ app/
 - Code generation uses both `code` and `short_code` fields
 - Settings system for dynamic configuration
 - **Code Formatting**: Always use tab size = 2 for Laravel PHP files
+- **API Testing**: Never run `php artisan serve` or test API endpoints automatically - testing will be done manually
 
 ## Git Convention
 When making commits, ALWAYS push to all remote repositories:
 - Use `git push origin main && git push person main` to push to both remotes
 - This ensures changes are available in both novaardiansyah-org/personal-v4 and novaardiansyah/personal-v4 repositories
+
+## Commit Messages
+- When requested to provide commit messages, I will always provide them in the standard format
+- User will handle the actual commit process manually
+- Format: "feat: description" or "fix: description" or other conventional commit types
