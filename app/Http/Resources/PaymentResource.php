@@ -21,36 +21,14 @@ class PaymentResource extends JsonResource
     return [
       'id' => $this->id,
       'code' => $this->code,
-      'title' => $this->name ?? $this->payment_type->name,
+      'name' => $this->name,
+      'date' => $this->date,
       'amount' => $this->amount,
       'formatted_amount' => toIndonesianCurrency($this->amount),
-      'date' => $this->date,
+      'formatted_date' => Carbon::parse($this->date)->format('d M Y'),
       'type' => strtolower($this->payment_type->name),
       'type_id' => $this->payment_type->id,
-      'payment_account' => [
-        'id' => $this->payment_account->id,
-        'name' => $this->payment_account->name,
-      ],
-      'payment_account_to' => $this->payment_account_to ? [
-        'id' => $this->payment_account_to->id,
-        'name' => $this->payment_account_to->name,
-      ] : null,
-      'has_items' => $this->has_items,
-      'attachments_count' => $this->attachments ? count($this->attachments) : 0,
-      'items_count' => $this->whenLoaded('items', function () {
-        return $this->items->count();
-      }),
-      'items' => $this->whenLoaded('items', function () {
-        return $this->items->map(function ($item) {
-          return [
-            'id' => $item->id,
-            'name' => $item->name,
-            'quantity' => $item->pivot->quantity,
-            'price' => $item->pivot->price,
-            'total' => $item->pivot->total,
-          ];
-        });
-      }),
+      'updated_at' => $this->updated_at,
     ];
   }
 }

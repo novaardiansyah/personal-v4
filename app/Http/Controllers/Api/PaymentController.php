@@ -71,45 +71,27 @@ class PaymentController extends Controller
   }
 
   /**
-   * Get all payments with filters
+   * Get all payments with pagination
+   *
+   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
    */
   public function index(Request $request): JsonResponse
   {
-    $query = Payment::with(['payment_type', 'payment_account', 'payment_account_to']);
-
-    // Apply filters
-    $query->when($request->has('start_date'), function ($q) use ($request) {
-      return $q->where('date', '>=', $request->start_date);
-    });
-
-    $query->when($request->has('end_date'), function ($q) use ($request) {
-      return $q->where('date', '<=', $request->end_date);
-    });
-
-    $query->when($request->has('type_id'), function ($q) use ($request) {
-      return $q->where('type_id', $request->type_id);
-    });
-
-    $query->when($request->has('payment_account_id'), function ($q) use ($request) {
-      return $q->where('payment_account_id', $request->payment_account_id);
-    });
-
-    $query->when($request->has('is_scheduled'), function ($q) use ($request) {
-      return $q->where('is_scheduled', $request->is_scheduled);
-    });
-
-    // Apply ordering
-    $orderBy = $request->get('order_by', 'date');
-    $orderDirection = $request->get('order_direction', 'desc');
-    $query->orderBy($orderBy, $orderDirection);
-
-    // Apply pagination
-    $limit = $request->get('limit', 20);
-    $payments = $query->paginate($limit);
+    $payments = Payment::with(['payment_type'])
+      ->orderBy('updated_at', 'desc')
+      ->paginate(10);
 
     return response()->json([
       'success' => true,
-      'data' => PaymentResource::collection($payments)
+      'data' => PaymentResource::collection($payments),
+      'pagination' => [
+        'current_page' => $payments->currentPage(),
+        'from'         => $payments->firstItem(),
+        'last_page'    => $payments->lastPage(),
+        'per_page'     => $payments->perPage(),
+        'to'           => $payments->lastItem(),
+        'total'        => $payments->total(),
+      ]
     ]);
   }
 
