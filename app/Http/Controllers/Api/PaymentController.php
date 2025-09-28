@@ -21,9 +21,7 @@ class PaymentController extends Controller
   /**
    * Get financial summary for the current month
    *
-   * ⚠️ MOBILE APP USAGE WARNING:
-   * This endpoint is used by NovaApp mobile app for HomeScreen financial dashboard.
-   * DO NOT change response structure without updating mobile app first!
+   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
    */
   public function summary(Request $request): JsonResponse
   {
@@ -54,10 +52,7 @@ class PaymentController extends Controller
   /**
    * Get recent transactions for the user
    *
-   * ⚠️ MOBILE APP USAGE WARNING:
-   * This endpoint is used by NovaApp mobile app for HomeScreen transaction list.
-   * Returns data via PaymentResource which has specific mobile compatibility requirements.
-   * DO NOT change response structure without updating mobile app first!
+   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
    */
   public function recentTransactions(Request $request): JsonResponse
   {
