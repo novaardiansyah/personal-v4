@@ -19,14 +19,12 @@ class PaymentResource extends JsonResource
     return [
       'id' => $this->id,
       'code' => $this->code,
-      'name' => $this->name,
+      'title' => $this->name, // Changed from 'name' to 'title' for mobile app compatibility
       'amount' => $this->amount,
       'formatted_amount' => toIndonesianCurrency($this->amount),
       'date' => $this->date,
-      'type' => [
-        'id' => $this->payment_type->id,
-        'name' => $this->payment_type->name,
-      ],
+      'type' => $this->payment_type->name, // Changed from object to string for mobile app compatibility
+      'type_id' => $this->payment_type->id,
       'payment_account' => [
         'id' => $this->payment_account->id,
         'name' => $this->payment_account->name,
