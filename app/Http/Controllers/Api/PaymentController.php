@@ -297,10 +297,7 @@ class PaymentController extends Controller
         ];
       });
 
-    return response()->json([
-      'success' => true,
-      'data' => $accounts
-    ]);
+    return response()->json($accounts);
   }
 
   /**
@@ -312,10 +309,7 @@ class PaymentController extends Controller
       ->orderBy('id')
       ->get();
 
-    return response()->json([
-      'success' => true,
-      'data' => $types
-    ]);
+    return response()->json($types);
   }
 
   /**
@@ -353,6 +347,14 @@ class PaymentController extends Controller
       ], 422);
     }
 
+    // Check if item already attached
+    if ($payment->items()->where('item_id', $request->item_id)->exists()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Item already attached to this payment'
+      ], 422);
+    }
+
     $data = $request->all();
 
     // Get item data
@@ -385,7 +387,11 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Item attached successfully',
-      'data' => new PaymentResource($payment->load(['items', 'payment_type', 'payment_account', 'payment_account_to']))
+      'data' => [
+        'amount' => $payment->amount,
+        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'items_count' => $payment->items()->count()
+      ]
     ]);
   }
 
@@ -459,7 +465,11 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Item created and attached successfully',
-      'data' => new PaymentResource($payment->load(['items', 'payment_type', 'payment_account', 'payment_account_to']))
+      'data' => [
+        'amount' => $payment->amount,
+        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'items_count' => $payment->items()->count()
+      ]
     ]);
   }
 
@@ -505,7 +515,11 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Item detached successfully',
-      'data' => new PaymentResource($payment->load(['items', 'payment_type', 'payment_account', 'payment_account_to']))
+      'data' => [
+        'amount' => $payment->amount,
+        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'items_count' => $payment->items()->count()
+      ]
     ]);
   }
 
