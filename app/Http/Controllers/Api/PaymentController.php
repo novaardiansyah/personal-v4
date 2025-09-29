@@ -49,27 +49,7 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * Get recent transactions for the user
-   *
-   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
-   */
-  public function recentTransactions(Request $request): JsonResponse
-  {
-    $limit = $request->get('limit', 10);
-
-    $transactions = Payment::with(['payment_type', 'payment_account'])
-      ->orderBy('date', 'desc')
-      ->orderBy('created_at', 'desc')
-      ->limit($limit)
-      ->get();
-
-    return response()->json([
-      'success' => true,
-      'data'    => PaymentResource::collection($transactions)
-    ]);
-  }
-
+  
   /**
    * Get all payments with pagination
    *
@@ -77,9 +57,11 @@ class PaymentController extends Controller
    */
   public function index(Request $request): JsonResponse
   {
+    $limit = $request->get('limit', 10);
+
     $payments = Payment::with(['payment_type'])
       ->orderBy('updated_at', 'desc')
-      ->paginate(10);
+      ->paginate($limit);
 
     return response()->json([
       'success' => true,

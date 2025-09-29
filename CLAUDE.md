@@ -126,3 +126,4 @@ When making commits, ALWAYS push to all remote repositories:
 - When requested to provide commit messages, I will always provide them in the standard format
 - User will handle the actual commit process manually
 - Format: "feat: description" or "fix: description" or other conventional commit types
+- 
