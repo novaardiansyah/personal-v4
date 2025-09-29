@@ -22,6 +22,7 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   Route::prefix('auth')->group(function () {
+    Route::get('/validate-token', [AuthController::class, 'validateToken']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
   });

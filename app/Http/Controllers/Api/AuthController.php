@@ -77,6 +77,23 @@ class AuthController extends Controller
     ]);
   }
 
+  public function validateToken(Request $request)
+  {
+    $user = $request->user();
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Token is valid',
+      'data' => [
+        'user' => [
+          'id'   => $user->id,
+          'cpde' => $user->code,
+          'name' => $user->name,
+        ]
+      ]
+    ]);
+  }
+
   public function updateProfile(UpdateProfileRequest $request)
   {
     $user = $request->user();
@@ -110,7 +127,7 @@ class AuthController extends Controller
 
     $user = $user->fresh();
     $user->avatar_url = Storage::disk('public')->url($user->avatar_url);
-    
+
     return response()->json([
       'success' => true,
       'message' => 'Profile updated successfully',

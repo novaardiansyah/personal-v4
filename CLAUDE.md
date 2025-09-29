@@ -67,6 +67,7 @@ This is a Laravel-based personal management system built with Filament admin pan
 
 #### Current API Endpoints
 - `POST /api/auth/login` - Authentication
+- `GET /api/auth/validate-token` - Validate token and get user info (protected)
 - `GET /api/user` - Get current user (protected)
 - `GET /api/skills/` - List skills (protected)
 - `GET /api/skills/{id}` - Get skill (protected)
