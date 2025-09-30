@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use App\Models\PaymentType;
+use App\Http\Resources\PaymentTypeResource;
 
 class PaymentTypeController extends Controller
 {
@@ -15,11 +15,6 @@ class PaymentTypeController extends Controller
   public function index(): JsonResponse
   {
     $paymentTypes = PaymentType::orderBy('name')->get();
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Payment types retrieved successfully',
-      'data' => $paymentTypes
-    ]);
+    return response()->json(PaymentTypeResource::collection($paymentTypes));
   }
 }
