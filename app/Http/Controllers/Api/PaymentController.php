@@ -103,13 +103,14 @@ class PaymentController extends Controller
    */
   public function store(Request $request): JsonResponse
   {
+    \Log::info('code --> message', $request->all());
     $validator = Validator::make($request->all(), [
       'amount'                => 'required_if:has_items,false|nullable|numeric|min:1000',
       'date'                  => 'required|date',
       'name'                  => 'required_if:has_items,false|nullable|string|max:255',
       'type_id'               => 'required|integer|exists:payment_types,id',
       'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
-      'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id|different:payment_account_id',
+      'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
       'has_items'             => 'nullable|boolean',
       'has_charge'            => 'nullable|boolean',
       'is_scheduled'          => 'nullable|boolean',
@@ -118,7 +119,15 @@ class PaymentController extends Controller
     ]);
 
     $validator->setAttributeNames([
-      'name' => 'description',
+      'name'                  => 'description',
+      'type_id'               => 'category',
+      'payment_account_id'    => 'payment account',
+      'payment_account_to_id' => 'to payment account',
+    ]);
+
+    $validator->setCustomMessages([
+      'name.required_if' => 'The :attribute field is required when the payment has no items.',
+      'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
     ]);
 
     if ($validator->fails()) {
@@ -189,7 +198,7 @@ class PaymentController extends Controller
       'name'                  => 'nullable|string|max:255',
       'type_id'               => 'sometimes|required|integer|exists:payment_types,id',
       'payment_account_id'    => 'sometimes|required|integer|exists:payment_accounts,id',
-      'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id|different:payment_account_id',
+      'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
       'is_scheduled'          => 'nullable|boolean',
       'attachments'           => 'nullable|array',
       'attachments.*'         => 'image|mimes:jpeg,png,jpg,gif|max:2048'
