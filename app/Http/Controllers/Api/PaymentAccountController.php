@@ -17,7 +17,6 @@ class PaymentAccountController extends Controller
   public function index(): JsonResponse
   {
     $accounts = PaymentAccount::orderBy('name')->get();
-
     return response()->json(PaymentAccountResource::collection($accounts));
   }
 

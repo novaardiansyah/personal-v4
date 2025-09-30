@@ -9,6 +9,8 @@ use App\Http\Controllers\Api\SkillController;
 use App\Http\Controllers\Api\ShortUrlController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentAccountController;
+use App\Http\Controllers\Api\PaymentTypeController;
+use App\Http\Controllers\Api\ItemTypeController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -70,5 +72,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/', [PaymentAccountController::class, 'store']);
     Route::put('/{id}', [PaymentAccountController::class, 'update']);
     Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);
+  });
+
+  Route::prefix('payment-types')->group(function () {
+    Route::get('/', [PaymentTypeController::class, 'index']);
+  });
+
+  Route::prefix('item-types')->group(function () {
+    Route::get('/', [ItemTypeController::class, 'index']);
   });
 });

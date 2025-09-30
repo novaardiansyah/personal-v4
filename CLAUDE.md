@@ -77,6 +77,9 @@ This is a Laravel-based personal management system built with Filament admin pan
 - `GET /api/galleries/{id}` - Get gallery (protected)
 - `GET /api/galleries/tag/{tagId}` - Get galleries by tag (protected)
 - `GET /api/short-urls/{short_code}` - Get short URL data (protected)
+- `GET /api/payment-types/` - List payment types (protected)
+- `GET /api/item-types/` - List item types (protected)
+- `GET /api/payment-accounts/` - List payment accounts (protected)
 
 ### 4. Helper Functions
 - `getSetting($key)` - Retrieve setting values
