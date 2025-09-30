@@ -103,7 +103,6 @@ class PaymentController extends Controller
    */
   public function store(Request $request): JsonResponse
   {
-    \Log::info('code --> message', $request->all());
     $validator = Validator::make($request->all(), [
       'amount'                => 'required_if:has_items,false|nullable|numeric|min:1000',
       'date'                  => 'required|date',
