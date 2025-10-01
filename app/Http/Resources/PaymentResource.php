@@ -21,7 +21,7 @@ class PaymentResource extends JsonResource
     return [
       'id'               => $this->id,
       'code'             => $this->code,
-      'name'             => $this->name,
+      'name'             => $this->name ?? '-',
       'date'             => $this->date,
       'amount'           => $this->amount,
       'has_items'        => $this->has_items,
