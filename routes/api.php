@@ -60,10 +60,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
 
     // Item management for payments
+    Route::get('/{id}/items/attached', [PaymentController::class, 'getAttachedItems']);
+    Route::get('/{id}/items/not-attached', [PaymentController::class, 'getItemsNotAttached']);
     Route::get('/{id}/items/available', [PaymentController::class, 'getAvailableItems']);
     Route::get('/item-types', [PaymentController::class, 'getItemTypes']);
     Route::post('/{id}/items/attach', [PaymentController::class, 'attachItem']);
     Route::post('/{id}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
+    Route::post('/{payment}/items/attach-multiple', [PaymentController::class, 'attachMultipleItems']);
     Route::delete('/{id}/items/{pivotId}', [PaymentController::class, 'detachItem']);
   });
 

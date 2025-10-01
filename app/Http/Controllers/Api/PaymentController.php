@@ -10,6 +10,8 @@ use App\Models\PaymentType;
 use App\Models\PaymentAccount;
 use App\Models\PaymentItem;
 use App\Http\Resources\PaymentResource;
+use App\Http\Resources\PaymentItemResource;
+use App\Http\Resources\ItemResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -458,6 +460,107 @@ class PaymentController extends Controller
     ]);
   }
 
+  public function attachMultipleItems(Request $request, Payment $payment): JsonResponse
+  {
+    if (!$payment->has_items) {
+      return response()->json([
+        'success' => false,
+        'message' => 'This payment does not support items'
+      ], 422);
+    }
+
+    $validator = Validator::make($request->all(), [
+      'items'           => 'required|array|min:1',
+      'items.*.item_id' => 'nullable|integer|exists:items,id',
+      'items.*.name'    => 'required|string|max:255',
+      'items.*.amount'  => 'required|numeric|min:0',
+      'items.*.qty'     => 'required|integer|min:1',
+      'totalAmount'     => 'required|numeric|min:0'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    $items         = $request->items;
+    $totalAmount   = $request->totalAmount;
+    $attachedItems = [];
+
+    foreach ($items as $itemData) {
+      if (empty($itemData['item_id'])) {
+        $existingItem = Item::where('name', $itemData['name'])->first();
+
+        if ($existingItem) {
+          $item->update(['amount' => $itemData['amount']]);
+          $item = $existingItem;
+        } else {
+          $item = Item::create([
+            'name'    => $itemData['name'],
+            'amount'  => $itemData['amount'],
+            'type_id' => 1,
+            'code'    => getCode('item')
+          ]);
+        }
+
+        $itemData['item_id'] = $item->id;
+      } else {
+        $item = Item::find($itemData['item_id']);
+      }
+
+      $price    = $itemData['amount'];
+      $quantity = $itemData['qty'];
+      $total    = $price * $quantity;
+      $itemCode = getCode('payment_item');
+
+      $payment->items()->attach($itemData['item_id'], [
+        'item_code' => $itemCode,
+        'quantity'  => $quantity,
+        'price'     => $price,
+        'total'     => $total
+      ]);
+
+      $attachedItems[] = [
+        'item_id'   => $item->id,
+        'name'      => $item->name,
+        'quantity'  => $quantity,
+        'price'     => $price,
+        'total'     => $total,
+        'item_code' => $itemCode
+      ];
+    }
+
+    $expense         = $payment->amount + $totalAmount;
+    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+    $is_scheduled    = $payment->is_scheduled ?? false;
+
+    if (!$is_scheduled) {
+      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    $itemNotes = [];
+    foreach ($attachedItems as $attachedItem) {
+      $itemNotes[] = "{$attachedItem['name']} (x{$attachedItem['quantity']})";
+    }
+    $note = trim(($payment->name ?? '') . ', ' . implode(', ', $itemNotes), ', ');
+
+    $payment->update(['amount' => $expense, 'name' => $note]);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Multiple items attached successfully',
+      'data' => [
+        'id' => $payment->id,
+        'name' => $payment->name,
+        'amount' => $payment->amount,
+        'formatted_amount' => toIndonesianCurrency($payment->amount),
+      ]
+    ]);
+  }
+
   /**
    * Detach item from payment
    */
@@ -520,6 +623,93 @@ class PaymentController extends Controller
   }
 
   /**
+   * Get attached items for payment
+   */
+  public function getAttachedItems(Request $request, $paymentId): JsonResponse
+  {
+    $payment = Payment::find($paymentId);
+
+    if (!$payment) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment not found'
+      ], 404);
+    }
+
+    $limit = $request->get('limit', 10);
+
+    $attachedItems = $payment->items()
+      ->with('type')
+      ->orderBy('pivot_created_at', 'desc')
+      ->paginate($limit);
+
+    return response()->json([
+      'success' => true,
+      'data' => PaymentItemResource::collection($attachedItems),
+      'pagination' => [
+        'current_page' => $attachedItems->currentPage(),
+        'from'         => $attachedItems->firstItem(),
+        'last_page'    => $attachedItems->lastPage(),
+        'per_page'     => $attachedItems->perPage(),
+        'to'           => $attachedItems->lastItem(),
+        'total'        => $attachedItems->total(),
+      ]
+    ]);
+  }
+
+  /**
+   * Get items not yet attached to specific payment
+   */
+  public function getItemsNotAttached(Request $request, $paymentId): JsonResponse
+  {
+    $payment = Payment::find($paymentId);
+
+    if (!$payment) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment not found'
+      ], 404);
+    }
+
+    // Get IDs of items already attached to this payment
+    $attachedItemIds = $payment->items()->pluck('items.id')->toArray();
+
+    $query = Item::query();
+
+    if ($request->has('search')) {
+      $search = $request->search;
+      $query->where('name', 'like', "%{$search}%")
+        ->orWhere('code', 'like', "%{$search}%");
+    }
+
+    // Exclude items that are already attached
+    if (!empty($attachedItemIds)) {
+      $query->whereNotIn('id', $attachedItemIds);
+    }
+
+    $limit = $request->get('limit', 10);
+
+    $items = $query->with('type')
+      ->orderBy('name')
+      ->paginate($limit);
+
+    \Log::info('code --> message', $items->toArray());
+
+    return response()->json([
+      'success' => true,
+      'data' => ItemResource::collection($items),
+      'pagination' => [
+        'current_page' => $items->currentPage(),
+        'from'         => $items->firstItem(),
+        'last_page'    => $items->lastPage(),
+        'per_page'     => $items->perPage(),
+        'to'           => $items->lastItem(),
+        'total'        => $items->total(),
+      ]
+    ]);
+  }
+
+  /**
    * Get available items for attach
    */
   public function getAvailableItems(Request $request): JsonResponse
@@ -532,26 +722,23 @@ class PaymentController extends Controller
         ->orWhere('code', 'like', "%{$search}%");
     }
 
+    $limit = $request->get('limit', 10);
+
     $items = $query->with('type')
       ->orderBy('name')
-      ->get()
-      ->map(function ($item) {
-        return [
-          'id' => $item->id,
-          'name' => $item->name,
-          'code' => $item->code,
-          'amount' => $item->amount,
-          'formatted_amount' => toIndonesianCurrency($item->amount),
-          'type' => [
-            'id' => $item->type->id,
-            'name' => $item->type->name
-          ]
-        ];
-      });
+      ->paginate($limit);
 
     return response()->json([
       'success' => true,
-      'data' => $items
+      'data' => ItemResource::collection($items),
+      'pagination' => [
+        'current_page' => $items->currentPage(),
+        'from'         => $items->firstItem(),
+        'last_page'    => $items->lastPage(),
+        'per_page'     => $items->perPage(),
+        'to'           => $items->lastItem(),
+        'total'        => $items->total(),
+      ]
     ]);
   }
 
