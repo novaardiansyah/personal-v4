@@ -106,7 +106,7 @@ class PaymentController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount'                => 'required_if:has_items,false|nullable|numeric|min:1000',
+      'amount'                => 'required_if:has_items,false|nullable|numeric',
       'date'                  => 'required|date',
       'name'                  => 'required_if:has_items,false|nullable|string|max:255',
       'type_id'               => 'required|integer|exists:payment_types,id',
@@ -692,8 +692,6 @@ class PaymentController extends Controller
     $items = $query->with('type')
       ->orderBy('name')
       ->paginate($limit);
-
-    \Log::info('code --> message', $items->toArray());
 
     return response()->json([
       'success' => true,
