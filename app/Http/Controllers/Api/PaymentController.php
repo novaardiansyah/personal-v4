@@ -235,36 +235,6 @@ class PaymentController extends Controller
   }
 
   /**
-   * Delete payment
-   */
-  public function destroy(Request $request, $id): JsonResponse
-  {
-    $payment = Payment::find($id);
-
-    if (!$payment) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Payment not found'
-      ], 404);
-    }
-
-    // Delete attachment files
-    if ($payment->attachments && is_array($payment->attachments)) {
-      foreach ($payment->attachments as $attachment) {
-        Storage::disk('public')->delete($attachment);
-      }
-    }
-
-    $payment->delete();
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Payment deleted successfully'
-    ]);
-  }
-
-  
-  /**
    * Get payment types for dropdown
    */
   public function getPaymentTypes(): JsonResponse
@@ -755,5 +725,20 @@ class PaymentController extends Controller
     ]);
   }
 
-  
+  /**
+   * Delete a payment
+   *
+   * @param Request $request
+   * @param Payment $payment
+   * @return JsonResponse
+   */
+  public function destroy(Request $request, Payment $payment): JsonResponse
+  {
+    $payment->delete();
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Payment deleted successfully'
+    ]);
   }
+}

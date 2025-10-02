@@ -123,8 +123,7 @@ class PaymentsTable
         ActionGroup::make([
           EditAction::make(),
           
-          DeleteAction::make()
-            ->after(fn(Payment $record) => PaymentAction::deleteAfter($record)),
+          DeleteAction::make(),
 
           RestoreAction::make(),
         ])
