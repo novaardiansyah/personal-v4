@@ -660,7 +660,7 @@ class PaymentController extends Controller
     $limit = $request->get('limit', 10);
 
     $items = $query->with('type')
-      ->orderBy('name')
+      ->orderBy('updated_at', 'desc')
       ->paginate($limit);
 
     return response()->json([
