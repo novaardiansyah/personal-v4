@@ -117,7 +117,7 @@ class EditPayment extends EditRecord
     }
 
     // ! See if there are any changes to the attachments
-    $removedAttachments = array_diff($record->attachments, $data['attachments']);
+    $removedAttachments = array_diff($record->attachments ?? [], $data['attachments'] ?? []);
 
     // ? Has removed attachments
     if (!empty($removedAttachments)) {
