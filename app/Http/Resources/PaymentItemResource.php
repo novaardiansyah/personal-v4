@@ -14,24 +14,22 @@ class PaymentItemResource extends JsonResource
    */
   public function toArray(Request $request): array
   {
+    $price    = $this->pivot->price ?? 0;
+    $quantity = $this->pivot->quantity ?? 1;
+    $total    = $price * $quantity;
+
     return [
-      'id' => $this->id,
-      'name' => $this->name,
-      'code' => $this->code,
-      'amount' => $this->amount,
-      'formatted_amount' => toIndonesianCurrency($this->amount),
-      'type' => [
-        'id' => $this->type->id,
-        'name' => $this->type->name
-      ],
-      // Pivot data untuk attached items
-      'pivot_id' => $this->pivot->id ?? null,
-      'item_code' => $this->pivot->item_code ?? null,
-      'quantity' => $this->pivot->quantity ?? null,
-      'price' => $this->pivot->price ?? null,
-      'total' => $this->pivot->total ?? null,
-      'created_at' => $this->pivot->created_at ?? null,
-      'updated_at' => $this->pivot->updated_at ?? null,
+      'id'              => $this->pivot->id ?? null,
+      'name'            => $this->name,
+      'type_id'         => $this->type_id,
+      'type'            => $this->type->name,
+      'code'            => $this->pivot->item_code ?? null,
+      'price'           => $price,
+      'quantity'        => $quantity,
+      'total'           => $total,
+      'formatted_price' => toIndonesianCurrency($price),
+      'formatted_total' => toIndonesianCurrency($total),
+      'updated_at'      => $this->pivot->updated_at ?? null,
     ];
   }
 }

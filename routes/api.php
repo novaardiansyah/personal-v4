@@ -61,6 +61,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Item management for payments
     Route::get('/{id}/items/attached', [PaymentController::class, 'getAttachedItems']);
+    Route::get('/{payment}/items/summary', [PaymentController::class, 'getPaymentItemsSummary']);
     Route::get('/{id}/items/not-attached', [PaymentController::class, 'getItemsNotAttached']);
     Route::get('/{id}/items/available', [PaymentController::class, 'getAvailableItems']);
     Route::get('/item-types', [PaymentController::class, 'getItemTypes']);

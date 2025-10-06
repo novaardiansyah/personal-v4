@@ -615,7 +615,7 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data' => PaymentItemResource::collection($attachedItems),
+      'data'    => PaymentItemResource::collection($attachedItems),
       'pagination' => [
         'current_page' => $attachedItems->currentPage(),
         'from'         => $attachedItems->firstItem(),
@@ -623,6 +623,32 @@ class PaymentController extends Controller
         'per_page'     => $attachedItems->perPage(),
         'to'           => $attachedItems->lastItem(),
         'total'        => $attachedItems->total(),
+      ]
+    ]);
+  }
+
+  /**
+   * Get payment items summary
+   */
+  public function getPaymentItemsSummary(Request $request, Payment $payment): JsonResponse
+  {
+    $items      = $payment->items()->get();
+    $totalItems = $items->count();
+    $totalQty   = $items->sum('pivot.quantity');
+
+    $totalAmount = $items->sum(function ($item) {
+      return $item->pivot->quantity * $item->pivot->price;
+    });
+
+    return response()->json([
+      'success' => true,
+      'data' => [
+        'payment_id'       => $payment->id,
+        'payment_code'     => $payment->code,
+        'total_items'      => $totalItems,
+        'total_qty'        => $totalQty,
+        'total_amount'     => $totalAmount,
+        'formatted_amount' => toIndonesianCurrency($totalAmount),
       ]
     ]);
   }
