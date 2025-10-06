@@ -69,30 +69,11 @@ class ManagePaymentAccounts extends ManageRecords
 
   public static function actionAudit(Action $action, PaymentAccount $record, array $data): void
   {
-    $user = getUser();
-
-    $record->update([
-      'deposit' => $data['deposit']
-    ]);
-
-    $diff_deposit = $data['diff_deposit'];
-    $paymentType = $diff_deposit < 0 ? PaymentType::EXPENSE : PaymentType::INCOME;
-
-    Payment::create([
-      'code'               => getCode('payment'),
-      'name'               => 'Audit payment account ' . $record->name,
-      'type_id'            => $paymentType,
-      'user_id'            => $user->id,
-      'payment_account_id' => $record->id,
-      'amount'             => abs($diff_deposit),
-      'has_items'          => false,
-      'attachments'        => [],
-      'date'               => Carbon::now()->format('Y-m-d')
-    ]);
+    $record->audit($data['deposit']);
 
     $action->success();
 
-    Notification::make() 
+    Notification::make()
       ->success()
       ->title('Audit Success')
       ->body('Audit has been successfully saved.')

@@ -76,6 +76,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/', [PaymentAccountController::class, 'store']);
     Route::put('/{id}', [PaymentAccountController::class, 'update']);
     Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);
+    Route::post('/{paymentAccount}/audit', [PaymentAccountController::class, 'audit']);
   });
 
   Route::prefix('payment-types')->group(function () {

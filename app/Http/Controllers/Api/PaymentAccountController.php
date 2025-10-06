@@ -115,4 +115,50 @@ class PaymentAccountController extends Controller
       'message' => 'Payment account deleted successfully'
     ]);
   }
+
+  /**
+   * Audit payment account deposit
+   */
+  public function audit(Request $request, PaymentAccount $paymentAccount): JsonResponse
+  {
+    $validator = $this->getAuditValidator($request, $paymentAccount);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $paymentAccount->audit($request->deposit);
+    $paymentAccount = $paymentAccount->refresh();
+
+    $data = PaymentAccountResource::collection([$paymentAccount]);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Audit completed successfully',
+      'data'    => $data[0] ?? []
+    ]);
+  }
+
+  /**
+   * Get validator for audit request
+   */
+  private function getAuditValidator(Request $request, PaymentAccount $paymentAccount)
+  {
+    return Validator::make($request->all(), [
+      'deposit' => [
+        'required',
+        'numeric',
+        'min:0',
+        function ($attribute, $value, $fail) use ($paymentAccount) {
+          if ((int) $value === (int) $paymentAccount->deposit) {
+            $fail('Deposit amount is the same as the current deposit');
+          }
+        }
+      ]
+    ]);
+  }
 }
