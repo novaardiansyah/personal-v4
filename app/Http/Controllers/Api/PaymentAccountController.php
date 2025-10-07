@@ -20,6 +20,15 @@ class PaymentAccountController extends Controller
     return response()->json(PaymentAccountResource::collection($accounts));
   }
 
+  public function show(Request $request, PaymentAccount $paymentAccount): JsonResponse
+  {
+    return response()->json([
+      'success' => true,
+      'message' => 'Payment account retrieved successfully',
+      'data'    => new PaymentAccountResource($paymentAccount)
+    ]);
+  }
+
   /**
    * Create new payment account
    */
@@ -134,12 +143,10 @@ class PaymentAccountController extends Controller
     $paymentAccount->audit($request->deposit);
     $paymentAccount = $paymentAccount->refresh();
 
-    $data = PaymentAccountResource::collection([$paymentAccount]);
-
     return response()->json([
       'success' => true,
       'message' => 'Audit completed successfully',
-      'data'    => $data[0] ?? []
+      'data'    => new PaymentAccountResource($paymentAccount)
     ]);
   }
 
@@ -155,7 +162,7 @@ class PaymentAccountController extends Controller
         'min:0',
         function ($attribute, $value, $fail) use ($paymentAccount) {
           if ((int) $value === (int) $paymentAccount->deposit) {
-            $fail('Deposit amount is the same as the current deposit');
+            $fail('Deposit amount cannot be the same as the current deposit');
           }
         }
       ]

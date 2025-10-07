@@ -73,6 +73,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('payment-accounts')->group(function () {
     Route::get('/', [PaymentAccountController::class, 'index']);
+    Route::get('/{paymentAccount}', [PaymentAccountController::class, 'show']);
     Route::post('/', [PaymentAccountController::class, 'store']);
     Route::put('/{id}', [PaymentAccountController::class, 'update']);
     Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);

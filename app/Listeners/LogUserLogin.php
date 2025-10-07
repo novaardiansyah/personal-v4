@@ -93,7 +93,10 @@ class LogUserLogin
     ]);
 
     // ! If it already exists and is still within the delay period, then no email notification needs to be sent again
-    if ($existingLog) return;
+    if ($existingLog) {
+      \Log::info('3467 --> Silent Login Notification', $silentLog);
+      return;
+    }
 
     $emailData = [
       'email'       => getSetting('login_email_notification'),
