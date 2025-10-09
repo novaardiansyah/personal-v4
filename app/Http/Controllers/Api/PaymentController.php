@@ -27,26 +27,73 @@ class PaymentController extends Controller
    */
   public function summary(Request $request): JsonResponse
   {
-    $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
-    $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
-    $payments = Payment::whereBetween('date', [$startDate, $endDate])->get();
+    $validator = Validator::make($request->all(), [
+      'startDate' => 'nullable|date_format:Y-m-d',
+      'endDate'   => 'nullable|date_format:Y-m-d|after_or_equal:startDate',
+    ]);
 
-    $totalIncome = $payments->where('type_id', PaymentType::INCOME)->sum('amount');
-    $totalExpense = $payments->where('type_id', PaymentType::EXPENSE)->sum('amount');
-    $totalBalance = PaymentAccount::sum('deposit');
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    if ($request->has('startDate') && $request->has('endDate')) {
+      $startDate = $request->input('startDate');
+      $endDate   = $request->input('endDate');
+    } else {
+      $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
+      $endDate   = Carbon::now()->endOfMonth()->format('Y-m-d');
+    }
+
+    $totals = Payment::whereBetween('date', [$startDate, $endDate])
+      ->selectRaw("
+        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_income,
+        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_expense,
+        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_withdrawal,
+        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_transfer
+      ", [
+        PaymentType::INCOME, 
+        PaymentType::EXPENSE, 
+        PaymentType::WITHDRAWAL, 
+        PaymentType::TRANSFER
+      ])
+      ->first();
+
+    $totalIncome     = $totals->total_income ?? 0;
+    $totalExpense    = $totals->total_expense ?? 0;
+    $totalWithdrawal = $totals->total_withdrawal ?? 0;
+    $totalTransfer   = $totals->total_transfer ?? 0;
+
+    $totalBalance   = PaymentAccount::sum('deposit');
+    $initialBalance = (int) $totalIncome + (int) $totalExpense;
+
+    $percentIncome     = $totalIncome > 0 ? round(($totalIncome / $initialBalance) * 100, 2) : 0;
+    $percentExpense    = $totalExpense > 0 ? round(($totalExpense / $initialBalance) * 100, 2) : 0;
+    $percentWithdrawal = $totalWithdrawal > 0 ? round(($totalWithdrawal / $initialBalance) * 100, 2) : 0;
+    $percentTransfer   = $totalTransfer > 0 ? round(($totalTransfer / $initialBalance) * 100, 2) : 0;
 
     return response()->json([
       'success' => true,
       'data' => [
-        'total_balance' => $totalBalance,
-        'income' => $totalIncome,
-        'expenses' => $totalExpense,
+        'total_balance'   => (int) $totalBalance,
+        'initial_balance' => (int) $initialBalance,
+        'income'          => (int) $totalIncome,
+        'expenses'        => (int) $totalExpense,
+        'withdrawal'      => (int) $totalWithdrawal,
+        'transfer'        => (int) $totalTransfer,
+        'percents' => [
+          'income'        => (float) $percentIncome,
+          'expenses'      => (float) $percentExpense,
+          'withdrawal'    => (float) $percentWithdrawal,
+          'transfer'      => (float) $percentTransfer,
+        ],
         'period' => [
           'start_date' => $startDate,
-          'end_date' => $endDate,
-          'month' => Carbon::now()->format('F Y'),
+          'end_date'   => $endDate,
         ],
-        'savings' => $totalIncome - $totalExpense,
       ]
     ]);
   }
