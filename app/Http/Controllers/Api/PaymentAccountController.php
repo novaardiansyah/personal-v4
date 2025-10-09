@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\PaymentResource\MonthlyReportJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -11,9 +12,6 @@ use App\Http\Resources\PaymentAccountResource;
 
 class PaymentAccountController extends Controller
 {
-  /**
-   * Get all payment accounts
-   */
   public function index(): JsonResponse
   {
     $accounts = PaymentAccount::orderBy('name')->get();
@@ -149,6 +147,39 @@ class PaymentAccountController extends Controller
       'data'    => new PaymentAccountResource($paymentAccount)
     ]);
   }
+
+  public function reportMonthly(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'email'   => 'required|email',
+      'periode' => 'required|date_format:Y-m',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    $user = getUser();
+    $user->email = $request->email;
+
+    MonthlyReportJob::dispatch([
+      'periode' => $request->periode,
+      'user'    => $user
+    ]);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Report has been successfully sent to your email!',
+      'data'    => [
+        'email'   => $request->email,
+        'periode' => $request->periode
+      ]
+    ]);
+  } 
 
   /**
    * Get validator for audit request

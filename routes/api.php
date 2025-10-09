@@ -59,7 +59,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/{payment}', [PaymentController::class, 'destroy']);
     Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
 
-    // Item management for payments
     Route::get('/{id}/items/attached', [PaymentController::class, 'getAttachedItems']);
     Route::get('/{payment}/items/summary', [PaymentController::class, 'getPaymentItemsSummary']);
     Route::get('/{id}/items/not-attached', [PaymentController::class, 'getItemsNotAttached']);
@@ -78,6 +77,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/{id}', [PaymentAccountController::class, 'update']);
     Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);
     Route::post('/{paymentAccount}/audit', [PaymentAccountController::class, 'audit']);
+
+    Route::post('/report-monthly', [PaymentAccountController::class, 'reportMonthly']);
   });
 
   Route::prefix('payment-types')->group(function () {

@@ -13,7 +13,9 @@ class PaymentService
   {
     \Log::info('4236 --> PaymentService::make_pdf(): Started.');
 
-    $notification = $data['notification'] ?? false;
+    Carbon::setLocale('id');
+
+    $notification     = $data['notification'] ?? false;
     $auto_close_tbody = $data['auto_close_tbody'] ?? false;
     
     $startDate = $data['start_date'] ?? now()->startOfMonth();

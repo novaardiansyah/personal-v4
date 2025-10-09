@@ -1,133 +1,154 @@
-# Personal v4 Project Documentation
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
-This is a Laravel-based personal management system built with Filament admin panel. The project includes various features for managing personal data, skills, galleries, payment systems, and URL shortening.
+This is a Laravel-based personal management system built with Filament admin panel. The project includes features for managing personal data, skills, galleries, payment systems, and URL shortening.
 
-## Tech Stack
-- **PHP**: ^8.2
-- **Laravel**: ^12.0
-- **Filament**: ^4.0 (Admin Panel)
-- **Database**: MySQL (presumably)
-- **Authentication**: Laravel Sanctum
-- **PDF Generation**: mPDF
+## Key Development Commands
 
-## Key Features
+### Testing
+```bash
+# Run all tests
+composer test
+# or
+php artisan test
 
-### 1. Admin Panel (Filament)
-- **Navigation Groups**: Productivity, Settings
-- **Resources**: Multiple management interfaces for different data types
+# Run tests with config clear
+php artisan config:clear && php artisan test
 
-### 2. Core Models & Features
-
-#### ShortUrl Management
-- **Purpose**: URL shortening service with analytics
-- **Key Fields**:
-  - `code`: Unique identifier
-  - `short_code`: The actual short code (with domain prefix via accessor)
-  - `long_url`: Original URL
-  - `str_code`: Random string for generation
-  - `is_active`: Status toggle
-  - `clicks`: Access counter
-- **Features**:
-  - Auto-generate unique codes (3 attempts on collision)
-  - Domain prefix via `getSetting('short_url_domain')`
-  - Click tracking
-  - Soft deletes
-- **API**: `GET /api/short-urls/{short_code}` (protected, requires auth)
-
-#### Gallery System
-- **Models**: Gallery, GalleryTag
-- **Features**: Image gallery with tagging system
-- **API Endpoints**:
-  - `/api/galleries/` - List galleries
-  - `/api/galleries/{id}` - Get specific gallery
-  - `/api/galleries/tag/{tagId}` - Get galleries by tag
-  - `/api/gallery-tags/` - List tags
-
-#### Skill Management
-- **Model**: Skill
-- **API Endpoints**:
-  - `/api/skills/` - List skills
-  - `/api/skills/{id}` - Get specific skill
-
-#### Payment System
-- **Models**: Payment, PaymentType, PaymentAccount, PaymentItem, Item, ItemType
-- **Complete payment tracking and management system
-
-#### Settings Management
-- **Model**: Setting
-- **Key-value configuration system**
-- **Domain setting**: `short_url_domain` used for URL shortening
-
-### 3. API Structure
-- **Authentication**: Bearer token (Sanctum)
-- **Base URL**: `/api/`
-- **Protected Routes**: Require authentication token
-- **Public Routes**: Login endpoint
-
-#### Current API Endpoints
-- `POST /api/auth/login` - Authentication
-- `GET /api/auth/validate-token` - Validate token and get user info (protected)
-- `GET /api/user` - Get current user (protected)
-- `GET /api/skills/` - List skills (protected)
-- `GET /api/skills/{id}` - Get skill (protected)
-- `GET /api/gallery-tags/` - List gallery tags (protected)
-- `GET /api/gallery-tags/{id}` - Get gallery tag (protected)
-- `GET /api/galleries/` - List galleries (protected)
-- `GET /api/galleries/{id}` - Get gallery (protected)
-- `GET /api/galleries/tag/{tagId}` - Get galleries by tag (protected)
-- `GET /api/short-urls/{short_code}` - Get short URL data (protected)
-- `GET /api/payment-types/` - List payment types (protected)
-- `GET /api/item-types/` - List item types (protected)
-- `GET /api/payment-accounts/` - List payment accounts (protected)
-
-### 4. Helper Functions
-- `getSetting($key)` - Retrieve setting values
-- `getCode($type)` - Generate codes based on type
-- `getIpInfo($ipAddress)` - Get IP geolocation information from ipinfo.io
-- `getUser($userId)` - Get user by ID or current authenticated user
-
-## Database Migrations
-- Recent ShortUrl improvements:
-  - `2025_09_24_134957_create_short_urls_table.php` - Initial table
-  - `2025_09_24_140435_add_unique_constraint_to_short_urls_code_column.php` - Add unique constraint
-  - `2025_09_24_144148_add_str_code_to_short_urls_table.php` - Add str_code column
-  - `2025_09_24_144925_rename_short_url_to_short_code_in_short_urls_table.php` - Rename column
-
-## File Structure
-```
-app/
-├── Http/Controllers/Api/          # API Controllers
-├── Models/                        # Eloquent Models
-├── Filament/Resources/            # Filament Admin Resources
-│   ├── ShortUrls/                # Short URL management
-│   └── Settings/                 # Settings management
-└── Filament/Resources/Settings/   # Settings components (Forms, Tables, etc.)
+# Run single test
+php artisan test --filter=YourTestName
 ```
 
-## Recent Development
-- Added ShortUrl resource with Filament integration
-- Implemented retry logic for unique code generation (3 attempts)
-- Added API endpoint for short URL resolution
-- Updated table structure for better URL management
-- Added domain prefix functionality via model accessors
+### Development Environment
+```bash
+# Start development environment (runs server, queue, and Vite)
+composer dev
+
+# Clear caches
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+
+# Queue processing
+php artisan queue:listen --tries=1
+
+# Serve application (manually)
+php artisan serve
+```
+
+### Code Quality
+```bash
+# Code formatting with Laravel Pint
+./vendor/bin/pint
+
+# Run specific linters via Pint
+./vendor/bin/pint --test
+```
+
+### Filament-Specific Commands
+```bash
+# Discover Filament packages
+php artisan package:discover --ansi
+
+# Upgrade Filament
+php artisan filament:upgrade
+```
+
+## Architecture Overview
+
+### Core Models and Relationships
+1. **Payment System** (Complex multi-table architecture):
+   - `PaymentAccount` - Stores account balances and audit functionality
+   - `PaymentType` - Types of transactions (income, expense, transfer)
+   - `Payment` - Individual transactions with support for transfers between accounts
+   - `Item` and `ItemType` - Products/services that can be attached to payments
+   - `PaymentItem` - Pivot table connecting payments to items with pricing
+
+2. **Settings Management**:
+   - `Setting` model with key-value storage
+   - Cached settings via `getSetting()` helper with `cache()->rememberForever()`
+   - Observer pattern for automatic cache invalidation
+
+3. **Code Generation**:
+   - `Generate` model manages sequential code generation
+   - `getCode()` helper generates formatted codes with date-based prefixes
+   - Handles queue management with automatic reset on date change
+
+### API Architecture
+- **Authentication**: Laravel Sanctum with Bearer tokens
+- **Response Format**: Standardized JSON responses with success/error structure
+- **Controllers**: Each model has dedicated API controller with standardized CRUD operations
+- **Resources**: Laravel API Resources for consistent response formatting
+- **Route Organization**: Grouped by feature area with middleware protection
+
+### Filament Admin Panel
+- **Navigation Groups**: Organized by functionality (Payments, Productivity, Settings)
+- **Resource Structure**: Each resource follows Filament v4 conventions
+- **Forms and Tables**: Separated into schema files for maintainability
+- **Actions**: Extensive use of ActionGroup for organizing record operations
+- **Observers**: Used for activity logging and data consistency
+
+### Helper Functions (app/Helpers/UtilsHelper.php)
+- `getSetting()` - Cached setting retrieval
+- `getCode()` - Sequential code generation
+- `makePdf()` - PDF generation with temporary signed URLs
+- `getUser()` - Current or specified user retrieval
+- `getIpInfo()` - IP geolocation from ipinfo.io
+- `saveActivityLog()` - Activity logging with change tracking
+- `toIndonesianCurrency()` - Localized currency formatting
+
+### Database Patterns
+- **Soft Deletes**: Used across most models for data recovery
+- **Foreign Key Constraints**: Properly configured with cascade deletes
+- **Observer Pattern**: Automatic logging and cache management
+- **Caching**: Heavy use of Laravel cache for settings and performance
+
+## Important Conventions
+
+### Code Formatting
+- **Tab Size**: Always use 2 spaces for Laravel PHP files
+- **File Structure**: Consistent namespace organization
+- **Naming**: Follow Laravel conventions (snake_case for DB, camelCase for PHP)
+
+### API Development
+- **Authentication**: All protected routes require `auth:sanctum` middleware
+- **Response Format**: Consistent JSON structure with success/error indicators
+- **Validation**: Use Laravel Validator with proper error responses
+- **Testing**: Manual API testing - do not automatically run `php artisan serve`
+
+### Git Workflow
+- **Multi-Remote**: Always push to both remotes:
+  ```bash
+  git push origin main && git push person main
+  ```
+- **Commit Format**: Conventional commits (feat:, fix:, chore:, etc.)
+- **Branch Management**: Main branch is `main`
+
+### Model Relationships
+- **Payment System**: Complex many-to-many relationships via pivot tables
+- **Soft Deletes**: Include `->withTrashed()` when needed for soft-deleted records
+- **Observers**: Used for automatic activity logging on model changes
 
 ## Development Notes
-- Uses Filament's ActionGroup for organizing record actions
-- Implements rowIndex for better table UX
-- Soft deletes enabled on appropriate models
-- Code generation uses both `code` and `short_code` fields
-- Settings system for dynamic configuration
-- **Code Formatting**: Always use tab size = 2 for Laravel PHP files
-- **API Testing**: Never run `php artisan serve` or test API endpoints automatically - testing will be done manually
 
-## Git Convention
-When making commits, ALWAYS push to all remote repositories:
-- Use `git push origin main && git push person main` to push to both remotes
-- This ensures changes are available in both novaardiansyah-org/personal-v4 and novaardiansyah/personal-v4 repositories
+### Settings System
+- Settings are cached indefinitely for performance
+- Observer pattern automatically invalidates cache on updates
+- Key-value storage supports boolean casting and JSON options
 
-## Commit Messages
-- When requested to provide commit messages, I will always provide them in the standard format
-- User will handle the actual commit process manually
-- Format: "feat: description" or "fix: description" or other conventional commit types
-- 
+### URL Shortening
+- `ShortUrl` model with domain prefix functionality
+- Accessor automatically prepends domain from settings
+- Observer handles code generation and collision resolution
+
+### Activity Logging
+- Comprehensive logging system tracks all model changes
+- Automatic IP geolocation and user tracking
+- Soft delete support for audit trails
+
+### File Management
+- `File` model tracks generated files with expiration
+- Temporary signed URLs for secure file downloads
+- Automatic cleanup of expired files 
