@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -795,6 +796,137 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'data' => $types
+    ]);
+  }
+
+  /**
+   * Add attachment to payment using base64
+   *
+   * @param Request $request
+   * @param int $paymentId
+   * @return JsonResponse
+   */
+  public function addAttachment(Request $request, Payment $payment): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'attachment_base64' => 'required_without:attachment_base64_array|string',
+      'attachment_base64_array' => 'required_without:attachment_base64|array',
+      'attachment_base64_array.*' => 'string'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $attachments = $payment->attachments ?? [];
+    $uploadedAttachments = [];
+    $errors = [];
+
+    // Handle single upload
+    if ($request->has('attachment_base64')) {
+      $base64Data = $request->input('attachment_base64');
+
+      if ($this->processBase64Image($base64Data, $attachments, $uploadedAttachments, $errors)) {
+        $this->updatePaymentAttachments($payment, $attachments);
+
+        return $this->successResponse($payment, $attachments, 'Attachment added successfully', $uploadedAttachments);
+      }
+    }
+
+    // Handle multiple upload
+    if ($request->has('attachment_base64_array')) {
+      $base64Array = $request->input('attachment_base64_array');
+
+      foreach ($base64Array as $index => $base64Data) {
+        $this->processBase64Image($base64Data, $attachments, $uploadedAttachments, $errors, $index);
+      }
+
+      if (!empty($uploadedAttachments)) {
+        $this->updatePaymentAttachments($payment, $attachments);
+
+        $message = count($uploadedAttachments) === 1
+          ? 'Attachment added successfully'
+          : count($uploadedAttachments) . ' attachments added successfully';
+
+        return $this->successResponse($payment, $attachments, $message, $uploadedAttachments);
+      }
+    }
+
+    return response()->json([
+      'success' => false,
+      'message' => 'Invalid image format',
+      'errors' => $errors
+    ], 422);
+  }
+
+  /**
+   * Process base64 image and add to attachments
+   */
+  private function processBase64Image($base64Data, &$attachments, &$uploadedAttachments, &$errors, $index = null)
+  {
+    if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
+      $extension = strtolower($matches[1]);
+      $base64Image = substr($base64Data, strpos($base64Data, ',') + 1);
+      $imageData = base64_decode($base64Image);
+
+      if ($imageData !== false) {
+        $path = 'images/payment/' . Str::random(25) . '.' . $extension;
+
+        try {
+          Storage::disk('public')->put($path, $imageData);
+          $attachments[] = $path;
+          $uploadedAttachments[] = [
+            'path' => $path,
+            'url' => Storage::disk('public')->url($path),
+            'index' => $index
+          ];
+          return true;
+        } catch (\Exception $e) {
+          $errorKey = $index !== null ? "attachment_{$index}" : "attachment";
+          $errors[$errorKey] = "Failed to save image: " . $e->getMessage();
+        }
+      } else {
+        $errorKey = $index !== null ? "attachment_{$index}" : "attachment";
+        $errors[$errorKey] = "Invalid base64 data";
+      }
+    } else {
+      $errorKey = $index !== null ? "attachment_{$index}" : "attachment";
+      $errors[$errorKey] = "Invalid image format";
+    }
+
+    return false;
+  }
+
+  /**
+   * Update payment attachments
+   */
+  private function updatePaymentAttachments($payment, $attachments)
+  {
+    $payment->attachments = $attachments;
+    $payment->save();
+  }
+
+  /**
+   * Return success response
+   */
+  private function successResponse($payment, $attachments, $message, $uploadedAttachments = [])
+  {
+    $attachmentUrls = array_map(function ($attachment) {
+      return Storage::disk('public')->url($attachment);
+    }, $attachments);
+
+    return response()->json([
+      'success' => true,
+      'message' => $message,
+      'data' => [
+        'payment_id' => $payment->id,
+        'attachments' => $attachmentUrls,
+        'attachments_count' => count($uploadedAttachments)
+      ]
     ]);
   }
 
