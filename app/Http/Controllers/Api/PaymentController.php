@@ -12,6 +12,7 @@ use App\Models\PaymentItem;
 use App\Http\Resources\PaymentResource;
 use App\Http\Resources\PaymentItemResource;
 use App\Http\Resources\ItemResource;
+use App\Http\Resources\PaymentAttachmentResource;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -800,6 +801,36 @@ class PaymentController extends Controller
   }
 
   /**
+   * Get list of attachments for a payment
+   *
+   * @param Request $request
+   * @param int $paymentId
+   * @return JsonResponse
+   */
+  public function getAttachments(Request $request, Payment $payment): JsonResponse
+  {
+
+    $attachments = $payment->attachments ?? [];
+    $attachmentObjects = [];
+
+    foreach ($attachments as $index => $attachment) {
+      $attachmentObjects[] = (object) [
+        'id'        => $index + 1,
+        'url'       => Storage::disk('public')->url($attachment),
+        'filepath'  => $attachment,
+        'filename'  => basename($attachment),
+        'extension' => pathinfo($attachment, PATHINFO_EXTENSION),
+        'size'      => Storage::disk('public')->size($attachment) ?? 0,
+      ];
+    }
+
+    return response()->json([
+      'success' => true,
+      'data'    => PaymentAttachmentResource::collection($attachmentObjects)
+    ]);
+  }
+
+  /**
    * Add attachment to payment using base64
    *
    * @param Request $request
@@ -928,6 +959,79 @@ class PaymentController extends Controller
         'attachments_count' => count($uploadedAttachments)
       ]
     ]);
+  }
+
+  /**
+   * Delete attachment from payment
+   *
+   * @param Request $request
+   * @param Payment $payment
+   * @return JsonResponse
+   */
+  public function deleteAttachment(Request $request, Payment $payment): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'filepath' => 'required|string'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $filepath = $request->input('filepath');
+    $attachments = $payment->attachments ?? [];
+
+    // Find the attachment with the matching filepath
+    $attachmentIndex = null;
+    $attachmentExists = false;
+
+    foreach ($attachments as $index => $attachment) {
+      if ($attachment === $filepath) {
+        $attachmentIndex = $index;
+        $attachmentExists = true;
+        break;
+      }
+    }
+
+    if (!$attachmentExists) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Attachment not found'
+      ], 404);
+    }
+
+    try {
+      // First, delete the file from storage
+      if ($filepath && Storage::disk('public')->exists($filepath)) {
+        Storage::disk('public')->delete($filepath);
+      }
+
+      // Remove the attachment from the array
+      unset($attachments[$attachmentIndex]);
+      $attachments = array_values($attachments); // Re-index the array
+
+      // Then update the payment attachments
+      $payment->attachments = $attachments;
+      $payment->save();
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Attachment deleted successfully',
+        'data' => [
+          'payment_id' => $payment->id,
+          'attachments_count' => count($attachments)
+        ]
+      ]);
+    } catch (\Exception $e) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Failed to delete attachment: ' . $e->getMessage()
+      ], 500);
+    }
   }
 
   /**

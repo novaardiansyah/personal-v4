@@ -68,7 +68,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
     Route::post('/{payment}/items/attach-multiple', [PaymentController::class, 'attachMultipleItems']);
     Route::delete('/{id}/items/{pivotId}', [PaymentController::class, 'detachItem']);
+    Route::get('/{payment}/attachments', [PaymentController::class, 'getAttachments']);
     Route::post('/{payment}/attachments', [PaymentController::class, 'addAttachment']);
+    Route::delete('/{payment}/attachments', [PaymentController::class, 'deleteAttachment']);
   });
 
   Route::prefix('payment-accounts')->group(function () {
