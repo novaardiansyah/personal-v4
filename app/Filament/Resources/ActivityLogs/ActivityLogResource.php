@@ -108,19 +108,19 @@ class ActivityLogResource extends Resource
           ->columns(3),
 
         Section::make([
-          KeyValueEntry::make('properties')
+          KeyValueEntry::make('properties_str')
             ->label('Properties')
             ->hidden(fn ($state) => !$state),
 
-          KeyValueEntry::make('prev_properties')
+          KeyValueEntry::make('prev_properties_str')
             ->label('Previous properties')
             ->hidden(fn ($state) => !$state),
         ])
           ->description('Properties information')
           ->collapsible()
           ->visible(fn (ActivityLog $record): bool =>
-            $record->properties->isNotEmpty() ||
-            $record->prev_properties->isNotEmpty()
+            !empty($record->properties_str) ||
+            !empty($record->prev_properties_str)
         )
       ])
         ->columns(1);
@@ -205,4 +205,5 @@ class ActivityLogResource extends Resource
         SoftDeletingScope::class,
       ]);
   }
-}
+
+  }

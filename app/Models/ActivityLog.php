@@ -15,8 +15,8 @@ class ActivityLog extends Model
   protected $table = 'activity_logs';
 
   protected $casts = [
-    'prev_properties' => 'collection',
-    'properties'      => 'collection',
+    'prev_properties' => 'array',
+    'properties'      => 'array',
   ];
 
   public function subject(): MorphTo
@@ -51,5 +51,45 @@ class ActivityLog extends Model
     ];
 
     return $colors[$event] ?? 'primary';
+  }
+
+  /**
+   * Get properties as readable string for display
+   */
+  public function getPropertiesStrAttribute(): ?array
+  {
+    if (!$this->properties) {
+      return null;
+    }
+
+    $result = [];
+    foreach ($this->properties as $key => $value) {
+      if (is_array($value)) {
+        $result[$key] = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+      } else {
+        $result[$key] = $value;
+      }
+    }
+    return $result;
+  }
+
+  /**
+   * Get previous properties as readable string for display
+   */
+  public function getPrevPropertiesStrAttribute(): ?array
+  {
+    if (!$this->prev_properties) {
+      return null;
+    }
+
+    $result = [];
+    foreach ($this->prev_properties as $key => $value) {
+      if (is_array($value)) {
+        $result[$key] = json_encode($value, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+      } else {
+        $result[$key] = $value;
+      }
+    }
+    return $result;
   }
 }
