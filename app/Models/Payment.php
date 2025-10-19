@@ -209,4 +209,21 @@ class Payment extends Model
       'total_saldo' => $total_saldo,
     ];
   }
+
+  /**
+   * Get count of attachments for this payment
+   */
+  public function getAttachmentsCount(): int
+  {
+    $attachments = $this->attachments ?? [];
+    return count($attachments);
+  }
+
+  /**
+   * Get count of items for this payment
+   */
+  public function getItemsCount(): int
+  {
+    return $this->items()->count();
+  }
 }

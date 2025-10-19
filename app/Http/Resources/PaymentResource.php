@@ -19,17 +19,20 @@ class PaymentResource extends JsonResource
   public function toArray(Request $request): array
   {
     return [
-      'id'               => $this->id,
-      'code'             => $this->code,
-      'name'             => $this->name ?? '-',
-      'date'             => $this->date,
-      'amount'           => $this->amount,
-      'has_items'        => $this->has_items,
-      'formatted_amount' => toIndonesianCurrency($this->amount),
-      'formatted_date'   => Carbon::parse($this->date)->format('d M Y'),
-      'type'             => strtolower($this->payment_type->name),
-      'type_id'          => $this->payment_type->id,
-      'updated_at'       => $this->updated_at,
+      'id'                  => $this->id,
+      'code'                => $this->code,
+      'name'                => $this->name ?? '-',
+      'date'                => $this->date,
+      'amount'              => $this->amount,
+      'has_items'           => $this->has_items,
+      'formatted_amount'     => toIndonesianCurrency($this->amount),
+      'formatted_date'       => Carbon::parse($this->date)->format('M d, Y'),
+      'type'                => strtolower($this->payment_type->name),
+      'type_id'             => $this->payment_type->id,
+      'updated_at'          => $this->updated_at,
+      'formatted_updated_at'  => Carbon::parse($this->updated_at)->format('M d, Y - H:i'),
+      'attachments_count'    => $this->getAttachmentsCount(),
+      'items_count'         => $this->getItemsCount(),
     ];
   }
 }
