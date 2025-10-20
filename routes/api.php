@@ -95,6 +95,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('payment-goals')->group(function () {
     Route::get('/', [PaymentGoalController::class, 'index']);
+    Route::get('/overview', [PaymentGoalController::class, 'overview']);
     Route::get('/statistics', [PaymentGoalController::class, 'statistics']);
     Route::post('/', [PaymentGoalController::class, 'store']);
     Route::get('/{id}', [PaymentGoalController::class, 'show']);

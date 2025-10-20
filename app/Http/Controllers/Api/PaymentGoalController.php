@@ -292,4 +292,24 @@ class PaymentGoalController extends Controller
       'data' => new PaymentGoalResource($paymentGoal->load('status'))
     ]);
   }
+
+  /**
+   * Get payment goals overview summary.
+   */
+  public function overview(): JsonResponse
+  {
+    $totalGoals = PaymentGoal::count();
+    $completedGoals = PaymentGoal::where('status_id', PaymentGoalStatus::COMPLETED)->count();
+    $successRate = $totalGoals > 0 ? round(($completedGoals / $totalGoals) * 100, 2) : 0;
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Payment goals overview retrieved successfully',
+      'data' => [
+        'total_goals' => $totalGoals,
+        'completed' => $completedGoals,
+        'success_rate' => $successRate . '%'
+      ]
+    ]);
+  }
 }
