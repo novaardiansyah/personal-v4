@@ -17,20 +17,12 @@ class PaymentGoalCollection extends ResourceCollection
     return [
       'data' => $this->collection,
       'meta' => [
-        'total' => $this->total(),
-        'count' => $this->count(),
-        'per_page' => $this->perPage(),
-        'current_page' => $this->currentPage(),
-        'total_pages' => $this->lastPage(),
-        'from' => $this->firstItem(),
-        'to' => $this->lastItem(),
-        'has_more_pages' => $this->hasMorePages(),
-      ],
-      'links' => [
-        'first' => $this->url(1),
-        'last' => $this->url($this->lastPage()),
-        'prev' => $this->previousPageUrl(),
-        'next' => $this->nextPageUrl(),
+        'total_records'   => $this->total(),
+        'items_on_page'   => $this->count(),
+        'per_page'        => $this->perPage(),
+        'current_page'    => $this->currentPage(),
+        'total_pages'     => $this->lastPage(),
+        'has_more_pages'  => $this->hasMorePages(),
       ],
     ];
   }
