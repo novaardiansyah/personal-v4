@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PaymentTypeController;
 use App\Http\Controllers\Api\ItemTypeController;
+use App\Http\Controllers\Api\PaymentGoalController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -90,5 +91,17 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('item-types')->group(function () {
     Route::get('/', [ItemTypeController::class, 'index']);
+  });
+
+  Route::prefix('payment-goals')->group(function () {
+    Route::get('/', [PaymentGoalController::class, 'index']);
+    Route::get('/statistics', [PaymentGoalController::class, 'statistics']);
+    Route::post('/', [PaymentGoalController::class, 'store']);
+    Route::get('/{id}', [PaymentGoalController::class, 'show']);
+    Route::put('/{id}', [PaymentGoalController::class, 'update']);
+    Route::delete('/{id}', [PaymentGoalController::class, 'destroy']);
+    Route::post('/{id}/restore', [PaymentGoalController::class, 'restore']);
+    Route::delete('/{id}/force', [PaymentGoalController::class, 'forceDestroy']);
+    Route::put('/{id}/progress', [PaymentGoalController::class, 'updateProgress']);
   });
 });
