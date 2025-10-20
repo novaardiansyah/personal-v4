@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PaymentTypeController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\PaymentGoalController;
+use App\Http\Controllers\Api\PaymentGoalStatusController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -104,5 +105,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/{id}/restore', [PaymentGoalController::class, 'restore']);
     Route::delete('/{id}/force', [PaymentGoalController::class, 'forceDestroy']);
     Route::put('/{id}/progress', [PaymentGoalController::class, 'updateProgress']);
+  });
+
+  Route::prefix('payment-goal-statuses')->group(function () {
+    Route::get('/', [PaymentGoalStatusController::class, 'index']);
   });
 });
