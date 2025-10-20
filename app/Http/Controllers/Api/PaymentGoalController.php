@@ -121,16 +121,14 @@ class PaymentGoalController extends Controller
   /**
    * Display the specified resource.
    */
-  public function show(Request $request, string $id): JsonResponse
+  public function show(Request $request, PaymentGoal $paymentGoal): JsonResponse
   {
-    $query = PaymentGoal::with('status');
-
     // Include trashed records if requested
     if ($request->has('with_trashed') && $request->boolean('with_trashed')) {
-      $query->withTrashed();
+      $paymentGoal = PaymentGoal::with('status')->withTrashed()->findOrFail($paymentGoal->id);
+    } else {
+      $paymentGoal->load('status');
     }
-
-    $paymentGoal = $query->findOrFail($id);
 
     return response()->json([
       'success' => true,
@@ -142,10 +140,8 @@ class PaymentGoalController extends Controller
   /**
    * Update the specified resource in storage.
    */
-  public function update(Request $request, string $id): JsonResponse
+  public function update(Request $request, PaymentGoal $paymentGoal): JsonResponse
   {
-    $paymentGoal = PaymentGoal::findOrFail($id);
-
     $validator = Validator::make($request->all(), [
       'name' => 'sometimes|string|max:255',
       'description' => 'nullable|string|max:1000',
@@ -186,9 +182,8 @@ class PaymentGoalController extends Controller
   /**
    * Remove the specified resource from storage.
    */
-  public function destroy(string $id): JsonResponse
+  public function destroy(PaymentGoal $paymentGoal): JsonResponse
   {
-    $paymentGoal = PaymentGoal::findOrFail($id);
     $paymentGoal->delete();
 
     return response()->json([
@@ -200,9 +195,9 @@ class PaymentGoalController extends Controller
   /**
    * Force delete the specified resource from storage.
    */
-  public function forceDestroy(string $id): JsonResponse
+  public function forceDestroy(string $paymentGoal): JsonResponse
   {
-    $paymentGoal = PaymentGoal::onlyTrashed()->findOrFail($id);
+    $paymentGoal = PaymentGoal::onlyTrashed()->findOrFail($paymentGoal);
     $paymentGoal->forceDelete();
 
     return response()->json([
@@ -214,9 +209,9 @@ class PaymentGoalController extends Controller
   /**
    * Restore the specified resource from storage.
    */
-  public function restore(string $id): JsonResponse
+  public function restore(string $paymentGoal): JsonResponse
   {
-    $paymentGoal = PaymentGoal::onlyTrashed()->findOrFail($id);
+    $paymentGoal = PaymentGoal::onlyTrashed()->findOrFail($paymentGoal);
     $paymentGoal->restore();
 
     return response()->json([
@@ -253,14 +248,12 @@ class PaymentGoalController extends Controller
   }
 
   /**
-   * Update progress for a payment goal.
+   * Add funds to a payment goal.
    */
-  public function updateProgress(Request $request, string $id): JsonResponse
+  public function updateProgress(Request $request, PaymentGoal $paymentGoal): JsonResponse
   {
-    $paymentGoal = PaymentGoal::findOrFail($id);
-
     $validator = Validator::make($request->all(), [
-      'amount' => 'required|integer|min:0',
+      'amount' => 'required|integer|min:1',
     ]);
 
     if ($validator->fails()) {
@@ -272,12 +265,15 @@ class PaymentGoalController extends Controller
     }
 
     $validated = $validator->validated();
+    $fundAmount = $validated['amount'];
+
+    // Add fund to existing amount
+    $newAmount = $paymentGoal->amount + $fundAmount;
     $target = $paymentGoal->target_amount;
-    $amount = $validated['amount'];
-    $progressPercent = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
+    $progressPercent = $target > 0 ? round(($newAmount / $target) * 100, 2) : 0;
 
     $paymentGoal->update([
-      'amount' => $amount,
+      'amount' => $newAmount,
       'progress_percent' => $progressPercent,
     ]);
 
@@ -288,8 +284,12 @@ class PaymentGoalController extends Controller
 
     return response()->json([
       'success' => true,
-      'message' => 'Payment goal progress updated successfully',
-      'data' => new PaymentGoalResource($paymentGoal->load('status'))
+      'message' => 'Funds added to payment goal successfully',
+      'data' => [
+        'amount'        => toIndonesianCurrency($paymentGoal->amount ?? 0),
+        'target_amount' => toIndonesianCurrency($paymentGoal->target_amount ?? 0),
+        'progress'      => $paymentGoal->progress_percent . '%',
+      ]
     ]);
   }
 

@@ -99,12 +99,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/overview', [PaymentGoalController::class, 'overview']);
     Route::get('/statistics', [PaymentGoalController::class, 'statistics']);
     Route::post('/', [PaymentGoalController::class, 'store']);
-    Route::get('/{id}', [PaymentGoalController::class, 'show']);
-    Route::put('/{id}', [PaymentGoalController::class, 'update']);
-    Route::delete('/{id}', [PaymentGoalController::class, 'destroy']);
-    Route::post('/{id}/restore', [PaymentGoalController::class, 'restore']);
-    Route::delete('/{id}/force', [PaymentGoalController::class, 'forceDestroy']);
-    Route::put('/{id}/progress', [PaymentGoalController::class, 'updateProgress']);
+    Route::get('/{paymentGoal}', [PaymentGoalController::class, 'show']);
+    Route::put('/{paymentGoal}', [PaymentGoalController::class, 'update']);
+    Route::delete('/{paymentGoal}', [PaymentGoalController::class, 'destroy']);
+    Route::post('/{paymentGoal}/restore', [PaymentGoalController::class, 'restore']);
+    Route::delete('/{paymentGoal}/force', [PaymentGoalController::class, 'forceDestroy']);
+    Route::put('/{paymentGoal}/progress', [PaymentGoalController::class, 'updateProgress']);
   });
 
   Route::prefix('payment-goal-statuses')->group(function () {
