@@ -82,14 +82,12 @@ class PaymentGoalController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'name' => 'required|string|max:255',
-      'description' => 'nullable|string|max:1000',
+      'name'          => 'required|string|max:255',
+      'description'   => 'nullable|string|max:1000',
       'target_amount' => 'required|integer|min:0',
-      'amount' => 'required|integer|min:0',
-      'progress_percent' => 'integer|min:0|max:100',
-      'start_date' => 'required|date',
-      'target_date' => 'required|date|after:start_date',
-      'status_id' => ['required', 'integer', Rule::exists('payment_goal_statuses', 'id')],
+      'amount'        => 'required|integer|min:0',
+      'start_date'    => 'required|date',
+      'target_date'   => 'required|date|after:start_date',
     ]);
 
     if ($validator->fails()) {
@@ -101,20 +99,19 @@ class PaymentGoalController extends Controller
     }
 
     $validated = $validator->validated();
+    
+    $target = (int) $validated['target_amount'];
+    $amount = (int) $validated['amount'];
+    
+    $validated['code'] = getCode('payment_goals');
+    $validated['status_id'] = PaymentGoalStatus::ONGOING;
+    $validated['progress_percent'] = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
 
-    // Auto-calculate progress percentage if not provided
-    if (!isset($validated['progress_percent']) || $validated['progress_percent'] === 0) {
-      $target = $validated['target_amount'];
-      $amount = $validated['amount'];
-      $validated['progress_percent'] = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
-    }
-
-    $paymentGoal = PaymentGoal::create($validated);
+    PaymentGoal::create($validated);
 
     return response()->json([
       'success' => true,
       'message' => 'Payment goal created successfully',
-      'data' => new PaymentGoalResource($paymentGoal->load('status'))
     ], 201);
   }
 

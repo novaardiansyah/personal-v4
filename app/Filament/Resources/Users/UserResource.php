@@ -76,6 +76,14 @@ class UserResource extends Resource
           ->label('Email address'),
         TextEntry::make('email_verified_at')
           ->dateTime(),
+        IconEntry::make('has_allow_notification')
+          ->label('Allow Notifications')
+          ->boolean(),
+        TextEntry::make('notification_token')
+          ->label('Notification Token')
+          ->placeholder('Not set')
+          ->copyable()
+          ->default('Not set'),
         // IconEntry::make('has_email_authentication')
         //   ->boolean(),
         TextEntry::make('created_at')
@@ -112,6 +120,16 @@ class UserResource extends Resource
         TextColumn::make('email_verified_at')
           ->dateTime()
           ->sortable(),
+        IconColumn::make('has_allow_notification')
+          ->label('Allow Notifications')
+          ->boolean()
+          ->toggleable(),
+        TextColumn::make('notification_token')
+          ->label('Notification Token')
+          ->limit(20)
+          ->copyable()
+          ->placeholder('Not set')
+          ->toggleable(isToggledHiddenByDefault: true),
         // IconColumn::make('has_email_authentication')
         //   ->boolean(),
         TextColumn::make('created_at')

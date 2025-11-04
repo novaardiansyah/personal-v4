@@ -37,6 +37,8 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
     'email_verified_at',
     'has_email_authentication',
     'app_authentication_secret',
+    'has_allow_notification',
+    'notification_token'
   ];
 
   /**
@@ -58,10 +60,11 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
   protected function casts(): array
   {
     return [
-      'email_verified_at' => 'datetime',
-      'password' => 'hashed',
+      'email_verified_at'         => 'datetime',
+      'password'                  => 'hashed',
       'app_authentication_secret' => 'encrypted',
-      'has_email_authentication' => 'boolean',
+      'has_email_authentication'  => 'boolean',
+      'has_allow_notification'    => 'boolean',
     ];
   }
 

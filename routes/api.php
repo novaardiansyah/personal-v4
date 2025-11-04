@@ -2,6 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\GalleryController;
 use App\Http\Controllers\Api\GalleryTagController;
@@ -29,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/validate-token', [AuthController::class, 'validateToken']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::put('/notification-settings', [AuthController::class, 'updateNotificationSettings']);
   });
 
   Route::prefix('skills')->group(function () {

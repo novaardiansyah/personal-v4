@@ -136,4 +136,30 @@ class AuthController extends Controller
       ]
     ]);
   }
+
+  public function updateNotificationSettings(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'has_allow_notification' => 'sometimes|boolean',
+      'notification_token' => 'sometimes|string|max:255|nullable',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $user = $request->user();
+    $validated = $validator->validated();
+
+    $user->update($validated);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Notification settings updated successfully',
+    ]);
+  }
 }
