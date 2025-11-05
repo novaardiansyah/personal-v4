@@ -3,8 +3,10 @@
 use App\Models\ActivityLog;
 use App\Models\File;
 use App\Models\Generate;
+use App\Models\PushNotification;
 use App\Models\Setting;
 use App\Models\User;
+use App\Services\ExpoNotificationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Ramsey\Uuid\Uuid;
@@ -299,50 +301,38 @@ function getIpInfo(?string $ipAddress = null): array
   ];
 }
 
-function sendPushNotification($user, string $title, string $body, array $data = []): array
+function sendPushNotification(User $user, string $title, string $body, array $data = []): array
 {
-  if (is_numeric($user)) {
-    $userId = $user;
-    $userModel = \App\Models\User::find($userId);
-  } elseif ($user instanceof \App\Models\User) {
-    $userId = $user->id;
-    $userModel = $user;
-  } else {
-    return [
-      'success' => false,
-      'message' => 'Invalid user parameter'
-    ];
-  }
-
-  // Cek apakah user ada
-  if (!$userModel) {
-    return [
-      'success' => false,
-      'message' => 'User not found'
-    ];
-  }
-
-  // Cek apakah user mengizinkan notifikasi
-  if (!$userModel->has_allow_notification) {
+  if (!$user->has_allow_notification) {
     return [
       'success' => false,
       'message' => 'User has disabled notifications'
     ];
   }
 
-  // Cek apakah user memiliki notification token
-  if (!$userModel->notification_token) {
+  if (!$user->notification_token) {
     return [
       'success' => false,
       'message' => 'No notification token found for this user'
     ];
   }
 
-  $notificationService = app(\App\Services\ExpoNotificationService::class);
-  return $notificationService->sendNotification(
-    $userModel->notification_token,
+  PushNotification::create([
+    'user_id' => $user->id,
+    'title'   => $title,
+    'body'    => $body,
+    'data'    => $data,
+    'token'   => $user->notification_token,
+  ]);
+
+  $notificationService = app(ExpoNotificationService::class);
+
+  $result = $notificationService->sendNotification(
+    $user->notification_token,
     $title,
     $body,
     $data
   );
+
+  return $result;
 }

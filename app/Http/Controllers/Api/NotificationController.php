@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Services\ExpoNotificationService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
@@ -67,7 +68,7 @@ class NotificationController extends Controller
       $user,
       'Test Notification',
       'This is a test notification from your Laravel app!',
-      ['type' => 'test', 'timestamp' => now()->toISOString()]
+      ['action' => 'test', 'timestamp' => Carbon::now()->translatedFormat('Y-m-d H:i:s')],
     );
 
     // Jika error dari helper, kembalikan response yang sesuai
