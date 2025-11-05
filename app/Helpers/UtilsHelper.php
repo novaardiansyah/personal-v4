@@ -317,7 +317,7 @@ function sendPushNotification(User $user, string $title, string $body, array $da
     ];
   }
 
-  PushNotification::create([
+  $pushNotification = PushNotification::create([
     'user_id' => $user->id,
     'title'   => $title,
     'body'    => $body,
@@ -333,6 +333,18 @@ function sendPushNotification(User $user, string $title, string $body, array $da
     $body,
     $data
   );
+
+  if ($result['success']) {
+    $pushNotification->update([
+      'sent_at'       => now(),
+      'response_data' => $result['data']
+    ]);
+  }
+  else {
+    $pushNotification->update([
+      'error_message' => $result['message'] . ': ' . $result['error'] ?? $result['message']
+    ]);
+  }
 
   return $result;
 }

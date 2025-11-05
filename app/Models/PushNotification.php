@@ -15,10 +15,9 @@ class PushNotification extends Model
   protected $guarded = ['id'];
 
   protected $casts = [
-    'data' => 'array',
+    'data'          => 'array',
     'response_data' => 'array',
-    'sent_at' => 'datetime',
-    'delivered_at' => 'datetime',
+    'sent_at'       => 'datetime',
   ];
 
   public function user()

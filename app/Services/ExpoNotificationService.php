@@ -119,7 +119,9 @@ class ExpoNotificationService
       return [
         'success' => true,
         'message' => 'Notification sent successfully',
-        'data' => $result['id'] ?? null
+        'data' => [
+          'id' => $result['id'] ?? null
+        ]
       ];
 
     } catch (RequestException $e) {
