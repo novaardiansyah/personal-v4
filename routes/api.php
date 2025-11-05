@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\PaymentTypeController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\PaymentGoalController;
 use App\Http\Controllers\Api\PaymentGoalStatusController;
+use App\Http\Controllers\Api\NotificationController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -30,7 +31,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/validate-token', [AuthController::class, 'validateToken']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
-    Route::put('/notification-settings', [AuthController::class, 'updateNotificationSettings']);
   });
 
   Route::prefix('skills')->group(function () {
@@ -111,5 +111,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('payment-goal-statuses')->group(function () {
     Route::get('/', [PaymentGoalStatusController::class, 'index']);
+  });
+
+  Route::prefix('notifications')->group(function () {
+    Route::put('/settings', [NotificationController::class, 'updateNotificationSettings']);
+    Route::post('/test', [NotificationController::class, 'testNotification']);
   });
 });

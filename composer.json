@@ -9,6 +9,7 @@
         "php": "^8.2",
         "amirezaeb/heroqr": "^1.1",
         "filament/filament": "^4.0",
+        "guzzlehttp/guzzle": "^7.10",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/tinker": "^2.10.1",

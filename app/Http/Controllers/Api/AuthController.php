@@ -41,6 +41,8 @@ class AuthController extends Controller
     $expiration = config('sanctum.expiration') ? now()->addMinutes(config('sanctum.expiration')) : null;
     $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
+    \Log::info('786 --> spy token', ['token' => $token]);
+
     return response()->json([
       'success' => true,
       'message' => 'Login successful',
@@ -134,32 +136,6 @@ class AuthController extends Controller
       'data' => [
         'user' => $user
       ]
-    ]);
-  }
-
-  public function updateNotificationSettings(Request $request)
-  {
-    $validator = Validator::make($request->all(), [
-      'has_allow_notification' => 'sometimes|boolean',
-      'notification_token' => 'sometimes|string|max:255|nullable',
-    ]);
-
-    if ($validator->fails()) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Validation error',
-        'errors' => $validator->errors()
-      ], 422);
-    }
-
-    $user = $request->user();
-    $validated = $validator->validated();
-
-    $user->update($validated);
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Notification settings updated successfully',
     ]);
   }
 }
