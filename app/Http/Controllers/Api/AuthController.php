@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use Illuminate\Auth\Events\Login;
 
 class AuthController extends Controller
 {
@@ -41,7 +42,9 @@ class AuthController extends Controller
     $expiration = config('sanctum.expiration') ? now()->addMinutes(config('sanctum.expiration')) : null;
     $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
-    \Log::info('786 --> spy token', ['token' => $token]);
+    event(new Login('api', $user, false));
+
+    // \Log::info('786 --> spy token', ['token' => $token]);
 
     return response()->json([
       'success' => true,

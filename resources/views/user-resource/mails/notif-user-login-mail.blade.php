@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-  <p>Kami ingin menginformasikan bahwa ada pengguna yang baru saja login ke situs web Anda. Berikut adalah detail login pengguna tersebut:</p>
+  <p>Kami ingin menginformasikan bahwa ada pengguna yang baru saja login ke {{ ($data['guard'] ?? null) === 'api' ? 'sistem melalui API' : 'situs web' }} Anda. Berikut adalah detail login pengguna tersebut:</p>
 
   <div class="card" style="margin-top: 20px;">
     <div class="group">
@@ -34,7 +34,7 @@
           <strong>Perangkat</strong>: {{ $data['user_agent'] ?? '-' }}
         </li>
         <li>
-          <strong>Waktu Login</strong>: {{ $data['created_at'] ? carbonTranslatedFormat($data['created_at'], 'd F Y H:i') : '-' }}
+          <strong>Waktu Login</strong>: {{ $data['created_at'] ? carbonTranslatedFormat($data['created_at'], 'd F Y H:i') . ' WIB' : '-' }}
         </li>
         <li>
           <strong>Referer</strong>: <a href="{{ $data['referer'] ?? '#' }}" target="_blank">{{ $data['referer'] ?? '-' }}</a>

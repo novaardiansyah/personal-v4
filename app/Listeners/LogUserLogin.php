@@ -39,7 +39,10 @@ class LogUserLogin
 
     $user_id    = $event->user->id;
     $user_email = $event->user->email;
-    $referer    = url('admin/login');
+
+    // Dynamic referer based on guard
+    $referer = $event->guard === 'api' ? url('/api/auth/login') : url('admin/login');
+
     $ip_address = request()->ip();
     $user_agent = request()->userAgent();
 
@@ -73,7 +76,7 @@ class LogUserLogin
     
     saveActivityLog([
       'log_name'     => 'Notification',
-      'description'  => 'Email Login Notification Sent',
+      'description'  => $event->guard === 'api' ? 'API Login Notification' : 'Web Login Notification',
       'event'        => 'Login',
       'subject_id'   => $user_id,
       'subject_type' => User::class,
@@ -102,7 +105,10 @@ class LogUserLogin
       'email'       => getSetting('login_email_notification'),
       'author_name' => getSetting('author_name'),
       'log_name'    => 'notif_user_login',
-      'subject'     => 'Notifikasi: Login pengguna dari situs web',
+      'subject'     => $event->guard === 'api'
+        ? 'Notifikasi: Login pengguna melalui API'
+        : 'Notifikasi: Login pengguna dari situs web',
+      'guard'       => $event->guard,
       'email_user'  => $event->user->email,
       'ip_address'  => $ip_address,
       'geolocation' => $geolocation,
