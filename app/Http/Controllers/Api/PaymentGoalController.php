@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\PaymentGoalResource;
 use App\Http\Resources\Api\PaymentGoalCollection;
+use App\Models\Payment;
+use App\Models\PaymentAccount;
 use App\Models\PaymentGoal;
 use App\Models\PaymentGoalStatus;
+use App\Models\PaymentType;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Validator;
@@ -250,7 +253,8 @@ class PaymentGoalController extends Controller
   public function updateProgress(Request $request, PaymentGoal $paymentGoal): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount' => 'required|integer|min:1',
+      'amount'             => 'required|integer|min:1',
+      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
     ]);
 
     if ($validator->fails()) {
@@ -261,20 +265,70 @@ class PaymentGoalController extends Controller
       ], 422);
     }
 
-    $validated = $validator->validated();
-    $fundAmount = $validated['amount'];
+    $validated        = $validator->validated();
+    $fundAmount       = $validated['amount'];
+    $paymentAccountId = $validated['payment_account_id'];
 
-    // Add fund to existing amount
-    $newAmount = $paymentGoal->amount + $fundAmount;
-    $target = $paymentGoal->target_amount;
+    $paymentAccount = PaymentAccount::find($paymentAccountId);
+
+    if (!$paymentAccount) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment account not found'
+      ], 404);
+    }
+
+    if ($paymentAccount->deposit < $fundAmount) {
+      $lessAmount = toIndonesianCurrency($paymentAccount->deposit ?? 0);
+
+      return response()->json([
+        'success' => false,
+        'message' => "Insufficient balance in payment account: {$lessAmount}",
+      ], 422);
+    }
+
+    $remainingNeeded = $paymentGoal->target_amount - $paymentGoal->amount;
+
+    if ($fundAmount > $remainingNeeded) {
+      return response()->json([
+        'success' => false,
+        'message' => 'The amount exceeds for this goal. Remaining needed: ' . toIndonesianCurrency($remainingNeeded)
+      ], 422);
+    }
+
+    $paymentData = [
+      'amount'             => $fundAmount,
+      'date'               => now()->format('Y-m-d'),
+      'name'               => "Contribution to payment goal: {$paymentGoal->name}",
+      'type_id'            => PaymentType::EXPENSE,
+      'payment_account_id' => $paymentAccountId,
+      'has_items'          => false,
+      'has_charge'         => false,
+      'is_scheduled'       => false,
+      'attachments'        => []
+    ];
+
+    $payment = new Payment();
+    $mutate  = $payment::mutateDataPayment($paymentData);
+
+    if (!$mutate['status']) {
+      return response()->json([
+        'success' => false,
+        'message' => $mutate['message']
+      ], 422);
+    }
+
+    $payment = Payment::create($mutate['data']);
+
+    $newAmount       = $paymentGoal->amount + $fundAmount;
+    $target          = $paymentGoal->target_amount;
     $progressPercent = $target > 0 ? round(($newAmount / $target) * 100, 2) : 0;
 
     $paymentGoal->update([
-      'amount' => $newAmount,
+      'amount'           => $newAmount,
       'progress_percent' => $progressPercent,
     ]);
 
-    // Auto-update status based on progress
     if ($progressPercent >= 100) {
       $paymentGoal->update(['status_id' => PaymentGoalStatus::COMPLETED]);
     }
@@ -282,11 +336,6 @@ class PaymentGoalController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Funds added to payment goal successfully',
-      'data' => [
-        'amount'        => toIndonesianCurrency($paymentGoal->amount ?? 0),
-        'target_amount' => toIndonesianCurrency($paymentGoal->target_amount ?? 0),
-        'progress'      => $paymentGoal->progress_percent . '%',
-      ]
     ]);
   }
 
