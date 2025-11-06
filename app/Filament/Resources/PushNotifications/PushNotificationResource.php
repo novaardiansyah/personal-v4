@@ -2,11 +2,10 @@
 
 namespace App\Filament\Resources\PushNotifications;
 
+use App\Filament\Resources\PushNotifications\Actions\ActionPushNotifications;
 use App\Filament\Resources\PushNotifications\Pages\ManagePushNotifications;
 use App\Models\PushNotification;
 use App\Models\User;
-use BackedEnum;
-use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,17 +15,18 @@ use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\Action;
+use Filament\Notifications\Notification;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
-use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
@@ -37,6 +37,9 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+
+use UnitEnum;
+use BackedEnum;
 
 class PushNotificationResource extends Resource
 {
@@ -56,46 +59,39 @@ class PushNotificationResource extends Resource
       ->components([
         Select::make('user_id')
           ->label('User')
-          ->relationship('user', 'name')
+          ->relationship('user', 'name', fn ($query) => $query->where('has_allow_notification', true))
           ->searchable()
           ->preload()
           ->required()
-          ->native(false),
+          ->native(false)
+          ->live()
+          ->afterStateUpdated(function ($state, callable $set) {
+            $user = $state ? User::find($state) : null;
+            $set('token', $user?->notification_token ?? '');
+          }),
+          
+        TextInput::make('token')
+          ->label('Device Token')
+          ->maxLength(255)
+          ->copyable()
+          ->readOnly(),
+
         TextInput::make('title')
           ->label('Notification Title')
           ->required()
-          ->maxLength(255),
+          ->maxLength(255)
+          ->columnSpanFull(),
+
         Textarea::make('body')
           ->label('Message Body')
           ->required()
           ->rows(4)
           ->columnSpanFull(),
-        Textarea::make('data')
+
+        KeyValue::make('data')
           ->label('Additional Data')
-          ->helperText('JSON format for additional notification data')
-          ->rows(3)
-          ->columnSpanFull(),
-        TextInput::make('token')
-          ->label('Device Token')
-          ->helperText('Target device token for the notification')
-          ->maxLength(255)
-          ->copyable(),
-        DateTimePicker::make('sent_at')
-          ->label('Sent At')
-          ->native(false)
-          ->displayFormat('M j, Y H:i')
-          ->default(null),
-        Textarea::make('error_message')
-          ->label('Error Message')
-          ->rows(2)
           ->columnSpanFull()
-          ->visible(fn (string $operation): bool => $operation === 'edit'),
-        Textarea::make('response_data')
-          ->label('Response Data')
-          ->helperText('Response from push notification service')
-          ->rows(3)
-          ->columnSpanFull()
-          ->visible(fn (string $operation): bool => $operation === 'edit'),
+          ->disabledOn('edit'),
       ]);
   }
 
@@ -241,6 +237,16 @@ class PushNotificationResource extends Resource
 
           EditAction::make()
             ->modalWidth(Width::FiveExtraLarge),
+
+          Action::make('sendNotification')
+            ->label('Send Push Notification')
+            ->icon('heroicon-o-paper-airplane')
+            ->color('success')
+            ->requiresConfirmation()
+            ->modalHeading('Send Push Notification')
+            ->modalDescription('Send the push notification to the user immediately. Continue?')
+            ->action(fn (PushNotification $record) => ActionPushNotifications::sendPushNotification($record))
+            ->visible(fn (PushNotification $record): bool => !$record->sent_at),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),

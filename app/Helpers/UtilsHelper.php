@@ -301,7 +301,7 @@ function getIpInfo(?string $ipAddress = null): array
   ];
 }
 
-function sendPushNotification(User $user, string $title, string $body, array $data = []): array
+function sendPushNotification(User $user, string $title, string $body, array $data = [], PushNotification $record = null): array
 {
   if (!$user->has_allow_notification) {
     return [
@@ -317,13 +317,17 @@ function sendPushNotification(User $user, string $title, string $body, array $da
     ];
   }
 
-  $pushNotification = PushNotification::create([
-    'user_id' => $user->id,
-    'title'   => $title,
-    'body'    => $body,
-    'data'    => $data,
-    'token'   => $user->notification_token,
-  ]);
+  $pushNotification = $record;
+  
+  if (!$record) {
+    $pushNotification = PushNotification::create([
+      'user_id' => $user->id,
+      'title'   => $title,
+      'body'    => $body,
+      'data'    => $data,
+      'token'   => $user->notification_token,
+    ]);
+  }
 
   $notificationService = app(ExpoNotificationService::class);
 
