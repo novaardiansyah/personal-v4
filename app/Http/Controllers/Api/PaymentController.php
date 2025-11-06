@@ -55,7 +55,8 @@ class PaymentController extends Controller
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_income,
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_expense,
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_withdrawal,
-        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_transfer
+        SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_transfer,
+        SUM(CASE WHEN type_id = 1 AND is_scheduled = 1 THEN amount ELSE 0 END) AS scheduled_expense
       ", [
         PaymentType::INCOME, 
         PaymentType::EXPENSE, 
@@ -77,15 +78,21 @@ class PaymentController extends Controller
     $percentWithdrawal = $totalWithdrawal > 0 ? round(($totalWithdrawal / $initialBalance) * 100, 2) : 0;
     $percentTransfer   = $totalTransfer > 0 ? round(($totalTransfer / $initialBalance) * 100, 2) : 0;
 
+    $scheduled_expense     = (int) ($totals->scheduled_expense ?? 0);
+    $total_balance         = (int) $totalBalance;
+    $total_after_scheduled = $total_balance - $scheduled_expense;
+
     return response()->json([
       'success' => true,
       'data' => [
-        'total_balance'   => (int) $totalBalance,
-        'initial_balance' => (int) $initialBalance,
-        'income'          => (int) $totalIncome,
-        'expenses'        => (int) $totalExpense,
-        'withdrawal'      => (int) $totalWithdrawal,
-        'transfer'        => (int) $totalTransfer,
+        'total_balance'         => $total_balance,
+        'scheduled_expense'     => $scheduled_expense,
+        'total_after_scheduled' => $total_after_scheduled,
+        'initial_balance'       => (int) $initialBalance,
+        'income'                => (int) $totalIncome,
+        'expenses'              => (int) $totalExpense,
+        'withdrawal'            => (int) $totalWithdrawal,
+        'transfer'              => (int) $totalTransfer,
         'percents' => [
           'income'        => (float) $percentIncome,
           'expenses'      => (float) $percentExpense,
