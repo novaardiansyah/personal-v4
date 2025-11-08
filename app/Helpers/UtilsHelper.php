@@ -301,6 +301,35 @@ function getIpInfo(?string $ipAddress = null): array
   ];
 }
 
+function copyFileWithRandomName(string $defaultPath): string
+{
+  $sourcePath = storage_path('app/public/' . $defaultPath);
+
+  if (!file_exists($sourcePath)) {
+    return $defaultPath;
+  }
+
+  $pathInfo = pathinfo($defaultPath);
+  $extension = $pathInfo['extension'] ?? 'png';
+  $directory = $pathInfo['dirname'];
+
+  $randomName = Carbon::now()->format('YmdHis') . '_' . str()->random(12) . '.' . $extension;
+  $newPath = $directory . '/' . $randomName;
+
+  $targetPath = storage_path('app/public/' . $newPath);
+  $targetDirectory = storage_path('app/public/' . $directory);
+
+  if (!is_dir($targetDirectory)) {
+    mkdir($targetDirectory, 0755, true);
+  }
+
+  if (copy($sourcePath, $targetPath)) {
+    return $newPath;
+  }
+
+  return $defaultPath;
+}
+
 function sendPushNotification(User $user, string $title, string $body, array $data = [], PushNotification $record = null): array
 {
   if (!$user->has_allow_notification) {
@@ -318,7 +347,7 @@ function sendPushNotification(User $user, string $title, string $body, array $da
   }
 
   $pushNotification = $record;
-  
+
   if (!$record) {
     $pushNotification = PushNotification::create([
       'user_id' => $user->id,

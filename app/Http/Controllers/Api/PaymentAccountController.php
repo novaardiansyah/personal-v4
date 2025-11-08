@@ -14,7 +14,23 @@ class PaymentAccountController extends Controller
 {
   public function index(): JsonResponse
   {
-    $accounts = PaymentAccount::orderBy('name')->get();
+    $accounts = PaymentAccount::orderBy('name')
+      ->where('user_id', auth()->user()->id)
+      ->get();
+
+    if ($accounts->isEmpty()) {
+      PaymentAccount::create([
+        'user_id' => auth()->user()->id,
+        'name'    => 'Tunai',
+        'deposit' => 0,
+        'logo'    => copyFileWithRandomName('images/payment_account/default-tunai.png')
+      ]);
+
+      $accounts = PaymentAccount::orderBy('name')
+        ->where('user_id', auth()->user()->id)
+        ->get();
+    }
+
     return response()->json(PaymentAccountResource::collection($accounts));
   }
 

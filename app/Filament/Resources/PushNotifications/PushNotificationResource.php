@@ -45,11 +45,11 @@ class PushNotificationResource extends Resource
 {
   protected static ?string $model = PushNotification::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBellAlert;
 
-  protected static string|UnitEnum|null $navigationGroup = 'Settings';
+  protected static string|UnitEnum|null $navigationGroup = 'Web Content';
 
-  protected static ?int $navigationSort = 20;
+  protected static ?int $navigationSort = 40;
 
   protected static ?string $recordTitleAttribute = 'title';
 

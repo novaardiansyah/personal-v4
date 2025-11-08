@@ -118,12 +118,13 @@ class PaymentController extends Controller
     $limit = $request->get('limit', 10);
 
     $payments = Payment::with(['payment_type'])
+      ->where('user_id', Auth()->user()->id)
       ->orderBy('updated_at', 'desc')
       ->paginate($limit);
 
     return response()->json([
       'success' => true,
-      'data' => PaymentResource::collection($payments),
+      'data'    => PaymentResource::collection($payments),
       'pagination' => [
         'current_page' => $payments->currentPage(),
         'from'         => $payments->firstItem(),

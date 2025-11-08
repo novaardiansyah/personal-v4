@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\GenerateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
@@ -116,5 +117,9 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('notifications')->group(function () {
     Route::put('/settings', [NotificationController::class, 'updateNotificationSettings']);
     Route::post('/test', [NotificationController::class, 'testNotification']);
+  });
+
+  Route::prefix('generates')->group(function () {
+    Route::post('/', [GenerateController::class, 'getCode']);
   });
 });
