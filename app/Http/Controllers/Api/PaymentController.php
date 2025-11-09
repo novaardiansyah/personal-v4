@@ -50,7 +50,8 @@ class PaymentController extends Controller
       $endDate   = Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
-    $totals = Payment::whereBetween('date', [$startDate, $endDate])
+    $totals = Payment::where('user_id', Auth()->user()->id)
+      ->whereBetween('date', [$startDate, $endDate])
       ->selectRaw("
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_income,
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_expense,
@@ -70,7 +71,7 @@ class PaymentController extends Controller
     $totalWithdrawal = $totals->total_withdrawal ?? 0;
     $totalTransfer   = $totals->total_transfer ?? 0;
 
-    $totalBalance   = PaymentAccount::sum('deposit');
+    $totalBalance   = PaymentAccount::where('user_id', Auth()->user()->id)->sum('deposit');
     $initialBalance = (int) $totalIncome + (int) $totalExpense;
 
     $percentIncome     = $totalIncome > 0 ? round(($totalIncome / $initialBalance) * 100, 2) : 0;
