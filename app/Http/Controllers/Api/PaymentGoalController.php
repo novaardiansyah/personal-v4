@@ -70,7 +70,9 @@ class PaymentGoalController extends Controller
     $perPage = $request->get('per_page', 15);
     $perPage = min($perPage, 100); // Max 100 items per page
 
-    $paymentGoals = $query->paginate($perPage);
+    $paymentGoals = $query
+      ->where('user_id', auth()->user()->id)
+      ->paginate($perPage);
 
     return response()->json([
       'success' => true,
@@ -344,16 +346,20 @@ class PaymentGoalController extends Controller
    */
   public function overview(): JsonResponse
   {
-    $totalGoals = PaymentGoal::count();
-    $completedGoals = PaymentGoal::where('status_id', PaymentGoalStatus::COMPLETED)->count();
+    $totalGoals = PaymentGoal::where('user_id', auth()->user()->id)->count();
+
+    $completedGoals = PaymentGoal::where('user_id', auth()->user()->id)
+      ->where('status_id', PaymentGoalStatus::COMPLETED)
+      ->count();
+
     $successRate = $totalGoals > 0 ? round(($completedGoals / $totalGoals) * 100, 2) : 0;
 
     return response()->json([
       'success' => true,
       'message' => 'Payment goals overview retrieved successfully',
       'data' => [
-        'total_goals' => $totalGoals,
-        'completed' => $completedGoals,
+        'total_goals'  => $totalGoals,
+        'completed'    => $completedGoals,
         'success_rate' => $successRate . '%'
       ]
     ]);
