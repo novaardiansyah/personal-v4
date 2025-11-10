@@ -119,11 +119,22 @@ class PaymentController extends Controller
     $validator = Validator::make($request->all(), [
       'page'       => 'nullable|integer|min:1',
       'limit'      => 'nullable|integer|min:1',
-      'date_from'  => 'nullable|date|before_or_equal:date_to',
-      'date_to'    => 'nullable|date|after_or_equal:date_from',
+      'date_from'  => 'nullable|date',
+      'date_to'    => 'nullable|date',
       'type'       => 'nullable|integer|exists:payment_types,id',
       'account_id' => 'nullable|integer|exists:payment_accounts,id'
     ]);
+
+    $validator->after(function ($validator) use ($request) {
+      $dateFrom = $request->input('date_from');
+      $dateTo = $request->input('date_to');
+
+      if ($dateFrom && $dateTo) {
+        if (strtotime($dateFrom) > strtotime($dateTo)) {
+          $validator->errors()->add('date_from', 'The date from field must be a date before or equal to date to.');
+        }
+      }
+    });
 
     if ($validator->fails()) {
       return response()->json([
