@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\CleanExpiredTokens;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
@@ -22,3 +23,7 @@ Schedule::job(new DailyReportJob())
 // ! Scheduled File Deletion
 Schedule::job(new RemoveFileJob())
   ->everyTwoHours();
+
+// ! Clean Expired Tokens
+Schedule::job(new CleanExpiredTokens())
+  ->dailyAt('23:59');
