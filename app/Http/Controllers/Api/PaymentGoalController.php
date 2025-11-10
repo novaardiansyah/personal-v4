@@ -111,6 +111,7 @@ class PaymentGoalController extends Controller
     $validated['code'] = getCode('payment_goals');
     $validated['status_id'] = PaymentGoalStatus::ONGOING;
     $validated['progress_percent'] = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
+    $validated['user_id'] = auth()->user()->id;
 
     PaymentGoal::create($validated);
 
@@ -186,11 +187,19 @@ class PaymentGoalController extends Controller
    */
   public function destroy(PaymentGoal $paymentGoal): JsonResponse
   {
+    // Check if payment goal has existing funds (amount > 0)
+    if ($paymentGoal->amount > 0) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Tidak dapat menghapus tujuan keuangan yang sudah memiliki dana. Jumlah saat ini: ' . toIndonesianCurrency($paymentGoal->amount)
+      ], 422);
+    }
+
     $paymentGoal->delete();
 
     return response()->json([
       'success' => true,
-      'message' => 'Payment goal deleted successfully'
+      'message' => 'Tujuan keuangan berhasil dihapus'
     ]);
   }
 
@@ -200,6 +209,15 @@ class PaymentGoalController extends Controller
   public function forceDestroy(string $paymentGoal): JsonResponse
   {
     $paymentGoal = PaymentGoal::onlyTrashed()->findOrFail($paymentGoal);
+
+    // Check if payment goal has existing funds (amount > 0)
+    if ($paymentGoal->amount > 0) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Tidak dapat menghapus permanen payment goal yang sudah memiliki dana. Jumlah saat ini: ' . toIndonesianCurrency($paymentGoal->amount)
+      ], 422);
+    }
+
     $paymentGoal->forceDelete();
 
     return response()->json([
