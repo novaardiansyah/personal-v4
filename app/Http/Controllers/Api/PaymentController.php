@@ -116,10 +116,50 @@ class PaymentController extends Controller
    */
   public function index(Request $request): JsonResponse
   {
-    $limit = $request->get('limit', 10);
+    $validator = Validator::make($request->all(), [
+      'page'       => 'nullable|integer|min:1',
+      'limit'      => 'nullable|integer|min:1',
+      'date_from'  => 'nullable|date|before_or_equal:date_to',
+      'date_to'    => 'nullable|date|after_or_equal:date_from',
+      'type'       => 'nullable|integer|exists:payment_types,id',
+      'account_id' => 'nullable|integer|exists:payment_accounts,id'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated  = $validator->validated();
+    $limit      = $validated['limit'] ?? 10;
+    $date_from  = $validated['date_from'] ?? null;
+    $date_to    = $validated['date_to'] ?? null;
+    $type       = $validated['type'] ?? null;
+    $account_id = $validated['account_id'] ?? null;
 
     $payments = Payment::with(['payment_type'])
-      ->where('user_id', Auth()->user()->id)
+      ->where('user_id', Auth()->user()->id);
+
+    if ($date_from) {
+      $payments->where('date', '>=', $date_from);
+    }
+
+    if ($date_to) {
+      $payments->where('date', '<=', $date_to);
+    }
+
+    if ($type) {
+      $payments->where('type_id', $type);
+    }
+
+    if ($account_id) {
+      $payments->where('payment_account_id', $account_id);
+    }
+
+    $payments = $payments
       ->orderBy('updated_at', 'desc')
       ->paginate($limit);
 
