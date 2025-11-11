@@ -643,19 +643,9 @@ class PaymentController extends Controller
   /**
    * Detach item from payment
    */
-  public function detachItem(Request $request, $paymentId, $pivotId): JsonResponse
+  public function detachItem(Payment $payment, $pivotId): JsonResponse
   {
-    $payment = Payment::find($paymentId);
-
-    if (!$payment) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Payment not found'
-      ], 404);
-    }
-
-    // Find the pivot record
-    $paymentItem = PaymentItem::where('payment_id', $paymentId)
+    $paymentItem = PaymentItem::where('payment_id', $payment->id)
       ->where('id', $pivotId)
       ->first();
 
@@ -666,27 +656,18 @@ class PaymentController extends Controller
       ], 404);
     }
 
-    // Get the related item
-    $item = $paymentItem->item;
-
-    // Count expense after detach
-    $expense = $payment->amount - $paymentItem->total;
-
-    // Count deposit change (following Filament logic)
+    $item            = $paymentItem->item;
+    $expense         = $payment->amount - $paymentItem->total;
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+    $is_scheduled    = $payment->is_scheduled ?? false;
 
-    $is_scheduled = $payment->is_scheduled ?? false;
-
-    // Update deposit payment account if not scheduled
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
     }
 
-    // Update payment notes
     $itemName = $item->name . ' (x' . $paymentItem->quantity . ')';
-    $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
+    $note     = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
-    // Delete the pivot record and update payment
     $paymentItem->delete();
     $payment->update(['amount' => $expense, 'name' => $note]);
 
@@ -694,9 +675,9 @@ class PaymentController extends Controller
       'success' => true,
       'message' => 'Item detached successfully',
       'data' => [
-        'amount' => $payment->amount,
+        'amount'           => $payment->amount,
         'formatted_amount' => toIndonesianCurrency($payment->amount),
-        'items_count' => $payment->items()->count()
+        'items_count'      => $payment->items()->count()
       ]
     ]);
   }
