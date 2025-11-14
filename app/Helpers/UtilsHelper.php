@@ -9,12 +9,14 @@ use App\Models\User;
 use App\Services\ExpoNotificationService;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Storage;
 use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
+use Illuminate\Support\Str;
 
 function getSetting(string $key, $default = null)
 {
@@ -380,4 +382,28 @@ function sendPushNotification(User $user, string $title, string $body, array $da
   }
 
   return $result;
+}
+
+function processBase64Image(?string $base64Data, string $storagePath): ?string
+{
+  if (empty($base64Data)) {
+    return null;
+  }
+
+  if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
+    $extension = strtolower($matches[1]);
+    $base64Image = substr($base64Data, strpos($base64Data, ',') + 1);
+    $imageData = base64_decode($base64Image);
+
+    if ($imageData !== false) {
+      $filename = Str::random(25) . '.' . $extension;
+      $fullPath = $storagePath . '/' . $filename;
+
+      Storage::disk('public')->put($fullPath, $imageData);
+
+      return $fullPath;
+    }
+  }
+
+  return null;
 }

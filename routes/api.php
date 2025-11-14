@@ -84,7 +84,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{paymentAccount}', [PaymentAccountController::class, 'show']);
     Route::post('/', [PaymentAccountController::class, 'store']);
     Route::put('/{id}', [PaymentAccountController::class, 'update']);
-    Route::delete('/{id}', [PaymentAccountController::class, 'destroy']);
+    Route::delete('/{paymentAccount}', [PaymentAccountController::class, 'destroy']);
     Route::post('/{paymentAccount}/audit', [PaymentAccountController::class, 'audit']);
 
     Route::post('/report-monthly', [PaymentAccountController::class, 'reportMonthly']);

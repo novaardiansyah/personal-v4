@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use App\Models\PaymentAccount;
 use App\Http\Resources\PaymentAccountResource;
@@ -50,7 +51,7 @@ class PaymentAccountController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'name' => 'required|string|max:255|unique:payment_accounts,name',
-      'deposit' => 'required|numeric|min:0'
+      'logo_base64' => 'sometimes|nullable|string'
     ]);
 
     if ($validator->fails()) {
@@ -61,10 +62,18 @@ class PaymentAccountController extends Controller
       ], 422);
     }
 
-    $account = PaymentAccount::create([
+    $accountData = [
       'name' => $request->name,
-      'deposit' => $request->deposit
-    ]);
+      'deposit' => 0,
+      'user_id' => auth()->user()->id
+    ];
+
+    $logoPath = processBase64Image($request->logo_base64, 'images/payment_account');
+    if ($logoPath) {
+      $accountData['logo'] = $logoPath;
+    }
+
+    $account = PaymentAccount::create($accountData);
 
     return response()->json([
       'success' => true,
@@ -112,26 +121,20 @@ class PaymentAccountController extends Controller
   /**
    * Delete payment account
    */
-  public function destroy(Request $request, $id): JsonResponse
+  public function destroy(Request $request, PaymentAccount $paymentAccount): JsonResponse
   {
-    $account = PaymentAccount::find($id);
-
-    if (!$account) {
+    if ($paymentAccount->deposit > 0) {
       return response()->json([
         'success' => false,
-        'message' => 'Payment account not found'
-      ], 404);
-    }
-
-    // Check if account has related payments
-    if ($account->payments()->exists()) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Cannot delete account that has associated payments'
+        'message' => 'Cannot delete account with remaining deposit balance'
       ], 422);
     }
 
-    $account->delete();
+    if ($paymentAccount->logo) {
+      Storage::disk('public')->delete($paymentAccount->logo);
+    }
+
+    $paymentAccount->delete();
 
     return response()->json([
       'success' => true,
