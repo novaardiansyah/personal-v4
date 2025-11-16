@@ -641,6 +641,77 @@ class PaymentController extends Controller
   }
 
   /**
+   * Update item quantity in payment
+   */
+  public function updateItem(Request $request, Payment $payment, $pivotId): JsonResponse
+  {
+    $paymentItem = PaymentItem::where('payment_id', $payment->id)
+      ->where('id', $pivotId)
+      ->first();
+
+    if (!$paymentItem) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment item not found'
+      ], 404);
+    }
+
+    $validator = Validator::make($request->all(), [
+      'quantity' => 'required|integer|min:1',
+      'price'    => 'nullable|numeric|min:0'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    $item        = $paymentItem->item;
+    $oldQuantity = $paymentItem->quantity;
+    $oldPrice    = $paymentItem->price;
+    $oldTotal    = $paymentItem->total;
+
+    $newQuantity = $request->input('quantity');
+    $newPrice    = $request->input('price', $oldPrice);
+    $newTotal    = $newPrice * $newQuantity;
+
+    $paymentItem->update([
+      'quantity' => $newQuantity,
+      'price'    => $newPrice,
+      'total'    => $newTotal
+    ]);
+
+    if ($newPrice !== $oldPrice) {
+      $item->update(['amount' => $newPrice]);
+    }
+
+    $totalDifference = $newTotal - $oldTotal;
+    $newExpense      = $payment->amount + $totalDifference;
+
+    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $newExpense;
+    $is_scheduled    = $payment->is_scheduled ?? false;
+
+    if (!$is_scheduled) {
+      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
+    }
+
+    $oldItemName = "{$item->name} (x{$oldQuantity})";
+    $newItemName = "{$item->name} (x{$newQuantity})";
+    $note        = $payment->name ?? '';
+    $note        = str_replace($oldItemName, $newItemName, $note);
+
+    $payment->update(['amount' => $newExpense, 'name' => $note]);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Item quantity updated successfully'
+    ]);
+  }
+
+  /**
    * Detach item from payment
    */
   public function detachItem(Payment $payment, $pivotId): JsonResponse
