@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\GenerateController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -123,5 +124,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('generates')->group(function () {
     Route::post('/', [GenerateController::class, 'getCode']);
+  });
+
+  Route::prefix('contact-messages')->group(function () {
+    Route::post('/', [ContactMessageController::class, 'store']);
   });
 });

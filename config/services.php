@@ -38,4 +38,11 @@ return [
   'ipinfo' => [
     'token' => env('IPINFO_TOKEN', ''),
   ],
+
+  'cloudflare' => [
+    'turnstile' => [
+      'site_url'   => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      'secret_key' => env('CF_CAPTCHA_SECRET', '-'),
+    ],
+  ],
 ];

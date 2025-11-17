@@ -43,8 +43,6 @@ class AuthController extends Controller
 
     event(new Login('api', $user, false));
 
-    // \Log::info('786 --> spy token', ['token' => $token]);
-
     return response()->json([
       'success' => true,
       'message' => 'Login successful',
