@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use HeroQR\Core\QRCodeGenerator;
@@ -18,6 +19,12 @@ class ShortUrl extends Model
   protected $casts = [
     'is_active' => 'boolean'
   ];
+
+
+  public function user(): BelongsTo
+  {
+    return $this->belongsTo(User::class, 'user_id');
+  }
 
   public function getShortCodeAttribute($value)
   {
@@ -96,6 +103,7 @@ class ShortUrl extends Model
     }
 
     $shortUrl = self::create([
+      'user_id'    => getUser()->id ?? null,
       'code'       => getCode('short_url'),
       'short_code' => $uniqueCode,
       'str_code'   => $uniqueCode,

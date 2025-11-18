@@ -8,6 +8,7 @@ use App\Models\ShortUrl;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Resources\Api\ShortUrlResource;
+use Illuminate\Support\Str;
 
 class ShortUrlController extends Controller
 {
@@ -52,9 +53,16 @@ class ShortUrlController extends Controller
   public function store(Request $request)
   {
     $validator = Validator::make($request->all(), [
-      'long_url' => 'required|url',
-      'note'     => 'nullable|string|max:255',
+      'long_url' => [
+        'required',
+        'url',
+        'max:150',
+        'regex:/^https?:\/\/.+\..+$/'
+      ],
+      'note'      => 'nullable|string|max:150',
       'is_active' => 'boolean'
+    ], [
+      'long_url.regex' => 'The long URL format is invalid.',
     ]);
 
     if ($validator->fails()) {
@@ -65,10 +73,32 @@ class ShortUrlController extends Controller
       ], 422);
     }
 
-    $shortUrl = ShortUrl::createShortUrl([
-      'long_url'  => $request->long_url,
-      'note'      => $request->note,
+    $sanitizedData = [
+      'long_url'  => Str::trim($request->long_url),
+      'note'      => Str::squish(strip_tags($request->note)),
       'is_active' => $request->boolean('is_active', true),
+    ];
+
+    $exist = ShortUrl::where('long_url', $sanitizedData['long_url'])
+      ->where('user_id', auth()->user()->id)
+      ->first();
+      
+    if ($exist) {
+      $exist->code = getCode('short_url');
+      $exist->note = $sanitizedData['note'];
+      $exist->save();
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Short URL created successfully',
+        'data'    => new ShortUrlResource($exist)
+      ], 201);
+    }
+
+    $shortUrl = ShortUrl::createShortUrl([
+      'long_url'  => $sanitizedData['long_url'],
+      'note'      => $sanitizedData['note'],
+      'is_active' => $sanitizedData['is_active'],
     ]);
 
     if (!$shortUrl) {
@@ -85,7 +115,6 @@ class ShortUrlController extends Controller
     ], 201);
   }
 
-  
   private function logShortUrlAccess(ShortUrl $shortUrl): void
   {
     $ip_address = request()->ip();
