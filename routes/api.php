@@ -53,6 +53,8 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   Route::prefix('short-urls')->group(function () {
+    Route::get('/', [ShortUrlController::class, 'index']);
+    Route::post('/', [ShortUrlController::class, 'store']);
     Route::get('/{short_code}', [ShortUrlController::class, 'redirect']);
   });
 

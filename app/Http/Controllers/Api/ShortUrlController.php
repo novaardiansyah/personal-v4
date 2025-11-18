@@ -3,11 +3,20 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Resources\Api\ShortUrlCollection;
 use App\Models\ShortUrl;
-use App\Models\ActivityLog;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
+use App\Http\Resources\Api\ShortUrlResource;
 
 class ShortUrlController extends Controller
 {
+  public function index()
+  {
+    $shortUrls = ShortUrl::orderBy('updated_at', 'desc')->paginate();
+    return response()->json(new ShortUrlCollection($shortUrls));
+  }
+
   public function redirect($short_code)
   {
     $shortUrl = ShortUrl::where('short_code', $short_code)
@@ -40,6 +49,43 @@ class ShortUrlController extends Controller
     ]);
   }
 
+  public function store(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'long_url' => 'required|url',
+      'note'     => 'nullable|string|max:255',
+      'is_active' => 'boolean'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    $shortUrl = ShortUrl::createShortUrl([
+      'long_url'  => $request->long_url,
+      'note'      => $request->note,
+      'is_active' => $request->boolean('is_active', true),
+    ]);
+
+    if (!$shortUrl) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Failed to generate unique short code after multiple attempts'
+      ], 500);
+    }
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Short URL created successfully',
+      'data'    => new ShortUrlResource($shortUrl)
+    ], 201);
+  }
+
+  
   private function logShortUrlAccess(ShortUrl $shortUrl): void
   {
     $ip_address = request()->ip();

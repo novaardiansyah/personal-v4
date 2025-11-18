@@ -4,12 +4,10 @@ namespace App\Filament\Resources\ShortUrls\Pages;
 
 use App\Filament\Resources\ShortUrls\ShortUrlResource;
 use App\Models\ShortUrl;
-use App\Filament\Resources\ShortUrls\Schemas\ShortUrlAction;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Support\Enums\Width;
-use Str;
 
 class ManageShortUrls extends ManageRecords
 {
@@ -20,26 +18,10 @@ class ManageShortUrls extends ManageRecords
     return [
       CreateAction::make()
         ->modalWidth(Width::Medium)
-        ->mutateDataUsing(function (array $data) {
-          $maxAttempts     = 3;
-          $attempts        = 0;
-          $uniqueCodeFound = false;
-          $str             = $data['str_code'];
+        ->mutateFormDataUsing(function (array $data) {
+          $uniqueCode = ShortUrl::generateUniqueShortCode();
 
-          while (!$uniqueCodeFound && $attempts < $maxAttempts) {
-            $exist = ShortUrl::where('short_code', $str)->first();
-
-            if (!$exist) {
-              $uniqueCodeFound = true;
-            } else {
-              $attempts++;
-              if ($attempts < $maxAttempts) {
-                $str = Str::random(7);
-              }
-            }
-          }
-
-          if (!$uniqueCodeFound) {
+          if (!$uniqueCode) {
             Notification::make()
               ->warning()
               ->title('Failed to generate unique code')
@@ -50,13 +32,13 @@ class ManageShortUrls extends ManageRecords
           }
 
           $data['code']       = getCode('short_url');
-          $data['short_code'] = $str;
-          $data['str_code']   = $str;
+          $data['short_code'] = $uniqueCode;
+          $data['str_code']   = $uniqueCode;
 
           return $data;
         })
         ->after(function (ShortUrl $record) {
-          ShortUrlAction::generateQRCode($record);
+          $record->generateQRCode();
         }),
     ];
   }
