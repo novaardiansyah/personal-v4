@@ -25,3 +25,6 @@ Thumbs.db
 .claude/
 deploy/task.md
 private/
+AGENTS.md
+.factory/
+todo.md
