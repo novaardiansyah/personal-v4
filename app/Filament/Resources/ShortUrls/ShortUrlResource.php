@@ -56,6 +56,7 @@ class ShortUrlResource extends Resource
           ->required()
           ->label('Long URL')
           ->url()
+          ->maxLength(1000)
           ->prefixIcon('heroicon-o-link'),
 
         Textarea::make('note')
