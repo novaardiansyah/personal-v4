@@ -8,6 +8,7 @@ use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Login;
@@ -88,7 +89,7 @@ class AuthController extends Controller
       'message' => 'Token is valid',
       'data' => [
         'user' => [
-          'id'   => $user->id,
+          'id' => $user->id,
           'cpde' => $user->code,
           'name' => $user->name,
         ]
@@ -132,7 +133,7 @@ class AuthController extends Controller
     $user->update($validated);
 
     $user = $user->fresh();
-    $user->avatar_url = Storage::disk('public')->url($user->avatar_url);
+    $user->avatar_url = asset("storage/{$user->avatar_url}");
 
     return response()->json([
       'success' => true,
@@ -141,5 +142,25 @@ class AuthController extends Controller
         'user' => $user
       ]
     ]);
+  }
+
+  public function monitorToken()
+  {
+    $token = env('SHORTURL_TOKEN1');
+
+    try {
+      if (!$token) {
+        throw new \Exception('SHORTURL_TOKEN is not set in the environment variables.');
+      }
+
+      $path = '/api/short-urls/BaoS6Ws';
+
+      $response = Http::withToken($token)
+        ->get('https://personal-v4.novadev.my.id' . $path);
+
+      \Log::info('7590 --> [short-url-token] GET '. $path .' status: ' . $response->status());
+    } catch (\Exception $e) {
+      \Log::info('7880 --> [short-url-token] Error request: ' . $e->getMessage());
+    }
   }
 }
