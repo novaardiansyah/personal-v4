@@ -146,7 +146,7 @@ class AuthController extends Controller
 
   public function monitorToken()
   {
-    $token = env('SHORTURL_TOKEN1');
+    $token = env('SHORTURL_TOKEN');
 
     try {
       if (!$token) {
