@@ -12,24 +12,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Setup PHP to build vendor on runner
+      # 1. Setup PHP di runner (bukan di server)
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
           php-version: '8.3'
           extensions: mbstring, bcmath, curl, xml, intl, gd, mysql
 
-      # 2. Install Composer Dependencies (no dev)
+      # 2. Composer install NO-DEV
       - name: Install Composer Dependencies
         run: |
           composer install --no-dev --prefer-dist --optimize-autoloader
 
-      # 3. Create Deployment ZIP (tanpa folder .git, vendor dibawa)
+      # 3. ZIP seluruh project (vendor dibawa, .git di-skip otomatis kalau tidak di-add)
       - name: Create Deployment ZIP
         run: |
           powershell Compress-Archive -Force -Path .\* -DestinationPath deploy.zip
 
-      # 4. Upload ZIP to server
+      # 4. Upload deploy.zip ke server
       - name: Upload Deployment ZIP
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -40,7 +40,7 @@ jobs:
           source: "deploy.zip"
           target: ${{ secrets.PRODUCTION_PATH }}
 
-      # 5. SSH - Clean live-app/, extract zip, merge setup/, run artisan
+      # 5. SSH — extract ZIP → merge setup → laravel optimize → restart supervisor
       - name: SSH Deploy Application
         uses: appleboy/ssh-action@v1
         with:
@@ -51,15 +51,15 @@ jobs:
           script: |
             cd ${{ secrets.PRODUCTION_PATH }}
 
-            echo "🧹 Menghapus semua isi folder live-app/"
+            echo "🧹 Menghapus isi folder live-app/"
             rm -rf live-app
             mkdir live-app
 
-            echo "📦 Extract deploy.zip ke folder live-app/"
+            echo "📦 Extract deploy.zip ke live-app/"
             unzip -o deploy.zip -d live-app
             rm deploy.zip
 
-            echo "📂 Copy semua isi setup/ ke dalam live-app/"
+            echo "📂 Menimpa live-app/ dengan isi setup/"
             cp -r setup/* live-app/
 
             cd live-app
@@ -68,7 +68,7 @@ jobs:
             chmod -R 775 storage bootstrap/cache
             chown -R www-data:www-data storage bootstrap/cache
 
-            echo "🔧 Laravel optimize"
+            echo "🔧 Laravel Commands"
             php artisan optimize:clear
             php artisan migrate --force
             php artisan filament:optimize || true
@@ -77,9 +77,10 @@ jobs:
             php artisan view:cache
             php artisan event:cache
 
-            echo "⚙ Restart supervisor"
+            echo "⚙ Supervisor Restart"
             cp deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue.conf /etc/supervisor/conf.d/
             cp deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule.conf /etc/supervisor/conf.d/
+
             sudo supervisorctl reread
             sudo supervisorctl update
             sudo supervisorctl restart ${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue
