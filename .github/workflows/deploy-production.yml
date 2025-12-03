@@ -6,7 +6,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: self-hosted
+    runs-on: LAPTOP-H81N7A99
 
     steps:
       - name: Checkout repository
