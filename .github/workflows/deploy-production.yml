@@ -1,4 +1,4 @@
-name: Deploy Production Application to Server (ZIP Deploy)
+name: Deploy Production Application to Server
 
 on:
   push:
@@ -6,41 +6,12 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: nova-local
+    runs-on: self-hosted
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Setup PHP di runner (bukan di server)
-      - name: Setup PHP
-        uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.3'
-          extensions: mbstring, bcmath, curl, xml, intl, gd, mysql
-
-      # 2. Composer install NO-DEV
-      - name: Install Composer Dependencies
-        run: |
-          composer install --no-dev --prefer-dist --optimize-autoloader
-
-      # 3. ZIP seluruh project (vendor dibawa, .git di-skip otomatis kalau tidak di-add)
-      - name: Create Deployment ZIP
-        run: |
-          zip -r deploy.zip . -x "*/.git/*"
-
-      # 4. Upload deploy.zip ke server
-      - name: Upload Deployment ZIP
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USER }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: ${{ secrets.PRODUCTION_PORT }}
-          source: "deploy.zip"
-          target: ${{ secrets.PRODUCTION_PATH }}
-
-      # 5. SSH — extract ZIP → merge setup → laravel optimize → restart supervisor
       - name: SSH Deploy Application
         uses: appleboy/ssh-action@v1
         with:
@@ -50,38 +21,21 @@ jobs:
           port: ${{ secrets.PRODUCTION_PORT }}
           script: |
             cd ${{ secrets.PRODUCTION_PATH }}
-
-            echo "🧹 Menghapus isi folder live-app/"
-            rm -rf live-app
-            mkdir live-app
-
-            echo "📦 Extract deploy.zip ke live-app/"
-            unzip -o deploy.zip -d live-app
-            rm deploy.zip
-
-            echo "📂 Menimpa live-app/ dengan isi setup/"
-            cp -r setup/* live-app/
-
-            cd live-app
-
-            echo "🔐 Set permission"
-            chmod -R 775 storage bootstrap/cache
-            chown -R www-data:www-data storage bootstrap/cache
-
-            echo "🔧 Laravel Commands"
+            git fetch origin
+            git checkout production
+            git pull origin production
+            composer install --no-interaction --prefer-dist --optimize-autoloader
             php artisan optimize:clear
             php artisan migrate --force
-            php artisan filament:optimize || true
+            php artisan filament:optimize
             php artisan config:cache
             php artisan route:cache
             php artisan view:cache
             php artisan event:cache
-
-            echo "⚙ Supervisor Restart"
-            cp deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue.conf /etc/supervisor/conf.d/
-            cp deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule.conf /etc/supervisor/conf.d/
-
+            cp ./deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue.conf /etc/supervisor/conf.d/
+            cp ./deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule.conf /etc/supervisor/conf.d/
             sudo supervisorctl reread
             sudo supervisorctl update
             sudo supervisorctl restart ${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue
             sudo supervisorctl restart ${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule
+            
