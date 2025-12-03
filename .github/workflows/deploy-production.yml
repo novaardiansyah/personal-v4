@@ -27,7 +27,7 @@ jobs:
       # 3. ZIP seluruh project (vendor dibawa, .git di-skip otomatis kalau tidak di-add)
       - name: Create Deployment ZIP
         run: |
-          powershell Compress-Archive -Force -Path .\* -DestinationPath deploy.zip
+          zip -r deploy.zip . -x "*/.git/*"
 
       # 4. Upload deploy.zip ke server
       - name: Upload Deployment ZIP
