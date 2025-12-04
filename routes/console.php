@@ -31,4 +31,4 @@ Schedule::job(new CleanExpiredTokens())
 
 Schedule::call(function () {
   app(AuthController::class)->monitorToken();
-})->everyFourHours();
+})->everyOddHour();

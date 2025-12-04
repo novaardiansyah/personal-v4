@@ -45,4 +45,8 @@ return [
       'secret_key' => env('CF_CAPTCHA_SECRET', '-'),
     ],
   ],
+
+  'self' => [
+    'short_url_token' => env('SHORTURL_TOKEN')
+  ],
 ];
