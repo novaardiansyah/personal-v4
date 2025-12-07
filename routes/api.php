@@ -59,6 +59,7 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   Route::prefix('payments')->group(function () {
+    Route::post('/generate-report', [PaymentController::class, 'generateReport']);
     Route::get('/summary', [PaymentController::class, 'summary']);
     Route::get('/recent-transactions', [PaymentController::class, 'recentTransactions']);
     Route::get('/', [PaymentController::class, 'index']);

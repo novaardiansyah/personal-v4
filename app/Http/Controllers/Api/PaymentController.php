@@ -13,6 +13,9 @@ use App\Http\Resources\PaymentResource;
 use App\Http\Resources\PaymentItemResource;
 use App\Http\Resources\ItemResource;
 use App\Http\Resources\PaymentAttachmentResource;
+use App\Jobs\PaymentResource\DailyReportJob;
+use App\Jobs\PaymentResource\MonthlyReportJob;
+use App\Jobs\PaymentResource\PaymentReportPdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -31,23 +34,23 @@ class PaymentController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'startDate' => 'nullable|date_format:Y-m-d',
-      'endDate'   => 'nullable|date_format:Y-m-d|after_or_equal:startDate',
+      'endDate' => 'nullable|date_format:Y-m-d|after_or_equal:startDate',
     ]);
 
     if ($validator->fails()) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
     if ($request->has('startDate') && $request->has('endDate')) {
       $startDate = $request->input('startDate');
-      $endDate   = $request->input('endDate');
+      $endDate = $request->input('endDate');
     } else {
       $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
-      $endDate   = Carbon::now()->endOfMonth()->format('Y-m-d');
+      $endDate = Carbon::now()->endOfMonth()->format('Y-m-d');
     }
 
     $totals = Payment::where('user_id', Auth()->user()->id)
@@ -59,56 +62,56 @@ class PaymentController extends Controller
         SUM(CASE WHEN type_id = ? THEN amount ELSE 0 END) as total_transfer,
         SUM(CASE WHEN type_id = 1 AND is_scheduled = 1 THEN amount ELSE 0 END) AS scheduled_expense
       ", [
-        PaymentType::INCOME, 
-        PaymentType::EXPENSE, 
-        PaymentType::WITHDRAWAL, 
+        PaymentType::INCOME,
+        PaymentType::EXPENSE,
+        PaymentType::WITHDRAWAL,
         PaymentType::TRANSFER
       ])
       ->first();
 
-    $totalIncome     = $totals->total_income ?? 0;
-    $totalExpense    = $totals->total_expense ?? 0;
+    $totalIncome = $totals->total_income ?? 0;
+    $totalExpense = $totals->total_expense ?? 0;
     $totalWithdrawal = $totals->total_withdrawal ?? 0;
-    $totalTransfer   = $totals->total_transfer ?? 0;
+    $totalTransfer = $totals->total_transfer ?? 0;
 
-    $totalBalance   = PaymentAccount::where('user_id', Auth()->user()->id)->sum('deposit');
+    $totalBalance = PaymentAccount::where('user_id', Auth()->user()->id)->sum('deposit');
     $initialBalance = (int) $totalIncome + (int) $totalExpense;
 
-    $percentIncome     = $totalIncome > 0 ? round(($totalIncome / $initialBalance) * 100, 2) : 0;
-    $percentExpense    = $totalExpense > 0 ? round(($totalExpense / $initialBalance) * 100, 2) : 0;
+    $percentIncome = $totalIncome > 0 ? round(($totalIncome / $initialBalance) * 100, 2) : 0;
+    $percentExpense = $totalExpense > 0 ? round(($totalExpense / $initialBalance) * 100, 2) : 0;
     $percentWithdrawal = $totalWithdrawal > 0 ? round(($totalWithdrawal / $initialBalance) * 100, 2) : 0;
-    $percentTransfer   = $totalTransfer > 0 ? round(($totalTransfer / $initialBalance) * 100, 2) : 0;
+    $percentTransfer = $totalTransfer > 0 ? round(($totalTransfer / $initialBalance) * 100, 2) : 0;
 
-    $scheduled_expense     = (int) ($totals->scheduled_expense ?? 0);
-    $total_balance         = (int) $totalBalance;
+    $scheduled_expense = (int) ($totals->scheduled_expense ?? 0);
+    $total_balance = (int) $totalBalance;
     $total_after_scheduled = $total_balance - $scheduled_expense;
 
     return response()->json([
       'success' => true,
       'data' => [
-        'total_balance'         => $total_balance,
-        'scheduled_expense'     => $scheduled_expense,
+        'total_balance' => $total_balance,
+        'scheduled_expense' => $scheduled_expense,
         'total_after_scheduled' => $total_after_scheduled,
-        'initial_balance'       => (int) $initialBalance,
-        'income'                => (int) $totalIncome,
-        'expenses'              => (int) $totalExpense,
-        'withdrawal'            => (int) $totalWithdrawal,
-        'transfer'              => (int) $totalTransfer,
+        'initial_balance' => (int) $initialBalance,
+        'income' => (int) $totalIncome,
+        'expenses' => (int) $totalExpense,
+        'withdrawal' => (int) $totalWithdrawal,
+        'transfer' => (int) $totalTransfer,
         'percents' => [
-          'income'        => (float) $percentIncome,
-          'expenses'      => (float) $percentExpense,
-          'withdrawal'    => (float) $percentWithdrawal,
-          'transfer'      => (float) $percentTransfer,
+          'income' => (float) $percentIncome,
+          'expenses' => (float) $percentExpense,
+          'withdrawal' => (float) $percentWithdrawal,
+          'transfer' => (float) $percentTransfer,
         ],
         'period' => [
           'start_date' => $startDate,
-          'end_date'   => $endDate,
+          'end_date' => $endDate,
         ],
       ]
     ]);
   }
 
-  
+
   /**
    * Get all payments with pagination
    *
@@ -117,11 +120,11 @@ class PaymentController extends Controller
   public function index(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'page'       => 'nullable|integer|min:1',
-      'limit'      => 'nullable|integer|min:1',
-      'date_from'  => 'nullable|date',
-      'date_to'    => 'nullable|date',
-      'type'       => 'nullable|integer|exists:payment_types,id',
+      'page' => 'nullable|integer|min:1',
+      'limit' => 'nullable|integer|min:1',
+      'date_from' => 'nullable|date',
+      'date_to' => 'nullable|date',
+      'type' => 'nullable|integer|exists:payment_types,id',
       'account_id' => 'nullable|integer|exists:payment_accounts,id'
     ]);
 
@@ -144,11 +147,11 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $validated  = $validator->validated();
-    $limit      = $validated['limit'] ?? 10;
-    $date_from  = $validated['date_from'] ?? null;
-    $date_to    = $validated['date_to'] ?? null;
-    $type       = $validated['type'] ?? null;
+    $validated = $validator->validated();
+    $limit = $validated['limit'] ?? 10;
+    $date_from = $validated['date_from'] ?? null;
+    $date_to = $validated['date_to'] ?? null;
+    $type = $validated['type'] ?? null;
     $account_id = $validated['account_id'] ?? null;
 
     $payments = Payment::with(['payment_type'])
@@ -176,14 +179,14 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data'    => PaymentResource::collection($payments),
+      'data' => PaymentResource::collection($payments),
       'pagination' => [
         'current_page' => $payments->currentPage(),
-        'from'         => $payments->firstItem(),
-        'last_page'    => $payments->lastPage(),
-        'per_page'     => $payments->perPage(),
-        'to'           => $payments->lastItem(),
-        'total'        => $payments->total(),
+        'from' => $payments->firstItem(),
+        'last_page' => $payments->lastPage(),
+        'per_page' => $payments->perPage(),
+        'to' => $payments->lastItem(),
+        'total' => $payments->total(),
       ]
     ]);
   }
@@ -205,7 +208,7 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data'    => new PaymentResource($payment)
+      'data' => new PaymentResource($payment)
     ]);
   }
 
@@ -215,23 +218,23 @@ class PaymentController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount'                => 'required_if:has_items,false|nullable|numeric',
-      'date'                  => 'required|date',
-      'name'                  => 'required_if:has_items,false|nullable|string|max:255',
-      'type_id'               => 'required|integer|exists:payment_types,id',
-      'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
+      'amount' => 'required_if:has_items,false|nullable|numeric',
+      'date' => 'required|date',
+      'name' => 'required_if:has_items,false|nullable|string|max:255',
+      'type_id' => 'required|integer|exists:payment_types,id',
+      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'has_items'             => 'nullable|boolean',
-      'has_charge'            => 'nullable|boolean',
-      'is_scheduled'          => 'nullable|boolean',
-      'attachments'           => 'nullable|array',
-      'attachments.*'         => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+      'has_items' => 'nullable|boolean',
+      'has_charge' => 'nullable|boolean',
+      'is_scheduled' => 'nullable|boolean',
+      'attachments' => 'nullable|array',
+      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);
 
     $validator->setAttributeNames([
-      'name'                  => 'description',
-      'type_id'               => 'category',
-      'payment_account_id'    => 'payment account',
+      'name' => 'description',
+      'type_id' => 'category',
+      'payment_account_id' => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
@@ -303,15 +306,15 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'amount'                => 'sometimes|required|numeric|min:0',
-      'date'                  => 'sometimes|required|date',
-      'name'                  => 'nullable|string|max:255',
-      'type_id'               => 'sometimes|required|integer|exists:payment_types,id',
-      'payment_account_id'    => 'sometimes|required|integer|exists:payment_accounts,id',
+      'amount' => 'sometimes|required|numeric|min:0',
+      'date' => 'sometimes|required|date',
+      'name' => 'nullable|string|max:255',
+      'type_id' => 'sometimes|required|integer|exists:payment_types,id',
+      'payment_account_id' => 'sometimes|required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'is_scheduled'          => 'nullable|boolean',
-      'attachments'           => 'nullable|array',
-      'attachments.*'         => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+      'is_scheduled' => 'nullable|boolean',
+      'attachments' => 'nullable|array',
+      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);
 
     if ($validator->fails()) {
@@ -549,24 +552,24 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'items'           => 'required|array|min:1',
+      'items' => 'required|array|min:1',
       'items.*.item_id' => 'nullable|integer|exists:items,id',
-      'items.*.name'    => 'required|string|max:255',
-      'items.*.amount'  => 'required|numeric|min:0',
-      'items.*.qty'     => 'required|integer|min:1',
-      'totalAmount'     => 'required|numeric|min:0'
+      'items.*.name' => 'required|string|max:255',
+      'items.*.amount' => 'required|numeric|min:0',
+      'items.*.qty' => 'required|integer|min:1',
+      'totalAmount' => 'required|numeric|min:0'
     ]);
 
     if ($validator->fails()) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
-    $items         = $request->items;
-    $totalAmount   = $request->totalAmount;
+    $items = $request->items;
+    $totalAmount = $request->totalAmount;
     $attachedItems = [];
 
     foreach ($items as $itemData) {
@@ -578,10 +581,10 @@ class PaymentController extends Controller
           $item = $existingItem;
         } else {
           $item = Item::create([
-            'name'    => $itemData['name'],
-            'amount'  => $itemData['amount'],
+            'name' => $itemData['name'],
+            'amount' => $itemData['amount'],
             'type_id' => 1,
-            'code'    => getCode('item')
+            'code' => getCode('item')
           ]);
         }
 
@@ -590,31 +593,31 @@ class PaymentController extends Controller
         $item = Item::find($itemData['item_id']);
       }
 
-      $price    = $itemData['amount'];
+      $price = $itemData['amount'];
       $quantity = $itemData['qty'];
-      $total    = $price * $quantity;
+      $total = $price * $quantity;
       $itemCode = getCode('payment_item');
 
       $payment->items()->attach($itemData['item_id'], [
         'item_code' => $itemCode,
-        'quantity'  => $quantity,
-        'price'     => $price,
-        'total'     => $total
+        'quantity' => $quantity,
+        'price' => $price,
+        'total' => $total
       ]);
 
       $attachedItems[] = [
-        'item_id'   => $item->id,
-        'name'      => $item->name,
-        'quantity'  => $quantity,
-        'price'     => $price,
-        'total'     => $total,
+        'item_id' => $item->id,
+        'name' => $item->name,
+        'quantity' => $quantity,
+        'price' => $price,
+        'total' => $total,
         'item_code' => $itemCode
       ];
     }
 
-    $expense         = $payment->amount + $totalAmount;
+    $expense = $payment->amount + $totalAmount;
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-    $is_scheduled    = $payment->is_scheduled ?? false;
+    $is_scheduled = $payment->is_scheduled ?? false;
 
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
@@ -658,30 +661,30 @@ class PaymentController extends Controller
 
     $validator = Validator::make($request->all(), [
       'quantity' => 'required|integer|min:1',
-      'price'    => 'nullable|numeric|min:0'
+      'price' => 'nullable|numeric|min:0'
     ]);
 
     if ($validator->fails()) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
-    $item        = $paymentItem->item;
+    $item = $paymentItem->item;
     $oldQuantity = $paymentItem->quantity;
-    $oldPrice    = $paymentItem->price;
-    $oldTotal    = $paymentItem->total;
+    $oldPrice = $paymentItem->price;
+    $oldTotal = $paymentItem->total;
 
     $newQuantity = $request->input('quantity');
-    $newPrice    = $request->input('price', $oldPrice);
-    $newTotal    = $newPrice * $newQuantity;
+    $newPrice = $request->input('price', $oldPrice);
+    $newTotal = $newPrice * $newQuantity;
 
     $paymentItem->update([
       'quantity' => $newQuantity,
-      'price'    => $newPrice,
-      'total'    => $newTotal
+      'price' => $newPrice,
+      'total' => $newTotal
     ]);
 
     if ($newPrice !== $oldPrice) {
@@ -689,10 +692,10 @@ class PaymentController extends Controller
     }
 
     $totalDifference = $newTotal - $oldTotal;
-    $newExpense      = $payment->amount + $totalDifference;
+    $newExpense = $payment->amount + $totalDifference;
 
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $newExpense;
-    $is_scheduled    = $payment->is_scheduled ?? false;
+    $is_scheduled = $payment->is_scheduled ?? false;
 
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
@@ -700,8 +703,8 @@ class PaymentController extends Controller
 
     $oldItemName = "{$item->name} (x{$oldQuantity})";
     $newItemName = "{$item->name} (x{$newQuantity})";
-    $note        = $payment->name ?? '';
-    $note        = str_replace($oldItemName, $newItemName, $note);
+    $note = $payment->name ?? '';
+    $note = str_replace($oldItemName, $newItemName, $note);
 
     $payment->update(['amount' => $newExpense, 'name' => $note]);
 
@@ -727,17 +730,17 @@ class PaymentController extends Controller
       ], 404);
     }
 
-    $item            = $paymentItem->item;
-    $expense         = $payment->amount - $paymentItem->total;
+    $item = $paymentItem->item;
+    $expense = $payment->amount - $paymentItem->total;
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-    $is_scheduled    = $payment->is_scheduled ?? false;
+    $is_scheduled = $payment->is_scheduled ?? false;
 
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
     }
 
     $itemName = $item->name . ' (x' . $paymentItem->quantity . ')';
-    $note     = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
+    $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
     $paymentItem->delete();
     $payment->update(['amount' => $expense, 'name' => $note]);
@@ -746,9 +749,9 @@ class PaymentController extends Controller
       'success' => true,
       'message' => 'Item detached successfully',
       'data' => [
-        'amount'           => $payment->amount,
+        'amount' => $payment->amount,
         'formatted_amount' => toIndonesianCurrency($payment->amount),
-        'items_count'      => $payment->items()->count()
+        'items_count' => $payment->items()->count()
       ]
     ]);
   }
@@ -776,14 +779,14 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data'    => PaymentItemResource::collection($attachedItems),
+      'data' => PaymentItemResource::collection($attachedItems),
       'pagination' => [
         'current_page' => $attachedItems->currentPage(),
-        'from'         => $attachedItems->firstItem(),
-        'last_page'    => $attachedItems->lastPage(),
-        'per_page'     => $attachedItems->perPage(),
-        'to'           => $attachedItems->lastItem(),
-        'total'        => $attachedItems->total(),
+        'from' => $attachedItems->firstItem(),
+        'last_page' => $attachedItems->lastPage(),
+        'per_page' => $attachedItems->perPage(),
+        'to' => $attachedItems->lastItem(),
+        'total' => $attachedItems->total(),
       ]
     ]);
   }
@@ -793,9 +796,9 @@ class PaymentController extends Controller
    */
   public function getPaymentItemsSummary(Request $request, Payment $payment): JsonResponse
   {
-    $items      = $payment->items()->get();
+    $items = $payment->items()->get();
     $totalItems = $items->count();
-    $totalQty   = $items->sum('pivot.quantity');
+    $totalQty = $items->sum('pivot.quantity');
 
     $totalAmount = $items->sum(function ($item) {
       return $item->pivot->quantity * $item->pivot->price;
@@ -804,11 +807,11 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'data' => [
-        'payment_id'       => $payment->id,
-        'payment_code'     => $payment->code,
-        'total_items'      => $totalItems,
-        'total_qty'        => $totalQty,
-        'total_amount'     => $totalAmount,
+        'payment_id' => $payment->id,
+        'payment_code' => $payment->code,
+        'total_items' => $totalItems,
+        'total_qty' => $totalQty,
+        'total_amount' => $totalAmount,
         'formatted_amount' => toIndonesianCurrency($totalAmount),
       ]
     ]);
@@ -855,11 +858,11 @@ class PaymentController extends Controller
       'data' => ItemResource::collection($items),
       'pagination' => [
         'current_page' => $items->currentPage(),
-        'from'         => $items->firstItem(),
-        'last_page'    => $items->lastPage(),
-        'per_page'     => $items->perPage(),
-        'to'           => $items->lastItem(),
-        'total'        => $items->total(),
+        'from' => $items->firstItem(),
+        'last_page' => $items->lastPage(),
+        'per_page' => $items->perPage(),
+        'to' => $items->lastItem(),
+        'total' => $items->total(),
       ]
     ]);
   }
@@ -888,11 +891,11 @@ class PaymentController extends Controller
       'data' => ItemResource::collection($items),
       'pagination' => [
         'current_page' => $items->currentPage(),
-        'from'         => $items->firstItem(),
-        'last_page'    => $items->lastPage(),
-        'per_page'     => $items->perPage(),
-        'to'           => $items->lastItem(),
-        'total'        => $items->total(),
+        'from' => $items->firstItem(),
+        'last_page' => $items->lastPage(),
+        'per_page' => $items->perPage(),
+        'to' => $items->lastItem(),
+        'total' => $items->total(),
       ]
     ]);
   }
@@ -927,7 +930,7 @@ class PaymentController extends Controller
     return response()->json([
       'success' => empty($attachmentData) ? false : true,
       'message' => empty($attachmentData) ? 'No attachments found' : 'Attachments found',
-      'data'    => PaymentAttachmentResource::collection($attachmentData)
+      'data' => PaymentAttachmentResource::collection($attachmentData)
     ]);
   }
 
@@ -1055,8 +1058,8 @@ class PaymentController extends Controller
       $info = pathinfo($attachment);
 
       $filenameOriginal = $info['basename'];        // file.png
-      $extension        = $info['extension'];       // png
-      $nameOnly         = $info['filename'];        // file
+      $extension = $info['extension'];       // png
+      $nameOnly = $info['filename'];        // file
 
       $mediumName = "medium-{$nameOnly}.{$extension}";
       $mediumPath = "images/payment/{$mediumName}";
@@ -1070,12 +1073,12 @@ class PaymentController extends Controller
 
       if ($disk->exists($filepath)) {
         $attachmentData[] = (object) [
-          'id'        => $index + 1,
-          'url'       => $url,
-          'filepath'  => $filepath,
-          'filename'  => basename($filepath),
+          'id' => $index + 1,
+          'url' => $url,
+          'filepath' => $filepath,
+          'filename' => basename($filepath),
           'extension' => $extension,
-          'size'      => $disk->size($filepath),
+          'size' => $disk->size($filepath),
         ];
       }
     }
@@ -1122,15 +1125,15 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $filepath    = $request->input('filepath');
+    $filepath = $request->input('filepath');
     $attachments = $payment->attachments ?? [];
 
     $size = ['small', 'medium', 'large', 'original'];
     foreach ($size as $row) {
       $filepath = str_replace($row . '-', '', $filepath);
     }
-    
-    $attachmentIndex  = null;
+
+    $attachmentIndex = null;
     $attachmentExists = false;
 
     foreach ($attachments as $index => $attachment) {
@@ -1150,10 +1153,10 @@ class PaymentController extends Controller
 
     try {
       foreach ($size as $row) {
-        $basename    = basename($filepath);
-        $replace     = $row === 'original' ? $basename : $row . '-' . $basename;
+        $basename = basename($filepath);
+        $replace = $row === 'original' ? $basename : $row . '-' . $basename;
         $newFilePath = str_replace($basename, $replace, $filepath);
-        
+
         if (Storage::disk('public')->exists($newFilePath)) {
           Storage::disk('public')->delete($newFilePath);
         }
@@ -1195,6 +1198,63 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Payment deleted successfully'
+    ]);
+  }
+
+  /**
+   * Generate payment report (PDF or Email)
+   *
+   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
+   */
+  public function generateReport(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'report_type' => 'required|in:daily,monthly,date_range',
+      'start_date'  => 'required_if:report_type,date_range|nullable|date_format:Y-m-d',
+      'end_date'    => 'required_if:report_type,date_range|nullable|date_format:Y-m-d|after_or_equal:start_date',
+      'periode'     => 'required_if:report_type,monthly|nullable|date_format:Y-m',
+    ]);
+
+    $validator->setCustomMessages([
+      'start_date.required_if'  => 'The start date is required for custom date range report.',
+      'end_date.required_if'    => 'The end date is required for custom date range report.',
+      'end_date.after_or_equal' => 'The end date must be after or equal to start date.',
+      'periode.required_if'     => 'The periode (month) is required for monthly report.',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
+    $user = $request->user();
+    $reportType = $request->input('report_type');
+
+    match ($reportType) {
+      'daily'   => DailyReportJob::dispatch(),
+      'monthly' => MonthlyReportJob::dispatch([
+        'periode' => $request->input('periode'),
+        'user'    => $user,
+      ]),
+      default => PaymentReportPdf::dispatch([
+        'start_date' => $request->input('start_date'),
+        'end_date'   => $request->input('end_date'),
+        'user'       => $user,
+      ]),
+    };
+
+    $messages = [
+      'daily'      => 'Daily report will be sent to your email.',
+      'monthly'    => 'Monthly report will be sent to your email.',
+      'date_range' => 'PDF is being generated. You will be notified when ready.',
+    ];
+
+    return response()->json([
+      'success' => true,
+      'message' => $messages[$reportType] ?? 'Report is being processed.'
     ]);
   }
 }
