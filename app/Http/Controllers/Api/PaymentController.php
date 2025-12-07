@@ -921,23 +921,46 @@ class PaymentController extends Controller
    */
   public function getAttachments(Request $request, Payment $payment): JsonResponse
   {
-
     $attachments = $payment->attachments ?? [];
     $attachmentObjects = [];
 
     foreach ($attachments as $index => $attachment) {
+      $info = pathinfo($attachment);
+
+      $filenameOriginal = $info['basename'];        // file.png
+      $extension        = $info['extension'];       // png
+      $nameOnly         = $info['filename'];        // file
+
+      $mediumName = "medium-{$nameOnly}.{$extension}";
+      $mediumPath = "images/payment/{$mediumName}";
+
+      $disk = Storage::disk('public');
+
+      if ($disk->exists($mediumPath)) {
+        $filepath = $mediumPath;
+      } else {
+        $filepath = "images/payment/{$filenameOriginal}";
+      }
+
+      $url = $disk->url($filepath);
+
+      if (!$disk->exists($filepath)) {
+        continue;
+      }
+
       $attachmentObjects[] = (object) [
         'id'        => $index + 1,
-        'url'       => Storage::disk('public')->url($attachment),
-        'filepath'  => $attachment,
-        'filename'  => basename($attachment),
-        'extension' => pathinfo($attachment, PATHINFO_EXTENSION),
-        'size'      => Storage::disk('public')->size($attachment) ?? 0,
+        'url'       => $url,
+        'filepath'  => $filepath,
+        'filename'  => basename($filepath),
+        'extension' => $extension,
+        'size'      => $disk->size($filepath),
       ];
     }
 
     return response()->json([
-      'success' => true,
+      'success' => empty($attachmentObjects) ? false : true,
+      'message' => empty($attachmentObjects) ? 'No attachments found' : 'Attachments found',
       'data'    => PaymentAttachmentResource::collection($attachmentObjects)
     ]);
   }

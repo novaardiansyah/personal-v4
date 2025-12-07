@@ -30,6 +30,19 @@ class CreatePayment extends CreateRecord
 
     return $data;
   }
+
+  protected function afterCreate(): void
+  {
+    $record = $this->record;
+    $attachments = $record->attachments ?? [];
+
+    if (!empty($attachments)) {
+      foreach ($attachments as $attachment) {
+        $file = $attachment;
+        uploadAndOptimize($file, 'public', 'images/payment');
+      }
+    }
+  }
   
   protected function getRedirectUrl(): string
   {

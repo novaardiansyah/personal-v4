@@ -17,6 +17,9 @@ use Illuminate\Database\Eloquent\Model;
 use Filament\Notifications\Notification;
 use Filament\Actions\Action;
 use Illuminate\Support\Str;
+use \Illuminate\Http\UploadedFile;
+use Spatie\Image\Image;
+use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 
 function getSetting(string $key, $default = null)
 {
@@ -406,4 +409,51 @@ function processBase64Image(?string $base64Data, string $storagePath): ?string
   }
 
   return null;
+}
+
+function uploadAndOptimize($file, string $disk = 'public', string $folder = 'images'): array
+{
+  if ($file instanceof UploadedFile) {
+    $extension = $file->getClientOriginalExtension();
+    $originalName = Str::uuid7() . '.' . $extension;
+    $originalPath = $folder . '/' . $originalName;
+
+    Storage::disk($disk)->put($originalPath, file_get_contents($file));
+  } else {
+    $originalPath = $file;
+    $originalName = basename($file);
+  }
+
+  $diskPath = Storage::disk($disk)->path($originalPath);
+
+  $img = Image::load($diskPath);
+  $originalWidth = $img->getWidth();
+
+  $versions = [
+    'small'  => ['width' => 300, 'quality' => 35],
+    'medium' => ['width' => 900, 'quality' => 55],
+    'large'  => ['width' => 1600, 'quality' => 65],
+  ];
+
+  $paths = [];
+
+  foreach ($versions as $prefix => $opt) {
+    $targetWidth = min($opt['width'], $originalWidth);
+    $filename = $prefix . '-' . $originalName;
+    $savePath = $folder . '/' . $filename;
+    $fullPath = Storage::disk($disk)->path($savePath);
+
+    Image::load($diskPath)
+      ->width($targetWidth)
+      ->quality($opt['quality'])
+      ->save($fullPath);
+
+    ImageOptimizer::optimize($fullPath);
+
+    $paths[$prefix] = $savePath;
+  }
+
+  $paths['original'] = $originalPath;
+
+  return $paths;
 }
