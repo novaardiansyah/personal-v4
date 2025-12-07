@@ -1230,18 +1230,20 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $user = $request->user();
-    $reportType = $request->input('report_type');
+    $user      = $request->user();
+    $validated = $validator->validated();
+
+    $reportType = $validated['report_type'];
 
     match ($reportType) {
       'daily'   => DailyReportJob::dispatch(),
       'monthly' => MonthlyReportJob::dispatch([
-        'periode' => $request->input('periode'),
+        'periode' => $validated['periode'],
         'user'    => $user,
       ]),
       default => PaymentReportPdf::dispatch([
-        'start_date' => $request->input('start_date'),
-        'end_date'   => $request->input('end_date'),
+        'start_date' => $validated['start_date'],
+        'end_date'   => $validated['end_date'],
         'user'       => $user,
       ]),
     };
@@ -1249,7 +1251,7 @@ class PaymentController extends Controller
     $messages = [
       'daily'      => 'Daily report will be sent to your email.',
       'monthly'    => 'Monthly report will be sent to your email.',
-      'date_range' => 'PDF is being generated. You will be notified when ready.',
+      'date_range' => 'Custom report will be sent to your email.',
     ];
 
     return response()->json([

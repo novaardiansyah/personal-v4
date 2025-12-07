@@ -168,7 +168,7 @@ class PaymentsTable
             $messages = [
               'daily'      => 'Daily report will be sent to your email.',
               'monthly'    => 'Monthly report will be sent to your email.',
-              'date_range' => 'PDF is being generated. You will be notified when ready.',
+              'date_range' => 'Custom report will be sent to your email.',
             ];
 
             Notification::make()
