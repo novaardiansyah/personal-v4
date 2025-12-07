@@ -1122,11 +1122,15 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $filepath = $request->input('filepath');
+    $filepath    = $request->input('filepath');
     $attachments = $payment->attachments ?? [];
 
-    // Find the attachment with the matching filepath
-    $attachmentIndex = null;
+    $size = ['small', 'medium', 'large', 'original'];
+    foreach ($size as $row) {
+      $filepath = str_replace($row . '-', '', $filepath);
+    }
+    
+    $attachmentIndex  = null;
     $attachmentExists = false;
 
     foreach ($attachments as $index => $attachment) {
@@ -1145,16 +1149,19 @@ class PaymentController extends Controller
     }
 
     try {
-      // First, delete the file from storage
-      if ($filepath && Storage::disk('public')->exists($filepath)) {
-        Storage::disk('public')->delete($filepath);
+      foreach ($size as $row) {
+        $basename    = basename($filepath);
+        $replace     = $row === 'original' ? $basename : $row . '-' . $basename;
+        $newFilePath = str_replace($basename, $replace, $filepath);
+        
+        if (Storage::disk('public')->exists($newFilePath)) {
+          Storage::disk('public')->delete($newFilePath);
+        }
       }
 
-      // Remove the attachment from the array
       unset($attachments[$attachmentIndex]);
       $attachments = array_values($attachments); // Re-index the array
 
-      // Then update the payment attachments
       $payment->attachments = $attachments;
       $payment->save();
 
