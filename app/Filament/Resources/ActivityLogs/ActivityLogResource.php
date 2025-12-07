@@ -3,11 +3,12 @@
 namespace App\Filament\Resources\ActivityLogs;
 
 use BackedEnum;
+use Filament\Actions\Action;
+use Str;
+use UnitEnum;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Support\Enums\Width;
-use Str;
-use UnitEnum;
 use App\Filament\Resources\ActivityLogs\Pages\ManageActivityLogs;
 use App\Models\ActivityLog;
 use Filament\Actions\ActionGroup;
@@ -182,6 +183,16 @@ class ActivityLogResource extends Resource
             ->modalHeading('View detail activity log')
             ->slideOver()
             ->modalWidth(Width::FiveExtraLarge),
+
+          Action::make('preview_email')
+            ->modalHeading('Preview mail notification')
+            ->color('info')
+            ->icon('heroicon-o-envelope')
+            ->url(function (ActivityLog $record): string {
+              return url('admin/activity-logs/' . $record->id . '/preview-email');
+            })
+            ->openUrlInNewTab()
+            ->visible(fn (ActivityLog $record): bool => $record->event === 'Mail Notification'),
         ])
       ])
       ->toolbarActions([

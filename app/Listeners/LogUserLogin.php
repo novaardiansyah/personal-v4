@@ -37,8 +37,8 @@ class LogUserLogin
 
     $alreadyLogged = true;
 
-    $user_id    = $event->user->id;
-    $user_email = $event->user->email;
+    $user_id    = $event->user->id ?? '-1';
+    $user_email = $event->user->email ?? '-';
 
     // Dynamic referer based on guard
     $referer = $event->guard === 'api' ? url('/api/auth/login') : url('admin/login');
@@ -109,7 +109,7 @@ class LogUserLogin
         ? 'Notifikasi: Login pengguna melalui API'
         : 'Notifikasi: Login pengguna dari situs web',
       'guard'       => $event->guard,
-      'email_user'  => $event->user->email,
+      'email_user'  => $user_email,
       'ip_address'  => $ip_address,
       'geolocation' => $geolocation,
       'user_agent'  => $user_agent,

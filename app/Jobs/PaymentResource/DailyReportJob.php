@@ -34,6 +34,7 @@ class DailyReportJob implements ShouldQueue
     $endDate   = Carbon::now()->endOfWeek();
     $now       = Carbon::now()->toDateTimeString();
     $today     = Carbon::now()->toDateString();
+    $causer    = getUser();
 
     $send = [
       'filename'   => 'daily-payment-report',
@@ -72,6 +73,19 @@ class DailyReportJob implements ShouldQueue
     ];
 
     Mail::to($data['email'])->queue(new DailyReportMail($data));
+    $html = (new DailyReportMail($data))->render();
+
+    saveActivityLog([
+      'log_name'    => 'Notification',
+      'description' => 'Daily Payment Report by ' . $causer->name,
+      'event'       => 'Mail Notification',
+      'properties'  => [
+        'email'       => $data['email'],
+        'subject'     => $data['subject'],
+        'attachments' => $data['attachments'],
+        'html'        => $html,
+      ],
+    ]);
 
     \Log::info('4256 --> DailyReportJob: Finished.');
   }
