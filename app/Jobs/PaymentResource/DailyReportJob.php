@@ -59,12 +59,12 @@ class DailyReportJob implements ShouldQueue
     ])->first();
 
     $date = carbonTranslatedFormat($now, 'd F Y');
-    
+
     $data = [
       'log_name'         => 'daily_payment_notification',
       'email'            => getSetting('daily_payment_email'),
       'author_name'      => getSetting('author_name'),
-      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Harian ' . $date,
+      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Harian (' . $date . ')',
       'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
       'payment'          => $payment->toArray(),
       'date'             => $date,

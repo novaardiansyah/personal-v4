@@ -96,6 +96,8 @@
       margin-bottom: 18px;
     }
   </style>
+
+  <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png" />
   
   <title>@yield('title')</title>
 </head>
