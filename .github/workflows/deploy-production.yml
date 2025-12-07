@@ -24,7 +24,7 @@ jobs:
             git fetch origin
             git checkout production
             git pull origin production
-            composer install --no-interaction --prefer-dist --optimize-autoloader
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
             php artisan optimize:clear
             php artisan migrate --force
             php artisan filament:optimize
