@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Http\Requests\ChangePasswordRequest;
 use App\Http\Requests\UpdateProfileRequest;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Http;
@@ -39,7 +40,7 @@ class AuthController extends Controller
       ], 401);
     }
 
-    $expiration = config('sanctum.expiration') ? now()->addMinutes(config('sanctum.expiration')) : null;
+    $expiration = Carbon::now()->addDays(7);
     $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
     event(new Login('api', $user, false));
@@ -68,8 +69,9 @@ class AuthController extends Controller
     $user->save();
 
     $user->tokens()->delete();
-    $expiration = config('sanctum.expiration') ? now()->addMinutes(config('sanctum.expiration')) : null;
-    $newToken = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
+    
+    $expiration = Carbon::now()->addDays(7);
+    $newToken   = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
     return response()->json([
       'success' => true,
