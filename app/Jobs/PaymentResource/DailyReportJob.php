@@ -9,6 +9,7 @@ use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class DailyReportJob implements ShouldQueue
@@ -28,7 +29,7 @@ class DailyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
-    \Log::info('4256 --> DailyReportJob: Started.');
+    Log::info('4256 --> DailyReportJob: Started.');
 
     $startDate = Carbon::now()->startOfWeek();
     $endDate   = Carbon::now()->endOfWeek();
@@ -54,7 +55,7 @@ class DailyReportJob implements ShouldQueue
       COUNT(CASE WHEN type_id = 2 AND date = ? THEN id END) AS daily_income_count,
       COUNT(CASE WHEN type_id != 1 AND type_id != 2 AND date = ? THEN id END) AS daily_other_count
     ', [
-      $today, $today, $today, 
+      $today, $today, $today,
       $today, $today, $today
     ])->first();
 
@@ -89,6 +90,6 @@ class DailyReportJob implements ShouldQueue
       ],
     ]);
 
-    \Log::info('4256 --> DailyReportJob: Finished.');
+    Log::info('4256 --> DailyReportJob: Finished.');
   }
 }

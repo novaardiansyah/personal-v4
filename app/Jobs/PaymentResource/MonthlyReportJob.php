@@ -10,6 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Log;
 
 class MonthlyReportJob implements ShouldQueue
 {
@@ -28,7 +29,7 @@ class MonthlyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
-    \Log::info('6753 --> MonthlyReportJob: Started.');
+    Log::info('6753 --> MonthlyReportJob: Started.');
 
     $periode = $this->data['periode'];
     $year    = Carbon::parse($periode)->format('Y');
@@ -82,7 +83,7 @@ class MonthlyReportJob implements ShouldQueue
       'log_name'         => 'monthly_payment_notification',
       'email'            => $this->data['user']->email ?? '',
       'author_name'      => getSetting('author_name'),
-      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Bulanan',
+      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Bulanan (' . $periode . ')',
       'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
       'payment'          => $payment->toArray(),
       'periode'          => $periode,
@@ -106,6 +107,6 @@ class MonthlyReportJob implements ShouldQueue
       ],
     ]);
 
-    \Log::info('6754 --> MonthlyReportJob: Finished.');
+    Log::info('6754 --> MonthlyReportJob: Finished.');
   }
 }
