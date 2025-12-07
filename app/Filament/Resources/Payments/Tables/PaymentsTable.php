@@ -3,10 +3,13 @@
 namespace App\Filament\Resources\Payments\Tables;
 
 use App\Filament\Resources\Payments\Schemas\PaymentAction;
+use App\Jobs\PaymentResource\DailyReportJob;
+use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -14,7 +17,10 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -36,7 +42,7 @@ class PaymentsTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('amount')
           ->label('Nominal')
-          ->formatStateUsing(fn (?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
+          ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
           ->toggleable(),
         TextColumn::make('payment_account.name')
           ->label('Payment')
@@ -48,13 +54,13 @@ class PaymentsTable
           ->label('Type')
           ->badge()
           ->color(fn(string $state): string => match ((int) $state) {
-            PaymentType::INCOME     => 'success',
-            PaymentType::EXPENSE    => 'danger',
-            PaymentType::TRANSFER   => 'info',
+            PaymentType::INCOME => 'success',
+            PaymentType::EXPENSE => 'danger',
+            PaymentType::TRANSFER => 'info',
             PaymentType::WITHDRAWAL => 'warning',
             default => 'primary',
           })
-          ->formatStateUsing(fn (Payment $record): string => $record->payment_type->name)
+          ->formatStateUsing(fn(Payment $record): string => $record->payment_type->name)
           ->toggleable(),
         TextColumn::make('date')
           ->label('Date')
@@ -97,24 +103,77 @@ class PaymentsTable
       ])
       ->headerActions([
         Action::make('print_pdf')
-          ->label('PDF')
+          ->label('Report')
           ->color('primary')
           ->icon('heroicon-o-printer')
-          ->action(function (Action $action): void {
-            $livewire = $action->getLivewire();
-            $filter   = $livewire->getTableFilterState('date') ?? [];
-            
-            $params = [
-              'start_date' => $filter['from_created_at'] ?? now()->startOfMonth(),
-              'end_date'   => $filter['end_created_at'] ?? now()->endOfMonth(),
-              'user'       => getUser(),
+          ->modalHeading('Generate Payment Report')
+          ->modalDescription('Select report type and configure options.')
+          ->modalWidth(Width::Medium)
+          ->schema([
+            Select::make('report_type')
+              ->label('Report Type')
+              ->options([
+                'date_range' => 'Custom Date Range (PDF)',
+                'daily'      => 'Daily Report (Email)',
+                'monthly'    => 'Monthly Report (Email)',
+              ])
+              ->default('monthly')
+              ->required()
+              ->live()
+              ->native(false),
+            DatePicker::make('start_date')
+              ->label('Start Date')
+              ->required()
+              ->native(false)
+              ->default(Carbon::now()->startOfMonth())
+              ->visible(fn($get) => $get('report_type') === 'date_range'),
+            DatePicker::make('end_date')
+              ->label('End Date')
+              ->required()
+              ->native(false)
+              ->default(Carbon::now()->endOfMonth())
+              ->visible(fn($get) => $get('report_type') === 'date_range'),
+            Select::make('periode')
+              ->label('Periode (Month)')
+              ->options(function () {
+                $options = [];
+                $year = Carbon::now()->year;
+                for ($month = 1; $month <= 12; $month++) {
+                  $date = Carbon::createFromDate($year, $month, 1);
+                  $options[$date->format('Y-m')] = $date->translatedFormat('F Y');
+                }
+                return $options;
+              })
+              ->required()
+              ->native(false)
+              ->default(Carbon::now()->format('Y-m'))
+              ->visible(fn($get) => $get('report_type') === 'monthly'),
+          ])
+          ->action(function (Action $action, array $data): void {
+            $user = getUser();
+
+            match ($data['report_type']) {
+              'daily' => DailyReportJob::dispatch(),
+              'monthly' => MonthlyReportJob::dispatch([
+                'periode' => $data['periode'],
+                'user'    => $user,
+              ]),
+              default => PaymentReportPdf::dispatch([
+                'start_date' => $data['start_date'],
+                'end_date'   => $data['end_date'],
+                'user'       => $user,
+              ]),
+            };
+
+            $messages = [
+              'daily'      => 'Daily report will be sent to your email.',
+              'monthly'    => 'Monthly report will be sent to your email.',
+              'date_range' => 'PDF is being generated. You will be notified when ready.',
             ];
-            
-            PaymentReportPdf::dispatch($params);
 
             Notification::make()
-              ->title('Print PDF in process')
-              ->body('PDF print has been processed. You will be notified when the file is ready to download.')
+              ->title('Report in process')
+              ->body($messages[$data['report_type']] ?? 'Report is being processed.')
               ->success()
               ->send();
           })
@@ -122,7 +181,7 @@ class PaymentsTable
       ->recordActions([
         ActionGroup::make([
           EditAction::make(),
-          
+
           DeleteAction::make(),
 
           RestoreAction::make(),
