@@ -40,6 +40,7 @@ class ScheduledPaymentJob implements ShouldQueue
     $now      = now()->toDateTimeString();
     $today    = Carbon::now()->format('Y-m-d');
     $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
+    $causer   = getUser();
 
     $send = [
       'filename'   => 'scheduled-payment-report',
@@ -50,7 +51,7 @@ class ScheduledPaymentJob implements ShouldQueue
     ];
 
     $pdf = PaymentService::make_pdf($send);
-    
+
     $payment = Payment::selectRaw("
       SUM(CASE WHEN type_id = 1 THEN amount ELSE 0 END) AS daily_expense,
       SUM(CASE WHEN type_id = 2 THEN amount ELSE 0 END) AS daily_income,
@@ -74,20 +75,20 @@ class ScheduledPaymentJob implements ShouldQueue
       ],
     ];
 
-    // $mailObj = new ScheduledPaymentMail($data);
-    // $message = $mailObj->render();
-
-    // EmailLog::create([
-    //   'status_id'  => 2,
-    //   'name'       => $data['log_name'],
-    //   'email'      => $data['email'],
-    //   'subject'    => $data['subject'],
-    //   'message'    => $message,
-    //   'created_at' => $now,
-    //   'updated_at' => $now,
-    // ]);
-    
     Mail::to($data['email'])->queue(new ScheduledPaymentMail($data));
+    $html = (new ScheduledPaymentMail($data))->render();
+
+    saveActivityLog([
+      'log_name'    => 'Notification',
+      'description' => 'Scheduled Payment Report by ' . $causer->name,
+      'event'       => 'Mail Notification',
+      'properties'  => [
+        'email'       => $data['email'],
+        'subject'     => $data['subject'],
+        'attachments' => $data['attachments'],
+        'html'        => $html,
+      ],
+    ]);
 
     \Log::info('3257 --> ScheduledPaymentJob: Finished.');
   }

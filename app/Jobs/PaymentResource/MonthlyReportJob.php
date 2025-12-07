@@ -37,6 +37,7 @@ class MonthlyReportJob implements ShouldQueue
     $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
     $endDate   = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
     $now       = Carbon::now()->toDateTimeString();
+    $causer    = getUser();
 
     $send = array_merge($this->data, [
       'filename'   => 'monthly-payment-report',
@@ -91,6 +92,19 @@ class MonthlyReportJob implements ShouldQueue
       ],
     ];
     Mail::to($data['email'])->queue(new MonthlyReportMail($data));
+    $html = (new MonthlyReportMail($data))->render();
+
+    saveActivityLog([
+      'log_name'    => 'Notification',
+      'description' => 'Monthly Payment Report by ' . $causer->name,
+      'event'       => 'Mail Notification',
+      'properties'  => [
+        'email'       => $data['email'],
+        'subject'     => $data['subject'],
+        'attachments' => $data['attachments'],
+        'html'        => $html,
+      ],
+    ]);
 
     \Log::info('6754 --> MonthlyReportJob: Finished.');
   }
