@@ -19,6 +19,7 @@ use App\Jobs\PaymentResource\PaymentReportPdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -120,12 +121,13 @@ class PaymentController extends Controller
   public function index(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'page' => 'nullable|integer|min:1',
-      'limit' => 'nullable|integer|min:1',
-      'date_from' => 'nullable|date',
-      'date_to' => 'nullable|date',
-      'type' => 'nullable|integer|exists:payment_types,id',
-      'account_id' => 'nullable|integer|exists:payment_accounts,id'
+      'page'       => 'nullable|integer|min:1',
+      'limit'      => 'nullable|integer|min:1',
+      'date_from'  => 'nullable|date',
+      'date_to'    => 'nullable|date',
+      'type'       => 'nullable|integer|exists:payment_types,id',
+      'account_id' => 'nullable|integer|exists:payment_accounts,id',
+      'search'     => 'nullable|string|max:255',
     ]);
 
     $validator->after(function ($validator) use ($request) {
@@ -147,12 +149,13 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $validated = $validator->validated();
-    $limit = $validated['limit'] ?? 10;
-    $date_from = $validated['date_from'] ?? null;
-    $date_to = $validated['date_to'] ?? null;
-    $type = $validated['type'] ?? null;
+    $validated  = $validator->validated();
+    $limit      = $validated['limit'] ?? 10;
+    $date_from  = $validated['date_from'] ?? null;
+    $date_to    = $validated['date_to'] ?? null;
+    $type       = $validated['type'] ?? null;
     $account_id = $validated['account_id'] ?? null;
+    $search     = $validated['search'] ?? null;
 
     $payments = Payment::with(['payment_type'])
       ->where('user_id', Auth()->user()->id);
@@ -173,20 +176,24 @@ class PaymentController extends Controller
       $payments->where('payment_account_id', $account_id);
     }
 
+    if ($search) {
+      $payments->where('name', 'like', '%' . $search . '%');
+    }
+
     $payments = $payments
       ->orderBy('updated_at', 'desc')
       ->paginate($limit);
 
     return response()->json([
       'success' => true,
-      'data' => PaymentResource::collection($payments),
+      'data'    => PaymentResource::collection($payments),
       'pagination' => [
         'current_page' => $payments->currentPage(),
-        'from' => $payments->firstItem(),
-        'last_page' => $payments->lastPage(),
-        'per_page' => $payments->perPage(),
-        'to' => $payments->lastItem(),
-        'total' => $payments->total(),
+        'from'         => $payments->firstItem(),
+        'last_page'    => $payments->lastPage(),
+        'per_page'     => $payments->perPage(),
+        'to'           => $payments->lastItem(),
+        'total'        => $payments->total(),
       ]
     ]);
   }
