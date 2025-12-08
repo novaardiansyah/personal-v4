@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments\Schemas;
 
+use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use Carbon\Carbon;
@@ -85,8 +86,6 @@ class PaymentForm
             ->directory('images/payment')
             ->image()
             ->imageEditor()
-            ->enableDownload()
-            ->enableOpen()
             ->multiple()
             ->columnSpanFull()
         ])
@@ -119,7 +118,13 @@ class PaymentForm
             ->native(false)
             ->required()
             ->default(PaymentAccount::TUNAI)
-            ->disabledOn('edit')
+            ->disabled(function (string $operation, Payment $record) {
+              $disabled = $operation === 'edit';
+              if ($record->is_scheduled) {
+                $disabled = false;
+              } 
+              return $disabled;
+            })
             ->hint(function(?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
