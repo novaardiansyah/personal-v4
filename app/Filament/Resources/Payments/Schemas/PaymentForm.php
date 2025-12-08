@@ -18,6 +18,7 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Log;
 
 class PaymentForm
 {
@@ -110,19 +111,38 @@ class PaymentForm
             ->native(false)
             ->default(1)
             ->required()
-            ->disabledOn('edit'),
+            ->disabledOn('edit')
+            ->afterStateUpdated(function (Set $set, ?string $state, string $operation) {
+              if ($state == PaymentType::WITHDRAWAL) {
+                $set('payment_account_id', PaymentAccount::PERMATA_BANK);
+                $set('payment_account_to_id', PaymentAccount::TUNAI);
+
+                $paymentAccount = PaymentAccount::find(PaymentAccount::PERMATA_BANK);
+                $set('name', 'Tarik Tunai dari ' . $paymentAccount->name);
+              }
+            }),
 
           Select::make('payment_account_id')
             ->label('Payment')
-            ->relationship('payment_account', titleAttribute: 'name')
+            ->options(function (Get $get) {
+              if ($get('type_id') == PaymentType::WITHDRAWAL) {
+                return PaymentAccount::where('id', '!=', PaymentAccount::TUNAI)
+                  ->where('user_id', auth()->user()->id)
+                  ->pluck('name', 'id');
+              }
+
+              return PaymentAccount::where('id', '!=', $get('payment_account_to_id'))
+                ->where('user_id', auth()->user()->id)
+                ->pluck('name', 'id');
+            })
             ->native(false)
             ->required()
             ->default(PaymentAccount::TUNAI)
-            ->disabled(function (string $operation, Payment $record) {
+            ->disabled(function (string $operation, ?Payment $record) {
               $disabled = $operation === 'edit';
-              if ($record->is_scheduled) {
+              if ($record?->is_scheduled) {
                 $disabled = false;
-              } 
+              }
               return $disabled;
             })
             ->hint(function(?string $state) {
@@ -130,25 +150,25 @@ class PaymentForm
               return toIndonesianCurrency($payment->deposit ?? 0);
             })
             ->live(onBlur: true)
-            ->afterStateUpdated(function (Set $set, ?string $state, string $operation) {
-              $set('payment_account_to_id', null);
-
-              if (!$state)
-                return $set('payment_account_deposit', 'Rp. 0');
-
-              $payment_account = PaymentAccount::find($state);
-
-              if ($operation === 'create') {
-                $set('payment_account_deposit', toIndonesianCurrency($payment_account->deposit));
+            ->afterStateUpdated(function (Set $set, Get $get, ?string $state, string $operation) {
+              if ($get('type_id') == PaymentType::WITHDRAWAL) {
+                $paymentAccount = PaymentAccount::find($state ?? -1);
+                $set('name', 'Tarik Tunai dari ' . $paymentAccount?->name);
               }
             }),
 
           Select::make('payment_account_to_id')
             ->label('Payment To')
-            ->options(function ($get) {
-              if (!$get('payment_account_id'))
-                return [];
+            ->options(function (Get $get) {
+              if (!$get('payment_account_id')) return [];
+              
+              if ($get('type_id') == PaymentType::WITHDRAWAL) {
+                return PaymentAccount::where('id', PaymentAccount::TUNAI)
+                  ->pluck('name', 'id');
+              }
+
               return PaymentAccount::where('id', '!=', $get('payment_account_id'))
+                ->where('user_id', auth()->user()->id)
                 ->pluck('name', 'id');
             })
             ->native(false)
@@ -160,7 +180,15 @@ class PaymentForm
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
             })
-            ->live(onBlur: true),
+            ->live(onBlur: true)
+            ->afterStateUpdated(function (Set $set, Get $get, ?string $state, string $operation) {
+              $paymentAccount = PaymentAccount::find($state ?? -1);
+              $type           = $get('type_id');
+
+              if ($type == PaymentType::TRANSFER) {
+                $set('name', 'Transfer ke ' . $paymentAccount?->name);
+              }
+            }),
         ])
           ->description('Payment account details')
           ->columns(1)
