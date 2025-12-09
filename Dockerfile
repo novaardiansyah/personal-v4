@@ -34,14 +34,13 @@ WORKDIR /app
 # Setup permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
-
 # Copy configuration files
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
-COPY deploy/supervisor/*.conf /etc/supervisor/conf.d/
 COPY docker/supervisor/app.conf /etc/supervisor/conf.d/
 COPY docker/Caddyfile /etc/caddy/Caddyfile
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
+
 # Fix Windows line endings causing "no such file or directory" for shebang
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 

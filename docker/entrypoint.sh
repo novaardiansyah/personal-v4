@@ -13,7 +13,7 @@ php artisan migrate --force
 
 # Optimize caches
 echo "Caching configuration..."
-php artisan optimize
+# php artisan optimize
 
 # Jalankan Supervisor (yang akan mengontrol App + Queue + Schedule)
 echo "Starting Supervisor..."
