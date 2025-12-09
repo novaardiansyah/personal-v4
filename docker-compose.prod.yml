@@ -1,0 +1,52 @@
+services:
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile.prod
+        image: personal-v4-app
+        restart: unless-stopped
+        tty: true
+        ports:
+            - "1001:80"
+            - "443:443"
+            - "443:443/udp" # HTTP/3
+        environment:
+            APP_ENV: ${APP_ENV:-local}
+            APP_KEY: ${APP_KEY}
+            APP_DEBUG: ${APP_DEBUG:-true}
+            APP_URL: ${APP_URL:-http://localhost}
+            DB_CONNECTION: mysql
+            DB_HOST: mysql
+            DB_PORT: 3306
+            DB_DATABASE: ${DB_DATABASE:-laravel}
+            DB_USERNAME: ${DB_USERNAME:-root}
+            DB_PASSWORD: ${DB_PASSWORD:-password}
+            SERVER_NAME: ${SERVER_NAME:-:80}
+            SESSION_DRIVER: database
+            CACHE_DRIVER: database
+        volumes:
+            - .:/app
+        networks:
+            - app-network
+        depends_on:
+            - mysql
+
+    mysql:
+        image: mysql:8.0
+        restart: unless-stopped
+        environment:
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+            MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+        volumes:
+            - mysql-data:/var/lib/mysql
+        networks:
+            - app-network
+        ports:
+            - "3306:3306"
+
+networks:
+    app-network:
+        driver: bridge
+
+volumes:
+    mysql-data:

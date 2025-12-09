@@ -28,8 +28,8 @@ COPY . /app
 WORKDIR /app
 
 # Install Composer dependencies
-# ENV COMPOSER_ALLOW_SUPERUSER=1
-# RUN composer install --no-dev --optimize-autoloader --no-ansi --no-scripts
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --optimize-autoloader --no-ansi --no-scripts
 
 # Setup permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
