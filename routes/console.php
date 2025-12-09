@@ -7,6 +7,7 @@ use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schedule;
 
 Artisan::command('inspire', function () {
   $this->comment(Inspiring::quote());
@@ -23,7 +24,7 @@ Schedule::job(new DailyReportJob())
 
 // ! Scheduled File Deletion
 Schedule::job(new RemoveFileJob())
-  ->everyTwoHours();
+  ->dailyAt('23:59');
 
 // ! Clean Expired Tokens
 Schedule::job(new CleanExpiredTokens())
@@ -31,4 +32,4 @@ Schedule::job(new CleanExpiredTokens())
 
 Schedule::call(function () {
   app(AuthController::class)->monitorToken();
-})->everyOddHour();
+})->dailyAt('23:59');
