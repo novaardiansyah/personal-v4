@@ -45,6 +45,11 @@ class PaymentAccountResource extends Resource
   protected static ?int $navigationSort = 10;
   protected static ?string $recordTitleAttribute = 'name';
 
+  public static function getEloquentQuery(): Builder
+  {
+    return parent::getEloquentQuery()->where('user_id', auth()->id());
+  }
+
   public static function form(Schema $schema): Schema
   {
     return $schema
@@ -56,8 +61,6 @@ class PaymentAccountResource extends Resource
           ->directory('images/payment_account')
           ->image()
           ->imageEditor()
-          ->enableOpen()
-          ->enableDownload(),
       ])
       ->columns(1);
   }
