@@ -14,7 +14,9 @@ RUN install-php-extensions \
 
 
 # Install Supervisor and unzip (for composer)
-RUN apt-get update && apt-get install -y supervisor unzip
+RUN apt-get update && apt-get install -y supervisor unzip && \
+    mkdir -p /var/log/supervisor && \
+    chown -R www-data:www-data /var/log/supervisor
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer

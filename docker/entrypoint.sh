@@ -15,6 +15,6 @@ php artisan migrate --force
 echo "Caching configuration..."
 php artisan optimize
 
-# Start Supervisor (which starts FrankenPHP and Queue workers)
+# Jalankan Supervisor (yang akan mengontrol App + Queue + Schedule)
 echo "Starting Supervisor..."
-exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
+exec /usr/bin/supervisord -c /etc/supervisor/supervisord.conf
