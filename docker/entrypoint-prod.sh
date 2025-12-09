@@ -21,7 +21,7 @@ fi
 
 # Tunggu MySQL ready (simple way)
 echo "Waiting for database..."
-sleep 10
+sleep 5
 
 # Run migrations (careful in production, maybe flag controlled)
 echo "Running migrations..."
