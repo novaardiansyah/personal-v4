@@ -29,3 +29,4 @@ AGENTS.md
 .factory/
 todo.md
 CLAUDE.md
+docker-compose.override.yml
