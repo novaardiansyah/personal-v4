@@ -19,6 +19,10 @@ if [ ! -L /app/public/storage ]; then
     php artisan storage:link
 fi
 
+# Tunggu MySQL ready (simple way)
+echo "Waiting for database..."
+sleep 10
+
 # Run migrations (careful in production, maybe flag controlled)
 echo "Running migrations..."
 php artisan migrate --force
