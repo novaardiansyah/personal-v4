@@ -26,6 +26,7 @@ services:
             CACHE_DRIVER: database
         volumes:
             - .:/app
+            - ./storage:/app/storage
         networks:
             - app-network
         depends_on:
