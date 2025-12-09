@@ -6,11 +6,12 @@ echo "Fixing storage permissions..."
 chown -R www-data:www-data /app/storage /app/bootstrap/cache
 chmod -R 775 /app/storage /app/bootstrap/cache
 
-# Create required directories if they don't exist
-mkdir -p /app/storage/logs
-mkdir -p /app/storage/framework/{sessions,views,cache}
-chown -R www-data:www-data /app/storage
-chmod -R 775 /app/storage
+# Fix mpdf tmp directory permissions
+if [ -d /app/vendor/mpdf/mpdf/tmp ]; then
+    echo "Fixing mpdf tmp permissions..."
+    chown -R www-data:www-data /app/vendor/mpdf/mpdf/tmp
+    chmod -R 775 /app/vendor/mpdf/mpdf/tmp
+fi
 
 # Run initial setup if needed (example: creating storage link if missing)
 if [ ! -L /app/public/storage ]; then
