@@ -36,7 +36,7 @@ RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
 
 # Copy configuration files
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
-COPY docker/supervisor/app.conf /etc/supervisor/conf.d/
+COPY docker/supervisor/* /etc/supervisor/conf.d/
 COPY docker/Caddyfile /etc/caddy/Caddyfile
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
