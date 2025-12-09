@@ -1,0 +1,54 @@
+FROM dunglas/frankenphp:php8.3
+
+ENV SERVER_NAME=:80
+
+# Install dependencies and extensions
+RUN install-php-extensions \
+    intl \
+    pdo_mysql \
+    zip \
+    bcmath \
+    gd \
+    exif \
+    opcache
+
+# Install Supervisor and unzip (for composer)
+RUN apt-get update && apt-get install -y supervisor unzip && \
+    mkdir -p /var/log/supervisor && \
+    chown -R www-data:www-data /var/log/supervisor
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Copy application files
+COPY . /app
+
+# Set working directory
+WORKDIR /app
+
+# Remove host-generated cache files
+RUN rm -rf bootstrap/cache/*.php
+
+# Install Composer dependencies
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --optimize-autoloader --no-ansi --no-scripts
+
+# Run package discovery
+RUN php artisan package:discover --ansi
+
+# Setup permissions
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+
+# Copy configuration files
+COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
+COPY docker/supervisor/* /etc/supervisor/conf.d/
+COPY docker/Caddyfile /etc/caddy/Caddyfile
+
+# Use production entrypoint
+COPY docker/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Fix Windows line endings
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
