@@ -19,9 +19,20 @@ if [ ! -L /app/public/storage ]; then
     php artisan storage:link
 fi
 
-# Tunggu MySQL ready (simple way)
+# Wait for MySQL to be ready (with proper health check)
 echo "Waiting for database..."
-sleep 5
+max_retries=30
+counter=0
+until php artisan db:show --json > /dev/null 2>&1; do
+    counter=$((counter + 1))
+    if [ $counter -ge $max_retries ]; then
+        echo "Database connection timeout after ${max_retries} attempts"
+        exit 1
+    fi
+    echo "Database not ready, waiting... (attempt $counter/$max_retries)"
+    sleep 2
+done
+echo "Database is ready!"
 
 # Run migrations (careful in production, maybe flag controlled)
 echo "Running migrations..."
