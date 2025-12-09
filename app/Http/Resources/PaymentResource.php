@@ -34,6 +34,14 @@ class PaymentResource extends JsonResource
       'formatted_updated_at' => Carbon::parse($this->updated_at)->format('M d, Y - H:i'),
       'attachments_count'    => $this->getAttachmentsCount(),
       'items_count'          => $this->getItemsCount(),
+      'account'              => [
+        'id' => $this->payment_account->id ?? null,
+        'name' => $this->payment_account->name ?? null,
+      ],
+      'account_to'           => [
+        'id' => $this->payment_account_to->id ?? null,
+        'name' => $this->payment_account_to->name ?? null,
+      ],
     ];
   }
 }

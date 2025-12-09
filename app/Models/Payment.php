@@ -14,12 +14,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Payment extends Model
 {
   use SoftDeletes;
-  
+
   protected $guarded = ['id'];
 
   protected $casts = [
-    'attachments'  => 'array',
-    'has_items'    => 'boolean',
+    'attachments' => 'array',
+    'has_items' => 'boolean',
     'is_scheduled' => 'boolean',
   ];
 
@@ -49,14 +49,15 @@ class Payment extends Model
   {
     $data['user_id'] = auth()->id();
 
-    $has_charge         = boolval($data['has_charge'] ?? 0);
-    $is_scheduled       = boolval($data['is_scheduled'] ?? 0);
-    $type_id            = intval($data['type_id'] ?? 2);
-    $amount             = intval($data['amount'] ?? 0);
-    $payment_account    = PaymentAccount::find($data['payment_account_id']);
+    $has_charge = boolval($data['has_charge'] ?? 0);
+    $is_scheduled = boolval($data['is_scheduled'] ?? 0);
+    $type_id = intval($data['type_id'] ?? 2);
+    $amount = intval($data['amount'] ?? 0);
+    $payment_account = PaymentAccount::find($data['payment_account_id']);
     $payment_account_to = PaymentAccount::find($data['payment_account_to_id'] ?? -1);
 
-    if ($is_scheduled) $has_charge = true;
+    if ($is_scheduled)
+      $has_charge = true;
 
     if ($type_id == 2) {
       // ! Income
@@ -71,8 +72,9 @@ class Payment extends Model
         $payment_account->deposit -= $amount;
       } else if ($type_id == 3 || $type_id == 4) {
         // ! Transfer / Withdrawal
-        if (!$payment_account_to) return ['status' => false, 'message' => 'The destination payment account is invalid or not found.', 'data' => $data];
-        
+        if (!$payment_account_to)
+          return ['status' => false, 'message' => 'The destination payment account is invalid or not found.', 'data' => $data];
+
         $payment_account->deposit -= $amount;
         $payment_account_to->deposit += $amount;
       } else {
@@ -80,12 +82,12 @@ class Payment extends Model
         return ['status' => false, 'message' => 'The selected transaction type is invalid.', 'data' => $data];
       }
     }
-    
+
     if (!$has_charge) {
       if ($payment_account->isDirty('deposit')) {
         $payment_account->save();
       }
-  
+
       if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
         $payment_account_to->save();
       }
@@ -98,7 +100,7 @@ class Payment extends Model
 
   public static function scheduledPayment(): array
   {
-    $today    = Carbon::now()->format('Y-m-d');
+    $today = Carbon::now()->format('Y-m-d');
     $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
 
     $scheduledPayments = Payment::with(['payment_account:id,name,deposit', 'payment_account_to:id,name,deposit'])->where('is_scheduled', true)
@@ -145,8 +147,8 @@ class Payment extends Model
   {
     // Mengambil tanggal awal dan akhir bulan ini
     $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
-    $endDate   = Carbon::now()->format('Y-m-d');
-    $endMonth  = Carbon::now()->endOfMonth()->format('Y-m-d');
+    $endDate = Carbon::now()->format('Y-m-d');
+    $endMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
 
     // Mengambil tanggal hari ini
     $today = Carbon::now()->format('Y-m-d');
@@ -165,7 +167,7 @@ class Payment extends Model
     if (Carbon::parse($endOfWeek)->month != Carbon::now()->month) {
       $endOfWeek = $endDate;
     }
-    
+
     // Mengambil bulan dan tahun saat ini dalam format terjemahan
     $month_str = Carbon::now()->translatedFormat('F Y');
 
@@ -189,25 +191,34 @@ class Payment extends Model
       SUM(CASE WHEN type_id = 1 AND is_scheduled = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS scheduled_expense,
       SUM(CASE WHEN type_id = 2 AND is_scheduled = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS scheduled_income
     ', [
-      $startDate, $endDate, // All expense range
-      $startDate, $endDate, // All income range
+      $startDate,
+      $endDate, // All expense range
+      $startDate,
+      $endDate, // All income range
       $today,               // Daily expense
       $today,               // Daily income
-      $startDate, $endDate, $daysElapsed,  // Avg daily expense
-      $startDate, $endDate, $weeksInMonth, // Avg weekly expense
-      $startOfWeek, $endOfWeek, // Weekly expense
-      $startDate, $endMonth, // Scheduled expense
-      $startDate, $endMonth // Scheduled income
+      $startDate,
+      $endDate,
+      $daysElapsed,  // Avg daily expense
+      $startDate,
+      $endDate,
+      $weeksInMonth, // Avg weekly expense
+      $startOfWeek,
+      $endOfWeek, // Weekly expense
+      $startDate,
+      $endMonth, // Scheduled expense
+      $startDate,
+      $endMonth // Scheduled income
     ])->first();
-    
+
     $total_saldo = PaymentAccount::sum('deposit');
 
-    $thisWeek = Carbon::parse($startOfWeek)->translatedFormat('d') . '-' .  Carbon::parse($endOfWeek)->translatedFormat('d M Y');
+    $thisWeek = Carbon::parse($startOfWeek)->translatedFormat('d') . '-' . Carbon::parse($endOfWeek)->translatedFormat('d M Y');
 
     return [
-      'month_str'   => $month_str,
-      'thisWeek'    => $thisWeek,
-      'payments'    => $payments,
+      'month_str' => $month_str,
+      'thisWeek' => $thisWeek,
+      'payments' => $payments,
       'total_saldo' => $total_saldo,
     ];
   }

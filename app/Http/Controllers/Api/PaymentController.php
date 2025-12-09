@@ -220,34 +220,40 @@ class PaymentController extends Controller
   }
 
   /**
-   * Create new payment
+   * Update existing payment
+   *
+   * For payments with items: only name and date can be edited (amount is ignored).
+   * For regular payments: amount, name, and date can be edited.
+   *
+   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
    */
-  public function store(Request $request): JsonResponse
+  public function update(Request $request, $id): JsonResponse
   {
+    $payment = Payment::with(['payment_account', 'payment_account_to'])
+      ->where('user_id', Auth()->user()->id)
+      ->find($id);
+
+    if (!$payment) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Payment not found'
+      ], 404);
+    }
+
     $validator = Validator::make($request->all(), [
-      'amount' => 'required_if:has_items,false|nullable|numeric',
-      'date' => 'required|date',
-      'name' => 'required_if:has_items,false|nullable|string|max:255',
-      'type_id' => 'required|integer|exists:payment_types,id',
-      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
-      'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'has_items' => 'nullable|boolean',
-      'has_charge' => 'nullable|boolean',
-      'is_scheduled' => 'nullable|boolean',
-      'attachments' => 'nullable|array',
-      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+      'amount'                => 'nullable|numeric|min:0',
+      'name'                  => 'required|string|max:255',
+      'date'                  => 'required|date',
+      'type_id'               => 'nullable|integer|exists:payment_types,id',
+      'payment_account_id'    => 'nullable|integer|exists:payment_accounts,id',
+      'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id',
     ]);
 
     $validator->setAttributeNames([
-      'name' => 'description',
-      'type_id' => 'category',
-      'payment_account_id' => 'payment account',
+      'name'                  => 'description',
+      'type_id'               => 'category',
+      'payment_account_id'    => 'payment account',
       'payment_account_to_id' => 'to payment account',
-    ]);
-
-    $validator->setCustomMessages([
-      'name.required_if' => 'The :attribute field is required when the payment has no items.',
-      'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
     ]);
 
     if ($validator->fails()) {
@@ -258,27 +264,144 @@ class PaymentController extends Controller
       ], 422);
     }
 
+    $data = $validator->validated();
+
+    if ($payment->has_items) {
+      $payment->update([
+        'name' => $data['name'],
+        'date' => $data['date'],
+      ]);
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Payment updated successfully',
+        'data' => []
+      ]);
+    }
+
+    $record       = $payment;
+    $is_scheduled = $record->is_scheduled ?? false;
+    $amount       = intval($data['amount'] ?? $record->amount);
+
+    if ($record->type_id == PaymentType::EXPENSE || $record->type_id == PaymentType::INCOME) {
+      $adjustment    = ($record->type_id == PaymentType::EXPENSE) ? +$record->amount : -$record->amount;
+      $depositChange = ($record->payment_account->deposit + $adjustment);
+
+      if ($depositChange < $amount && $depositChange != 0) {
+        return response()->json([
+          'success' => false,
+          'message' => 'The amount in the payment account is not sufficient for the transaction.'
+        ], 422);
+      }
+
+      if ($record->type_id == PaymentType::EXPENSE) {
+        $amount = -$amount;
+      }
+
+      $depositChange = $depositChange + $amount;
+
+      if (!$is_scheduled) {
+        $record->payment_account->update([
+          'deposit' => $depositChange
+        ]);
+      }
+    } else if ($record->type_id == PaymentType::TRANSFER || $record->type_id == PaymentType::WITHDRAWAL) {
+      $balanceTo = $record->payment_account_to->deposit + $amount - $record->amount;
+      $balanceOrigin = $record->payment_account->deposit + $record->amount;
+
+      if ($balanceOrigin < $amount) {
+        return response()->json([
+          'success' => false,
+          'message' => 'The amount in the payment account is not sufficient for the transaction.'
+        ], 422);
+      }
+
+      if (!$is_scheduled) {
+        $record->payment_account->update([
+          'deposit' => $balanceOrigin - $amount
+        ]);
+
+        $record->payment_account_to->update([
+          'deposit' => $balanceTo
+        ]);
+      }
+    } else {
+      return response()->json([
+        'success' => false,
+        'message' => 'The selected transaction type is invalid.'
+      ], 422);
+    }
+
+    $record->update([
+      'amount' => intval($data['amount'] ?? $record->amount),
+      'name'   => $data['name'],
+      'date'   => $data['date'],
+    ]);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Payment updated successfully',
+      'data'    => []
+    ]);
+  }
+
+  /**
+   * Create new payment
+   */
+  public function store(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'amount'                => 'required_if:has_items,false|nullable|numeric',
+      'date'                  => 'required|date',
+      'name'                  => 'required_if:has_items,false|nullable|string|max:255',
+      'type_id'               => 'required|integer|exists:payment_types,id',
+      'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
+      'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
+      'has_items'             => 'nullable|boolean',
+      'has_charge'            => 'nullable|boolean',
+      'is_scheduled'          => 'nullable|boolean',
+      'attachments'           => 'nullable|array',
+      'attachments.*'         => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
+
+    $validator->setAttributeNames([
+      'name'                  => 'description',
+      'type_id'               => 'category',
+      'payment_account_id'    => 'payment account',
+      'payment_account_to_id' => 'to payment account',
+    ]);
+
+    $validator->setCustomMessages([
+      'name.required_if'                  => 'The :attribute field is required when the payment has no items.',
+      'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => $validator->errors()
+      ], 422);
+    }
+
     $data = $request->all();
 
-    // Handle file uploads
     if ($request->hasFile('attachments')) {
       $attachments = [];
       foreach ($request->file('attachments') as $file) {
-        $path = $file->store('images/payment', 'public');
+        $path          = $file->store('images/payment', 'public');
         $attachments[] = $path;
       }
       $data['attachments'] = $attachments;
     }
 
-    // Set default values for has_items = true
     if (!empty($data['has_items'])) {
-      $data['amount'] = 0;
-      $data['type_id'] = 1; // Set to expense type
+      $data['amount']     = 0;
+      $data['type_id']    = 1;
       $data['has_charge'] = false;
-      $data['name'] = null; // Will be populated when items are attached
+      $data['name']       = null;
     }
 
-    // Use the same mutation logic as Filament
     $payment = new Payment();
     $mutate = $payment::mutateDataPayment($data);
 
@@ -296,61 +419,6 @@ class PaymentController extends Controller
       'message' => 'Payment created successfully',
       'data' => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
     ], 201);
-  }
-
-  /**
-   * Update payment
-   */
-  public function update(Request $request, $id): JsonResponse
-  {
-    $payment = Payment::find($id);
-
-    if (!$payment) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Payment not found'
-      ], 404);
-    }
-
-    $validator = Validator::make($request->all(), [
-      'amount' => 'sometimes|required|numeric|min:0',
-      'date' => 'sometimes|required|date',
-      'name' => 'nullable|string|max:255',
-      'type_id' => 'sometimes|required|integer|exists:payment_types,id',
-      'payment_account_id' => 'sometimes|required|integer|exists:payment_accounts,id',
-      'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'is_scheduled' => 'nullable|boolean',
-      'attachments' => 'nullable|array',
-      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
-    ]);
-
-    if ($validator->fails()) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Validation failed',
-        'errors' => $validator->errors()
-      ], 422);
-    }
-
-    $data = $request->all();
-
-    // Handle file uploads
-    if ($request->hasFile('attachments')) {
-      $attachments = [];
-      foreach ($request->file('attachments') as $file) {
-        $path = $file->store('images/payment', 'public');
-        $attachments[] = $path;
-      }
-      $data['attachments'] = $attachments;
-    }
-
-    $payment->update($data);
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Payment updated successfully',
-      'data' => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
-    ]);
   }
 
   /**
@@ -1217,47 +1285,47 @@ class PaymentController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'report_type' => 'required|in:daily,monthly,date_range',
-      'start_date'  => 'required_if:report_type,date_range|nullable|date_format:Y-m-d',
-      'end_date'    => 'required_if:report_type,date_range|nullable|date_format:Y-m-d|after_or_equal:start_date',
-      'periode'     => 'required_if:report_type,monthly|nullable|date_format:Y-m',
+      'start_date' => 'required_if:report_type,date_range|nullable|date_format:Y-m-d',
+      'end_date' => 'required_if:report_type,date_range|nullable|date_format:Y-m-d|after_or_equal:start_date',
+      'periode' => 'required_if:report_type,monthly|nullable|date_format:Y-m',
     ]);
 
     $validator->setCustomMessages([
-      'start_date.required_if'  => 'The start date is required for custom date range report.',
-      'end_date.required_if'    => 'The end date is required for custom date range report.',
+      'start_date.required_if' => 'The start date is required for custom date range report.',
+      'end_date.required_if' => 'The end date is required for custom date range report.',
       'end_date.after_or_equal' => 'The end date must be after or equal to start date.',
-      'periode.required_if'     => 'The periode (month) is required for monthly report.',
+      'periode.required_if' => 'The periode (month) is required for monthly report.',
     ]);
 
     if ($validator->fails()) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
-    $user      = $request->user();
+    $user = $request->user();
     $validated = $validator->validated();
 
     $reportType = $validated['report_type'];
 
     match ($reportType) {
-      'daily'   => DailyReportJob::dispatch(),
+      'daily' => DailyReportJob::dispatch(),
       'monthly' => MonthlyReportJob::dispatch([
         'periode' => $validated['periode'],
-        'user'    => $user,
+        'user' => $user,
       ]),
       default => PaymentReportPdf::dispatch([
         'start_date' => $validated['start_date'],
-        'end_date'   => $validated['end_date'],
-        'user'       => $user,
+        'end_date' => $validated['end_date'],
+        'user' => $user,
       ]),
     };
 
     $messages = [
-      'daily'      => 'Daily report will be sent to your email.',
-      'monthly'    => 'Monthly report will be sent to your email.',
+      'daily' => 'Daily report will be sent to your email.',
+      'monthly' => 'Monthly report will be sent to your email.',
       'date_range' => 'Custom report will be sent to your email.',
     ];
 
