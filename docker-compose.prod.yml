@@ -14,7 +14,7 @@ services:
       DB_HOST: mysql
       SERVER_NAME: :80
     volumes:
-      - .:/app
+      # Production: Only mount storage, do NOT mount code (.:/app)
       - ./storage:/app/storage
     networks:
       - app-network
