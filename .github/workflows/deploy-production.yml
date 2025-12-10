@@ -24,18 +24,5 @@ jobs:
             git fetch origin
             git checkout production
             git pull origin production
-            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
-            php artisan optimize:clear
-            php artisan migrate --force
-            php artisan filament:optimize
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            php artisan event:cache
-            cp ./deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue.conf /etc/supervisor/conf.d/
-            cp ./deploy/supervisor/${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule.conf /etc/supervisor/conf.d/
-            sudo supervisorctl reread
-            sudo supervisorctl update
-            sudo supervisorctl restart ${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-queue
-            sudo supervisorctl restart ${{ secrets.PRODUCTION_SUPERVISOR_PREFIX }}-schedule
+            docker compose -f docker-compose.yml up -d --build
             
