@@ -35,8 +35,8 @@ done
 echo "Database is ready!"
 
 # Run migrations
-# echo "Running migrations..."
-# php artisan migrate --force
+echo "Running migrations..."
+php artisan migrate --force
 
 # Optimize caches
 # echo "Caching configuration..."

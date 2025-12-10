@@ -34,7 +34,7 @@ services:
     networks:
       - app-network
     ports:
-      - "${DB_PORT}:3306"
+      - "${DB_PUBLIC_PORT}:3306"
 
 networks:
   app-network:
