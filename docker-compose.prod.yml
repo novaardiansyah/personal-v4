@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.prod
+    container_name: personal_v4_app
     image: personal-v4-app
     restart: unless-stopped
     tty: true
@@ -22,6 +23,7 @@ services:
       - mysql
 
   mysql:
+    container_name: personal_v4_mysql
     image: mysql:8.0
     restart: unless-stopped
     environment:
