@@ -23,9 +23,6 @@ COPY . .
 # Set permissions
 RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/vendor
 
-# Package discovery
-RUN php artisan package:discover --ansi
-
 # Copy supervisor & entrypoint
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisor/* /etc/supervisor/conf.d/
