@@ -7,8 +7,7 @@ use App\Mail\ContactMessageResource\ReplyContactMail;
 use App\Models\ContactMessage;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Http;
-use Mail;
+use Illuminate\Support\Facades\Mail;
 
 class StoreMessageJob implements ShouldQueue
 {
