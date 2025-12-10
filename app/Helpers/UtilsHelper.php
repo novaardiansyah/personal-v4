@@ -28,8 +28,9 @@ function getSetting(string $key, $default = null)
   });
 }
 
-function carbonTranslatedFormat(string $date, string $format = 'd/m/Y H:i'): string
+function carbonTranslatedFormat(string $date, string $format = 'd/m/Y H:i', string $locale = null): string
 {
+  if ($locale) Carbon::setLocale($locale);
   return Carbon::parse($date)->translatedFormat($format);
 }
 

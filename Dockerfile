@@ -2,46 +2,32 @@ FROM dunglas/frankenphp:php8.3
 
 ENV SERVER_NAME=:80
 
-# Install dependencies and extensions
-RUN install-php-extensions \
-    intl \
-    pdo_mysql \
-    zip \
-    bcmath \
-    gd \
-    exif \
-    opcache
-
-
-# Install Supervisor and unzip (for composer)
-RUN apt-get update && apt-get install -y supervisor unzip && \
-    mkdir -p /var/log/supervisor && \
-    chown -R www-data:www-data /var/log/supervisor
+# Install dependencies
+RUN install-php-extensions intl pdo_mysql zip bcmath gd exif opcache
+RUN apt-get update && apt-get install -y supervisor unzip && mkdir -p /var/log/supervisor
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy application files
-COPY . /app
-
-# Set working directory
 WORKDIR /app
 
-# Install Composer dependencies
-# ENV COMPOSER_ALLOW_SUPERUSER=1
-# RUN composer install --no-dev --optimize-autoloader --no-ansi --no-scripts
+# Copy composer files first untuk caching Docker
+COPY composer.json composer.lock ./
 
-# Setup permissions
-RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader --no-ansi --no-scripts
 
-# Copy configuration files
+# Copy seluruh source code
+COPY . .
+
+# Set permissions
+RUN chown -R www-data:www-data /app/storage /app/bootstrap/cache /app/vendor
+
+# Copy supervisor & entrypoint
 COPY docker/supervisord.conf /etc/supervisor/supervisord.conf
 COPY docker/supervisor/* /etc/supervisor/conf.d/
-COPY docker/Caddyfile /etc/caddy/Caddyfile
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/entrypoint-prod.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
-
-# Fix Windows line endings causing "no such file or directory" for shebang
 RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

@@ -71,7 +71,7 @@ class LogUserLogin
     $timezone    = $ipInfo['timezone'];
     $address     = $ipInfo['address'];
 
-    $shortDate = carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i');
+    $shortDate = carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i', 'id');
 
     $subject =  $event->guard === 'api'
       ? 'Notifikasi: Login pengguna melalui API (' . $shortDate .')'

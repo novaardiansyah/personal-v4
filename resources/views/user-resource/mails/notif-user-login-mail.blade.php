@@ -34,7 +34,7 @@
           <strong>Perangkat</strong>: {{ $data['user_agent'] ?? '-' }}
         </li>
         <li>
-          <strong>Waktu Login</strong>: {{ $data['created_at'] ? carbonTranslatedFormat($data['created_at'], 'd F Y H:i') . ' WIB' : '-' }}
+          <strong>Waktu Login</strong>: {{ $data['created_at'] ? carbonTranslatedFormat($data['created_at'], 'd F Y H:i', 'id') . ' WIB' : '-' }}
         </li>
         <li>
           <strong>Referer</strong>: <a href="{{ $data['referer'] ?? '#' }}" target="_blank">{{ $data['referer'] ?? '-' }}</a>
