@@ -147,7 +147,6 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   Route::prefix('blog-posts')->group(function () {
-    Route::get('/', [BlogPostController::class, 'index']);
     Route::get('/published', [BlogPostController::class, 'published']);
     Route::get('/{blogPost:slug}', [BlogPostController::class, 'showBySlug']);
   });
