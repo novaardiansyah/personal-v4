@@ -4,6 +4,7 @@ namespace App\Filament\Resources\BlogPosts\Schemas;
 
 use App\Enums\BlogPostStatus;
 use App\Models\BlogCategory;
+use App\Models\User;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
@@ -71,7 +72,9 @@ class BlogPostForm
                   ->native(false),
                 Select::make('author_id')
                   ->label('Author')
-                  ->relationship('author', 'name')
+                  ->options(fn() => User::query()->get()
+                    ->mapWithKeys(fn($user) => [$user->id => $user->name . ' (' . $user->email . ')'])
+                  )
                   ->searchable()
                   ->preload()
                   ->required()
