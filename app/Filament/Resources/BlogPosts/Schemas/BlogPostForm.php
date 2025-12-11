@@ -54,8 +54,9 @@ class BlogPostForm
                   ->image()
                   ->directory('blog/covers')
                   ->columnSpanFull(),
-                TextInput::make('cover_image_alt')
-                  ->label('Image Alt Text')
+                Textarea::make('cover_image_alt')
+                  ->label('Alt Text')
+                  ->rows(2)
                   ->columnSpanFull(),
               ]),
 
@@ -74,6 +75,7 @@ class BlogPostForm
                   ->searchable()
                   ->preload()
                   ->required()
+                  ->default(auth()->id())
                   ->native(false),
               ])
               ->columns(2),
@@ -99,18 +101,23 @@ class BlogPostForm
                   ->options(BlogPostStatus::class)
                   ->default(BlogPostStatus::Draft)
                   ->required()
-                  ->native(false),
+                  ->native(false)
+                  ->live(),
                 DateTimePicker::make('published_at')
                   ->label('Published At')
-                  ->native(false),
+                  ->native(false)
+                  ->default(now())
+                  ->visible(fn($get) => $get('status') === BlogPostStatus::Published),
                 DateTimePicker::make('scheduled_at')
                   ->label('Scheduled At')
-                  ->native(false),
+                  ->native(false)
+                  ->default(now())
+                  ->visible(fn($get) => $get('status') === BlogPostStatus::Scheduled),
                 TextInput::make('display_order')
                   ->numeric()
                   ->default(0),
               ])
-              ->columns(2),
+              ->columns(3),
           ])
           ->columnSpanFull(),
       ]);
