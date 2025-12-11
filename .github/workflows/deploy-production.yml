@@ -46,6 +46,7 @@ jobs:
             echo "--> Set permission..."
             chmod +x ./docker/bash/fixperm.sh
             ./docker/bash/fixperm.sh
+            echo "INFO: Permission successfully set"
 
             echo "--> Supervisor setup..."
             cp ./docker/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
