@@ -21,8 +21,36 @@ jobs:
           port: ${{ secrets.PRODUCTION_PORT }}
           script: |
             cd ${{ secrets.PRODUCTION_PATH }}
+            
+            echo "--> Git sync..."
             git fetch origin
             git checkout production
             git pull origin production
-            docker compose -f docker-compose.prod.yml up -d --build
+
+            echo "--> Composer install..."
+            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            
+            echo "--> Artisan clear cache..."
+            php artisan optimize:clear
+            
+            echo "--> Artisan migrate..."
+            php artisan migrate --force
+            
+            echo "--> Artisan optimize cache..."
+            php artisan filament:optimize
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+
+            echo "--> Supervisor setup..."
+            cp ./docker/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
+            cp ./docker/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-schedule.conf
+            
+            sudo supervisorctl reread
+            sudo supervisorctl update
+            
+            echo "--> Supervisor restart..."
+            sudo supervisorctl restart personal_v4_novadev_myid-queue
+            sudo supervisorctl restart personal_v4_novadev_myid-schedule
             
