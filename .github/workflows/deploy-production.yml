@@ -43,6 +43,9 @@ jobs:
             php artisan view:cache
             php artisan event:cache
 
+            echo "--> Set permission..."
+            sudo chown -R www:www . && sudo find . \( -type d -exec chmod 755 {} \; \) -o \( -type f -exec chmod 644 {} \; \) && sudo chmod -R 775 .next node_modules public storage bootstrap/cache vendor
+
             echo "--> Supervisor setup..."
             cp ./docker/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
             cp ./docker/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-schedule.conf
