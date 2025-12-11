@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\BlogCategoryController;
+use App\Http\Controllers\Api\BlogPostController;
 use App\Http\Controllers\Api\BlogTagController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\GenerateController;
@@ -143,5 +144,11 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('blog-tags')->group(function () {
     Route::get('/', [BlogTagController::class, 'index']);
     Route::get('/{id}', [BlogTagController::class, 'show']);
+  });
+
+  Route::prefix('blog-posts')->group(function () {
+    Route::get('/', [BlogPostController::class, 'index']);
+    Route::get('/published', [BlogPostController::class, 'published']);
+    Route::get('/{blogPost:slug}', [BlogPostController::class, 'showBySlug']);
   });
 });
