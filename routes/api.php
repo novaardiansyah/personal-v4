@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\Api\BlogCategoryController;
+use App\Http\Controllers\Api\BlogTagController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\GenerateController;
 use Illuminate\Http\Request;
@@ -131,5 +133,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
   Route::prefix('contact-messages')->group(function () {
     Route::post('/', [ContactMessageController::class, 'store']);
+  });
+
+  Route::prefix('blog-categories')->group(function () {
+    Route::get('/', [BlogCategoryController::class, 'index']);
+    Route::get('/{id}', [BlogCategoryController::class, 'show']);
+  });
+
+  Route::prefix('blog-tags')->group(function () {
+    Route::get('/', [BlogTagController::class, 'index']);
+    Route::get('/{id}', [BlogTagController::class, 'show']);
   });
 });
