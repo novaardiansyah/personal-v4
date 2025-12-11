@@ -39,7 +39,8 @@ class BlogPostInfolist
           ->description('Cover Image')
           ->schema([
             ImageEntry::make('cover_image_url')
-              ->label('Cover Image'),
+              ->label('Cover Image')
+              ->disk('public'),
             TextEntry::make('cover_image_alt')
               ->label('Image Alt Text'),
           ])

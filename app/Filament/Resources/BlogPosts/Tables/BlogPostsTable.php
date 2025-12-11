@@ -31,7 +31,7 @@ class BlogPostsTable
           ->label('#'),
         ImageColumn::make('cover_image_url')
           ->label('Cover')
-          ->circular(),
+          ->disk('public'),
         TextColumn::make('title')
           ->searchable()
           ->wrap()

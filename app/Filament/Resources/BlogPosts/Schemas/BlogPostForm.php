@@ -53,6 +53,8 @@ class BlogPostForm
                 FileUpload::make('cover_image_url')
                   ->label('Cover Image')
                   ->image()
+                  ->disk('public')
+                  ->visibility('public')
                   ->directory('blog/covers')
                   ->columnSpanFull(),
                 Textarea::make('cover_image_alt')
@@ -72,8 +74,9 @@ class BlogPostForm
                   ->native(false),
                 Select::make('author_id')
                   ->label('Author')
-                  ->options(fn() => User::query()->get()
-                    ->mapWithKeys(fn($user) => [$user->id => $user->name . ' (' . $user->email . ')'])
+                  ->options(
+                    fn() => User::query()->get()
+                      ->mapWithKeys(fn($user) => [$user->id => $user->name . ' (' . $user->email . ')'])
                   )
                   ->searchable()
                   ->preload()

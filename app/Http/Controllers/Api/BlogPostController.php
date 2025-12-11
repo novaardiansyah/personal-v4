@@ -33,9 +33,9 @@ class BlogPostController extends Controller
       ], 422);
     }
 
-    $validated = $validator->validated();
-    $limit = $validated['limit'] ?? 10;
-    $search = $validated['search'] ?? null;
+    $validated  = $validator->validated();
+    $limit      = $validated['limit'] ?? 10;
+    $search     = $validated['search'] ?? null;
     $categoryId = $validated['category_id'] ?? null;
 
     $posts = BlogPost::with(['author', 'category'])
@@ -60,7 +60,7 @@ class BlogPostController extends Controller
 
     return response()->json([
       'success' => true,
-      'data' => BlogPostListResource::collection($posts),
+      'data'    => BlogPostListResource::collection($posts),
       'pagination' => [
         'current_page' => $posts->currentPage(),
         'from'         => $posts->firstItem(),
