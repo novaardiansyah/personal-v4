@@ -16,9 +16,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\Action;
-use Filament\Notifications\Notification;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -47,9 +45,9 @@ class PushNotificationResource extends Resource
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBellAlert;
 
-  protected static string|UnitEnum|null $navigationGroup = 'Web Content';
+  protected static string|UnitEnum|null $navigationGroup = 'Logs';
 
-  protected static ?int $navigationSort = 40;
+  protected static ?int $navigationSort = 9;
 
   protected static ?string $recordTitleAttribute = 'title';
 

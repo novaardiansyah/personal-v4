@@ -44,6 +44,11 @@ class GalleryResource extends Resource
   protected static ?int $navigationSort = 10;
   protected static ?string $recordTitleAttribute = 'description';
 
+  public static function shouldRegisterNavigation(): bool
+  {
+    return false;
+  }
+
   public static function form(Schema $schema): Schema
   {
     return $schema
@@ -61,8 +66,6 @@ class GalleryResource extends Resource
           ->directory('images/gallery')
           ->image()
           ->imageEditor()
-          ->enableDownload()
-          ->enableOpen()
           ->required(),
         Textarea::make('description')
           ->default(null)

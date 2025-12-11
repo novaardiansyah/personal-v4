@@ -69,7 +69,7 @@ class AdminPanelProvider extends PanelProvider
         'Payments',
         'Productivity',
         'Items',
-        'Web Content',
+        'Blog',
         'Settings',
         'Logs',
       ])

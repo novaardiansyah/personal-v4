@@ -34,11 +34,15 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class SkillResource extends Resource
 {
   protected static ?string $model = Skill::class;
-
   protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedAcademicCap;
   protected static string | UnitEnum | null $navigationGroup = 'Web Content';
   protected static ?int $navigationSort = 30;
   protected static ?string $recordTitleAttribute = 'name';
+
+  public static function shouldRegisterNavigation(): bool
+  {
+    return false;
+  }
 
   public static function form(Schema $schema): Schema
   {
