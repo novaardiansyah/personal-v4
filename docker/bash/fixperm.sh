@@ -13,4 +13,4 @@ sudo chmod -R 775 public storage bootstrap/cache vendor 2>/dev/null
 # Sensitive files (abaikan error jika tidak ada)
 sudo chmod 600 .env .env.local .env.production artisan .well-known .git 2>/dev/null
 
-sudo chmod 600 ./docker/bash 2>/dev/null
+sudo chmod -R 600 ./docker/bash 2>/dev/null

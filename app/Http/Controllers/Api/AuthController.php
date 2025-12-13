@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Login;
+use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
 {
@@ -160,9 +161,9 @@ class AuthController extends Controller
       $response = Http::withToken($token)
         ->get('https://personal-v4.novadev.my.id' . $path);
 
-      \Log::info('7590 --> [short-url-token] GET '. $path .' status: ' . $response->status());
+      Log::info('7590 --> [short-url-token] GET '. $path .' status: ' . $response->status());
     } catch (\Exception $e) {
-      \Log::info('7880 --> [short-url-token] Error request: ' . $e->getMessage());
+      Log::info('7880 --> [short-url-token] Error request: ' . $e->getMessage());
     }
   }
 }

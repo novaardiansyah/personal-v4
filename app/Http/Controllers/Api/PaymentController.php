@@ -121,13 +121,13 @@ class PaymentController extends Controller
   public function index(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'page'       => 'nullable|integer|min:1',
-      'limit'      => 'nullable|integer|min:1',
-      'date_from'  => 'nullable|date',
-      'date_to'    => 'nullable|date',
-      'type'       => 'nullable|integer|exists:payment_types,id',
+      'page' => 'nullable|integer|min:1',
+      'limit' => 'nullable|integer|min:1',
+      'date_from' => 'nullable|date',
+      'date_to' => 'nullable|date',
+      'type' => 'nullable|integer|exists:payment_types,id',
       'account_id' => 'nullable|integer|exists:payment_accounts,id',
-      'search'     => 'nullable|string|max:255',
+      'search' => 'nullable|string|max:255',
     ]);
 
     $validator->after(function ($validator) use ($request) {
@@ -149,13 +149,13 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $validated  = $validator->validated();
-    $limit      = $validated['limit'] ?? 10;
-    $date_from  = $validated['date_from'] ?? null;
-    $date_to    = $validated['date_to'] ?? null;
-    $type       = $validated['type'] ?? null;
+    $validated = $validator->validated();
+    $limit = $validated['limit'] ?? 10;
+    $date_from = $validated['date_from'] ?? null;
+    $date_to = $validated['date_to'] ?? null;
+    $type = $validated['type'] ?? null;
     $account_id = $validated['account_id'] ?? null;
-    $search     = $validated['search'] ?? null;
+    $search = $validated['search'] ?? null;
 
     $payments = Payment::with(['payment_type'])
       ->where('user_id', Auth()->user()->id);
@@ -186,14 +186,14 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data'    => PaymentResource::collection($payments),
+      'data' => PaymentResource::collection($payments),
       'pagination' => [
         'current_page' => $payments->currentPage(),
-        'from'         => $payments->firstItem(),
-        'last_page'    => $payments->lastPage(),
-        'per_page'     => $payments->perPage(),
-        'to'           => $payments->lastItem(),
-        'total'        => $payments->total(),
+        'from' => $payments->firstItem(),
+        'last_page' => $payments->lastPage(),
+        'per_page' => $payments->perPage(),
+        'to' => $payments->lastItem(),
+        'total' => $payments->total(),
       ]
     ]);
   }
@@ -241,18 +241,18 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'amount'                => 'nullable|numeric|min:0',
-      'name'                  => 'required|string|max:255',
-      'date'                  => 'required|date',
-      'type_id'               => 'nullable|integer|exists:payment_types,id',
-      'payment_account_id'    => 'nullable|integer|exists:payment_accounts,id',
+      'amount' => 'nullable|numeric|min:0',
+      'name' => 'required|string|max:255',
+      'date' => 'required|date',
+      'type_id' => 'nullable|integer|exists:payment_types,id',
+      'payment_account_id' => 'nullable|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id',
     ]);
 
     $validator->setAttributeNames([
-      'name'                  => 'description',
-      'type_id'               => 'category',
-      'payment_account_id'    => 'payment account',
+      'name' => 'description',
+      'type_id' => 'category',
+      'payment_account_id' => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
@@ -279,12 +279,12 @@ class PaymentController extends Controller
       ]);
     }
 
-    $record       = $payment;
+    $record = $payment;
     $is_scheduled = $record->is_scheduled ?? false;
-    $amount       = intval($data['amount'] ?? $record->amount);
+    $amount = intval($data['amount'] ?? $record->amount);
 
     if ($record->type_id == PaymentType::EXPENSE || $record->type_id == PaymentType::INCOME) {
-      $adjustment    = ($record->type_id == PaymentType::EXPENSE) ? +$record->amount : -$record->amount;
+      $adjustment = ($record->type_id == PaymentType::EXPENSE) ? +$record->amount : -$record->amount;
       $depositChange = ($record->payment_account->deposit + $adjustment);
 
       if ($depositChange < $amount && $depositChange != 0) {
@@ -334,14 +334,14 @@ class PaymentController extends Controller
 
     $record->update([
       'amount' => intval($data['amount'] ?? $record->amount),
-      'name'   => $data['name'],
-      'date'   => $data['date'],
+      'name' => $data['name'],
+      'date' => $data['date'],
     ]);
 
     return response()->json([
       'success' => true,
       'message' => 'Payment updated successfully',
-      'data'    => []
+      'data' => []
     ]);
   }
 
@@ -351,28 +351,28 @@ class PaymentController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount'                => 'required_if:has_items,false|nullable|numeric',
-      'date'                  => 'required|date',
-      'name'                  => 'required_if:has_items,false|nullable|string|max:255',
-      'type_id'               => 'required|integer|exists:payment_types,id',
-      'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
+      'amount' => 'required_if:has_items,false|nullable|numeric',
+      'date' => 'required|date',
+      'name' => 'required_if:has_items,false|nullable|string|max:255',
+      'type_id' => 'required|integer|exists:payment_types,id',
+      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'has_items'             => 'nullable|boolean',
-      'has_charge'            => 'nullable|boolean',
-      'is_scheduled'          => 'nullable|boolean',
-      'attachments'           => 'nullable|array',
-      'attachments.*'         => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+      'has_items' => 'nullable|boolean',
+      'has_charge' => 'nullable|boolean',
+      'is_scheduled' => 'nullable|boolean',
+      'attachments' => 'nullable|array',
+      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);
 
     $validator->setAttributeNames([
-      'name'                  => 'description',
-      'type_id'               => 'category',
-      'payment_account_id'    => 'payment account',
+      'name' => 'description',
+      'type_id' => 'category',
+      'payment_account_id' => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
     $validator->setCustomMessages([
-      'name.required_if'                  => 'The :attribute field is required when the payment has no items.',
+      'name.required_if' => 'The :attribute field is required when the payment has no items.',
       'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
     ]);
 
@@ -380,7 +380,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
@@ -389,17 +389,17 @@ class PaymentController extends Controller
     if ($request->hasFile('attachments')) {
       $attachments = [];
       foreach ($request->file('attachments') as $file) {
-        $path          = $file->store('images/payment', 'public');
+        $path = $file->store('images/payment', 'public');
         $attachments[] = $path;
       }
       $data['attachments'] = $attachments;
     }
 
     if (!empty($data['has_items'])) {
-      $data['amount']     = 0;
-      $data['type_id']    = 1;
+      $data['amount'] = 0;
+      $data['type_id'] = 1;
       $data['has_charge'] = false;
-      $data['name']       = null;
+      $data['name'] = null;
     }
 
     $payment = new Payment();
@@ -1332,6 +1332,172 @@ class PaymentController extends Controller
     return response()->json([
       'success' => true,
       'message' => $messages[$reportType] ?? 'Report is being processed.'
+    ]);
+  }
+
+  /**
+   * Get AI-friendly payment summary with aggregated statistics
+   *
+   * This endpoint is optimized for AI agents to generate summaries
+   * without transferring full transaction details.
+   *
+   * ⚠️ AI AGENT: Used by AI Agent (n8n) - optimized for minimal data transfer
+   */
+  public function aiSummary(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'search' => 'nullable|string|max:255',
+      'type' => 'nullable|integer|exists:payment_types,id',
+      'account_id' => 'nullable|integer|exists:payment_accounts,id',
+      'date_from' => 'nullable|date',
+      'date_to' => 'nullable|date|after_or_equal:date_from',
+      'limit' => 'nullable|integer|min:1|max:100',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+    $limit = $validated['limit'] ?? 50;
+
+    logger('validated', $validated);
+
+    $query = Payment::where('payments.user_id', Auth()->user()->id);
+
+    if (!empty($validated['search'])) {
+      $query->where('payments.name', 'like', '%' . $validated['search'] . '%');
+    }
+
+    if (!empty($validated['type'])) {
+      $query->where('type_id', $validated['type']);
+    }
+
+    if (!empty($validated['account_id'])) {
+      $query->where('payment_account_id', $validated['account_id']);
+    }
+
+    if (!empty($validated['date_from'])) {
+      $query->where('date', '>=', $validated['date_from']);
+    }
+
+    if (!empty($validated['date_to'])) {
+      $query->where('date', '<=', $validated['date_to']);
+    }
+
+    $statistics = $query->selectRaw('
+      COUNT(*) as total_transactions,
+      SUM(amount) as total_amount,
+      AVG(amount) as average_amount,
+      MIN(amount) as min_amount,
+      MAX(amount) as max_amount
+    ')->first();
+
+    $breakdownByType = (clone $query)
+      ->join('payment_types', 'payments.type_id', '=', 'payment_types.id')
+      ->selectRaw('
+        payment_types.name as type,
+        payments.type_id,
+        COUNT(*) as count,
+        SUM(payments.amount) as total
+      ')
+      ->groupBy('payments.type_id', 'payment_types.name')
+      ->get();
+
+    $breakdownByAccount = (clone $query)
+      ->join('payment_accounts', 'payments.payment_account_id', '=', 'payment_accounts.id')
+      ->selectRaw('
+        payment_accounts.id as account_id,
+        payment_accounts.name as account_name,
+        COUNT(*) as count,
+        SUM(payments.amount) as total
+      ')
+      ->groupBy('payment_accounts.id', 'payment_accounts.name')
+      ->orderByDesc('total')
+      ->get();
+
+    $breakdownByMonth = (clone $query)
+      ->selectRaw("
+        DATE_FORMAT(date, '%Y-%m') as month,
+        DATE_FORMAT(date, '%M %Y') as month_name,
+        COUNT(*) as count,
+        SUM(amount) as total
+      ")
+      ->groupBy('month', 'month_name')
+      ->orderByDesc('month')
+      ->get();
+
+    $topTransactions = (clone $query)
+      ->join('payment_accounts', 'payments.payment_account_id', '=', 'payment_accounts.id')
+      ->select(
+        'payments.id',
+        'payments.name',
+        'payments.date',
+        'payments.amount',
+        'payment_accounts.name as account'
+      )
+      ->orderByDesc('payments.amount')
+      ->limit($limit)
+      ->get();
+
+    $filters = [];
+    if (!empty($validated['search'])) {
+      $filters['search'] = $validated['search'];
+    }
+    if (!empty($validated['type'])) {
+      $type = PaymentType::find($validated['type']);
+      $filters['type'] = $type ? $type->name : null;
+    }
+    if (!empty($validated['account_id'])) {
+      $account = PaymentAccount::find($validated['account_id']);
+      $filters['account'] = $account ? $account->name : null;
+    }
+
+    return response()->json([
+      'success' => true,
+      'data' => [
+        'period' => [
+          'start' => $validated['date_from'] ?? null,
+          'end' => $validated['date_to'] ?? null,
+        ],
+        'filters' => $filters,
+        'statistics' => [
+          'total_transactions' => (int) ($statistics->total_transactions ?? 0),
+          'total_amount' => (int) ($statistics->total_amount ?? 0),
+          'average_amount' => (int) ($statistics->average_amount ?? 0),
+          'min_amount' => (int) ($statistics->min_amount ?? 0),
+          'max_amount' => (int) ($statistics->max_amount ?? 0),
+        ],
+        'breakdown_by_type' => $breakdownByType->map(fn($item) => [
+          'type' => $item->type,
+          'type_id' => $item->type_id,
+          'count' => (int) $item->count,
+          'total' => (int) $item->total,
+        ]),
+        'breakdown_by_account' => $breakdownByAccount->map(fn($item) => [
+          'account_id' => $item->account_id,
+          'account_name' => $item->account_name,
+          'count' => (int) $item->count,
+          'total' => (int) $item->total,
+        ]),
+        'breakdown_by_month' => $breakdownByMonth->map(fn($item) => [
+          'month' => $item->month,
+          'month_name' => $item->month_name,
+          'count' => (int) $item->count,
+          'total' => (int) $item->total,
+        ]),
+        'top_transactions' => $topTransactions->map(fn($item) => [
+          'id' => $item->id,
+          'name' => $item->name,
+          'date' => $item->date,
+          'amount' => (int) $item->amount,
+          'account' => $item->account,
+        ]),
+      ]
     ]);
   }
 }
