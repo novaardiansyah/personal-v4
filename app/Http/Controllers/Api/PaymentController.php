@@ -359,9 +359,7 @@ class PaymentController extends Controller
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
       'has_items' => 'nullable|boolean',
       'has_charge' => 'nullable|boolean',
-      'is_scheduled' => 'nullable|boolean',
-      'attachments' => 'nullable|array',
-      'attachments.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048'
+      'is_scheduled' => 'nullable|boolean'
     ]);
 
     $validator->setAttributeNames([
@@ -384,16 +382,7 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $data = $request->all();
-
-    if ($request->hasFile('attachments')) {
-      $attachments = [];
-      foreach ($request->file('attachments') as $file) {
-        $path = $file->store('images/payment', 'public');
-        $attachments[] = $path;
-      }
-      $data['attachments'] = $attachments;
-    }
+    $data = $validator->validated();
 
     if (!empty($data['has_items'])) {
       $data['amount'] = 0;

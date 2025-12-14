@@ -2,10 +2,9 @@
 
 namespace App\Filament\Resources\Payments;
 
-use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use BackedEnum;
 use UnitEnum;
-
+use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
 use App\Filament\Resources\Payments\Pages\ListPayments;
@@ -15,7 +14,6 @@ use App\Filament\Resources\Payments\Schemas\PaymentInfolist;
 use App\Filament\Resources\Payments\Tables\PaymentsTable;
 use App\Models\Payment;
 use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Model;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
@@ -25,8 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PaymentResource extends Resource
 {
   protected static ?string $model = Payment::class;
-
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+  protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedBanknotes;
   protected static string | UnitEnum | null $navigationGroup = 'Payments';
   protected static ?int $navigationSort = 9;
 

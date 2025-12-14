@@ -17,6 +17,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Notifications\Notification;
@@ -44,6 +45,12 @@ class PaymentsTable
           ->label('Nominal')
           ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
           ->toggleable(),
+        TextColumn::make('name')
+          ->label('Notes')
+          ->wrap()
+          ->words(100)
+          ->searchable()
+          ->toggleable(),
         TextColumn::make('payment_account.name')
           ->label('Payment')
           ->toggleable(),
@@ -62,20 +69,18 @@ class PaymentsTable
           })
           ->formatStateUsing(fn(Payment $record): string => $record->payment_type->name)
           ->toggleable(),
-        TextColumn::make('date')
-          ->label('Date')
-          ->date('M d, Y')
-          ->sortable()
-          ->toggleable(),
         IconColumn::make('is_scheduled')
           ->label('Scheduled')
           ->boolean()
           ->toggleable(),
-        TextColumn::make('name')
-          ->label('Notes')
-          ->wrap()
-          ->words(100)
-          ->searchable()
+        IconColumn::make('is_draft')
+          ->label('Draft')
+          ->boolean()
+          ->toggleable(),
+        TextColumn::make('date')
+          ->label('Date')
+          ->date('M d, Y')
+          ->sortable()
           ->toggleable(),
         ImageColumn::make('attachments')
           ->checkFileExistence(false)
@@ -94,7 +99,7 @@ class PaymentsTable
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->defaultSort('updated_at', 'desc')
       ->filters([
@@ -180,6 +185,8 @@ class PaymentsTable
       ])
       ->recordActions([
         ActionGroup::make([
+          ViewAction::make(),
+
           EditAction::make(),
 
           DeleteAction::make(),

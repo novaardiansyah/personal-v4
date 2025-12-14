@@ -28,9 +28,8 @@ class PaymentForm
       ->components([
         Section::make([
           Grid::make([
-            'default'  => 3
+            'default' => 4
           ])
-            ->columns(3)
             ->columnSpanFull()
             ->schema([
               Toggle::make('has_items')
@@ -55,6 +54,10 @@ class PaymentForm
 
               Toggle::make('is_scheduled')
                 ->label('Scheduled')
+                ->disabledOn('edit'),
+
+              Toggle::make('is_draft')
+                ->label('Draft')
                 ->disabledOn('edit'),
             ]),
           

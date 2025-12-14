@@ -92,28 +92,28 @@ class PaymentAction
   // ! ItemRelationManager::Detach
   public static function itemDetachBefore(Model $record, RelationManager $livewire, DetachAction $action): void
   {
-    $owner = $livewire->getOwnerRecord();
-
-    // * Count expense after detach
-    $expense = $owner->amount - $record->pivot_total;
-
-    // * Count deposit change
+    $owner           = $livewire->getOwnerRecord();
+    $expense         = $owner->amount - $record->pivot_total;
     $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
 
-    $is_scheduled = $owner->is_scheduled ?? false;
+    $has_charge   = boolval($record->has_charge ?? 0);
+    $is_scheduled = boolval($owner->is_scheduled ?? 0);
+    $is_draft     = boolval($owner->is_draft ?? 0);
 
-    if (!$is_scheduled) {
-      // * Update deposit payment account
+    if ($is_scheduled)
+      $has_charge = true;
+
+    if ($is_draft)
+      $has_charge = true;
+
+    if (!$has_charge) {
       $owner->payment_account->update(['deposit' => $adjustedDeposit]);
     }
 
     $itemName = $record->name . ' (x' . $record->quantity . ')';
-    $note = trim(implode(', ', array_diff(explode(', ', $owner->name ?? ''), [$itemName])));
+    $note     = trim(implode(', ', array_diff(explode(', ', $owner->name ?? ''), [$itemName])));
 
-    // * Update notes and amount
     $owner->update(['amount' => $expense, 'name' => $note]);
-
-    // * refresh parent form
     $action->getLivewire()->dispatch('refreshForm');
   }
   // ! ItemRelationManager::Detach
@@ -191,29 +191,28 @@ class PaymentAction
   {
     $owner = $livewire->getOwnerRecord();
 
-    // * Update item price
     $record->update(['amount' => $data['amount']]);
 
-    // * Count total expense
-    $expense = $owner->amount + (int) $data['total'];
-
-    // * Count deposit change
+    $expense         = $owner->amount + (int) $data['total'];
     $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
 
-    $is_scheduled = $owner->is_scheduled ?? false;
+    $has_charge   = boolval($record->has_charge ?? 0);
+    $is_scheduled = boolval($owner->is_scheduled ?? 0);
+    $is_draft     = boolval($owner->is_draft ?? 0);
 
-    if (!$is_scheduled) {
-      // * Update deposit payment account
+    if ($is_scheduled)
+      $has_charge = true;
+
+    if ($is_draft)
+      $has_charge = true;
+
+    if (!$has_charge) {
       $owner->payment_account->update(['deposit' => $adjustedDeposit]);
     }
 
-    // * Add item name to Notes parent form
     $note = trim(($owner->name ?? '') . ', ' . "{$record->name} (x{$data['quantity']})", ', ');
 
-    // * Update notes and amount
     $owner->update(['amount' => $expense, 'name' => $note]);
-
-    // * refresh parent form
     $action->getLivewire()->dispatch('refreshForm');
   }
 }
