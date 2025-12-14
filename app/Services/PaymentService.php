@@ -18,7 +18,7 @@ class PaymentService
     $expense = $payment->amount + (int) $data['total'];
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
 
-    $has_charge = boolval($data['has_charge'] ?? 0);
+    $has_charge = boolval($data['has_charge'] ?? ($payment->has_charge ?? 0));
     $is_scheduled = boolval($payment->is_scheduled ?? 0);
     $is_draft = boolval($payment->is_draft ?? 0);
 

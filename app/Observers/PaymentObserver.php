@@ -56,14 +56,22 @@ class PaymentObserver
   private function _handleDeleteLogic(Payment $payment): void
   {
     $attachments  = $payment->attachments;
-    $is_scheduled = $payment->is_scheduled ?? false;
+    $has_charge = boolval($payment->has_charge ?? 0);
+    $is_scheduled = boolval($payment->is_scheduled ?? 0);
+    $is_draft = boolval($payment->is_draft ?? 0);
+
+    if ($is_scheduled)
+      $has_charge = true;
+
+    if ($is_draft)
+      $has_charge = true;
 
     if (PaymentType::TRANSFER == $payment->type_id || PaymentType::WITHDRAWAL == $payment->type_id)
     {
       $balanceOrigin = $payment->payment_account->deposit + $payment->amount;
       $balanceTo     = $payment->payment_account_to - $payment->amount;
 
-      if (!$is_scheduled) {
+      if (!$has_charge) {
         $payment->payment_account->update([
           'deposit' => $balanceOrigin
         ]);
@@ -76,7 +84,7 @@ class PaymentObserver
       $adjustment    = ($payment->type_id == PaymentType::EXPENSE) ? +$payment->amount : -$payment->amount;
       $depositChange = ($payment->payment_account->deposit + $adjustment);
 
-      if (!$is_scheduled) {
+      if (!$has_charge) {
         $payment->payment_account->update([
           'deposit' => $depositChange
         ]);
@@ -92,7 +100,6 @@ class PaymentObserver
       }
     }
 
-    // Delete payment items if any
     $payment->items()->detach();
   }
 
