@@ -33,11 +33,23 @@ Need to chat? Feel free to drop me a line via [Email](mailto:novaardiansyah78@gm
 
 Coming soon!
 
+## AI Automation Integration 🤖
+
+This project features **AI-powered transaction recording** integrated with Telegram! Simply send a photo of your receipt or bill to the Telegram bot, and the AI will automatically:
+
+- **Extract transaction data** from the image (amount, product/service, date, etc)
+- **Categorize the transaction** (Expense, Income, Transfer, or Withdrawal)
+- **Match payment accounts** based on receipt context or user hints
+- **Create the transaction record** directly in your Personal Admin Panel
+
+![Preview 1](public/markdown/preview-1.png)
+![Preview 2](public/markdown/preview-2.png)
+
 ## Demo Credentials 🧪
 
 Coming soon!
 
-## Project Status 🚀 
+## Project Status 🚀
 
 ![stages](https://img.shields.io/badge/stages-development-informational)
 [![information](https://img.shields.io/badge/information-references-informational)](references.json)
@@ -47,5 +59,5 @@ Coming soon!
 
 ---
 
-**Happy coding and collaborating!**  
+**Happy coding and collaborating!**
 — Nova Ardiansyah
