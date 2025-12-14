@@ -30,6 +30,7 @@ This project features **AI-powered transaction recording** integrated with Teleg
 
 <img src="public/markdown/preview-1.png" width="400" alt="Preview 1" />
 <img src="public/markdown/preview-2.png" width="400" alt="Preview 2" />
+<img src="public/markdown/preview-3.png" width="400" alt="Preview 3" />
 
 ## Demo Credentials 🧪
 
