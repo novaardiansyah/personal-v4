@@ -42,6 +42,7 @@ class PaymentResource extends JsonResource
         'id' => $this->payment_account_to->id ?? null,
         'name' => $this->payment_account_to->name ?? null,
       ],
+      'view_url' => $this->request_view ? route('filament.admin.resources.payments.view', $this->id) : null,
     ];
   }
 }

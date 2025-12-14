@@ -26,20 +26,25 @@ class ViewPayment extends ViewRecord
     ];
   }
 
+  public function getTitle(): string
+  {
+    return 'Lihat detail transaksi';
+  }
+
   public function infolist(Schema $schema): Schema
   {
     return $schema
       ->components([
-        Section::make('Transaction Information')
-          ->icon('heroicon-o-banknotes')
+        Grid::make(1)
           ->schema([
-            Grid::make(2)
+            Section::make('')
+              ->description('Transaction Information')
               ->schema([
                 TextEntry::make('code')
                   ->label('Transaction ID')
                   ->copyable()
                   ->badge()
-                  ->color('gray'),
+                  ->color('info'),
                 TextEntry::make('type_id')
                   ->label('Type')
                   ->badge()
@@ -51,9 +56,6 @@ class ViewPayment extends ViewRecord
                     default => 'primary',
                   })
                   ->formatStateUsing(fn(Payment $record): string => $record->payment_type->name),
-              ]),
-            Grid::make(2)
-              ->schema([
                 TextEntry::make('amount')
                   ->label('Nominal')
                   ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
@@ -62,19 +64,35 @@ class ViewPayment extends ViewRecord
                   ->label('Date')
                   ->date('M d, Y')
                   ->icon('heroicon-o-calendar'),
-              ]),
-            TextEntry::make('name')
-              ->label('Notes')
-              ->columnSpanFull()
-              ->markdown()
-              ->prose()
-              ->placeholder('No notes available'),
+                TextEntry::make('name')
+                  ->label('Notes')
+                  ->columnSpanFull()
+                  ->markdown()
+                  ->prose()
+                  ->placeholder('No notes available'),
+              ])
+              ->columns(3)
+              ->columnSpan(2),
+
+            Section::make('')
+              ->description('Attachments')
+              ->schema([
+                ImageEntry::make('attachments')
+                  ->checkFileExistence(false)
+                  ->stacked()
+                  ->imageWidth(100)
+                  ->imageHeight('100%')
+                  ->columnSpanFull(),
+              ])
+              ->visible(fn(Payment $record): bool => !empty($record->attachments))
+              ->collapsible()
+              ->columnSpan(2),
           ]),
 
-        Section::make('Payment Account')
-          ->icon('heroicon-o-credit-card')
+        Grid::make(1)
           ->schema([
-            Grid::make(2)
+            Section::make('')
+              ->description('Payment Account')
               ->schema([
                 TextEntry::make('payment_account.name')
                   ->label('From Account')
@@ -86,55 +104,41 @@ class ViewPayment extends ViewRecord
                   ->placeholder('N/A')
                   ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
               ]),
-          ]),
-
-        Section::make('Status')
-          ->icon('heroicon-o-flag')
-          ->schema([
-            Grid::make(3)
+            Section::make('')
+              ->description('Status')
               ->schema([
-                IconEntry::make('is_scheduled')
-                  ->label('Scheduled')
-                  ->boolean(),
-                IconEntry::make('has_items')
-                  ->label('Has Items')
-                  ->boolean(),
-                IconEntry::make('is_draft')
-                  ->label('Draft')
-                  ->boolean(),
+                Grid::make(3)
+                  ->schema([
+                    IconEntry::make('is_scheduled')
+                      ->label('Scheduled')
+                      ->boolean(),
+                    IconEntry::make('has_items')
+                      ->label('Has Items')
+                      ->boolean(),
+                    IconEntry::make('is_draft')
+                      ->label('Draft')
+                      ->boolean(),
+                  ]),
+              ]),
+            Section::make('')
+              ->description('Record Information')
+              ->schema([
+                Grid::make(3)
+                  ->schema([
+                    TextEntry::make('created_at')
+                      ->label('Created')
+                      ->dateTime(),
+                    TextEntry::make('updated_at')
+                      ->label('Last Updated')
+                      ->dateTime()
+                      ->sinceTooltip(),
+                    TextEntry::make('deleted_at')
+                      ->label('Deleted')
+                      ->dateTime(),
+                  ]),
               ]),
           ]),
-
-        Section::make('Record Information')
-          ->icon('heroicon-o-clock')
-          ->schema([
-            Grid::make(3)
-              ->schema([
-                TextEntry::make('created_at')
-                  ->label('Created')
-                  ->dateTime(),
-                TextEntry::make('updated_at')
-                  ->label('Last Updated')
-                  ->dateTime()
-                  ->sinceTooltip(),
-                TextEntry::make('deleted_at')
-                  ->label('Deleted')
-                  ->dateTime(),
-              ]),
-          ]),
-        
-        Section::make('Attachments')
-          ->icon('heroicon-o-paper-clip')
-          ->schema([
-            ImageEntry::make('attachments')
-              ->checkFileExistence(false)
-              ->stacked()
-              ->imageWidth(100)
-              ->imageHeight('100%')
-              ->columnSpanFull(),
-          ])
-          ->visible(fn(Payment $record): bool => !empty($record->attachments))
-          ->collapsible(),
-      ]);
+      ])
+      ->columns(2);
   }
 }

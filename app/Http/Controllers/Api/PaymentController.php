@@ -362,6 +362,7 @@ class PaymentController extends Controller
       'has_charge' => 'nullable|boolean',
       'is_scheduled' => 'nullable|boolean',
       'is_draft' => 'nullable|boolean',
+      'request_view' => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
@@ -404,6 +405,7 @@ class PaymentController extends Controller
     }
 
     $payment = Payment::create($mutate['data']);
+    $payment->request_view = $data['request_view'] ?? false;
 
     return response()->json([
       'success' => true,
