@@ -28,8 +28,8 @@ This project features **AI-powered transaction recording** integrated with Teleg
 - **Match payment accounts** based on receipt context or user hints
 - **Create the transaction record** directly in your Personal Admin Panel
 
-<img src="public/markdown/preview-1.png" width="300" alt="Preview 1" />
-<img src="public/markdown/preview-2.png" width="300" alt="Preview 2" />
+<img src="public/markdown/preview-1.png" width="400" alt="Preview 1" />
+<img src="public/markdown/preview-2.png" width="400" alt="Preview 2" />
 
 ## Demo Credentials 🧪
 
