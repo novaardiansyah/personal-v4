@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use App\Services\PaymentService;
 
 class PaymentAction
 {
@@ -26,7 +27,7 @@ class PaymentAction
       ->placeholder('Product & Service')
       ->hintIcon('heroicon-o-question-mark-circle', tooltip: 'Search product or service using {name} or {Product & Service ID} in Items menu.')
       ->live(onBlur: true)
-      ->afterStateUpdated(function($state, $set, $get): void {
+      ->afterStateUpdated(function ($state, $set, $get): void {
         $item = Item::find($state ?? 0);
 
         if ($item) {
@@ -47,10 +48,10 @@ class PaymentAction
           ->numeric()
           ->minValue(0)
           ->live(onBlur: true)
-          ->afterStateUpdated(function($state, $set, $get): void {
+          ->afterStateUpdated(function ($state, $set, $get): void {
             $get('quantity') && $set('total', $state * $get('quantity'));
           })
-          ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
 
         TextInput::make('quantity')
           ->label('Qty')
@@ -59,10 +60,10 @@ class PaymentAction
           ->default(1)
           ->minValue(0)
           ->live(onBlur: true)
-          ->afterStateUpdated(function($state, $set, $get): void {
+          ->afterStateUpdated(function ($state, $set, $get): void {
             $get('amount') && $set('total', $state * $get('amount'));
           })
-          ->hint(fn (?string $state) => number_format($state ?? 0, 0, ',', '.')),
+          ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
 
         TextInput::make('total')
           ->label('Total')
@@ -71,7 +72,7 @@ class PaymentAction
           ->minValue(0)
           ->live(onBlur: true)
           ->readOnly()
-          ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
       ])
       ->columns(2);
   }
@@ -92,28 +93,14 @@ class PaymentAction
   // ! ItemRelationManager::Detach
   public static function itemDetachBefore(Model $record, RelationManager $livewire, DetachAction $action): void
   {
-    $owner           = $livewire->getOwnerRecord();
-    $expense         = $owner->amount - $record->pivot_total;
-    $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
+    $owner = $livewire->getOwnerRecord();
 
-    $has_charge   = boolval($record->has_charge ?? 0);
-    $is_scheduled = boolval($owner->is_scheduled ?? 0);
-    $is_draft     = boolval($owner->is_draft ?? 0);
+    PaymentService::beforeItemDetach($owner, $record, [
+      'quantity' => $record->quantity,
+      'total' => $record->pivot_total,
+      'has_charge' => $record->has_charge ?? false,
+    ]);
 
-    if ($is_scheduled)
-      $has_charge = true;
-
-    if ($is_draft)
-      $has_charge = true;
-
-    if (!$has_charge) {
-      $owner->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    $itemName = $record->name . ' (x' . $record->quantity . ')';
-    $note     = trim(implode(', ', array_diff(explode(', ', $owner->name ?? ''), [$itemName])));
-
-    $owner->update(['amount' => $expense, 'name' => $note]);
     $action->getLivewire()->dispatch('refreshForm');
   }
   // ! ItemRelationManager::Detach
@@ -143,10 +130,10 @@ class PaymentAction
               ->numeric()
               ->minValue(0)
               ->live(onBlur: true)
-              ->afterStateUpdated(function($state, $set, $get): void {
+              ->afterStateUpdated(function ($state, $set, $get): void {
                 $get('quantity') && $set('total', $state * $get('quantity'));
               })
-              ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
 
             TextInput::make('quantity')
               ->required()
@@ -154,10 +141,10 @@ class PaymentAction
               ->default(1)
               ->minValue(0)
               ->live(onBlur: true)
-              ->afterStateUpdated(function($state, $set, $get): void {
+              ->afterStateUpdated(function ($state, $set, $get): void {
                 $get('amount') && $set('total', $state * $get('amount'));
               })
-              ->hint( fn (?string $state) => number_format($state ?? 0, 0, ',', '.')),
+              ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
 
             TextInput::make('total')
               ->label('Total')
@@ -165,7 +152,7 @@ class PaymentAction
               ->minValue(0)
               ->live(onBlur: true)
               ->readOnly()
-              ->hint(fn (?string $state) => toIndonesianCurrency($state ?? 0)),
+              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
           ])
           ->columnSpanFull()
       ])
@@ -174,9 +161,9 @@ class PaymentAction
 
   public static function itemMutateFormDataUsing(array $data): array
   {
-    $data['code']      = getCode('item');
+    $data['code'] = getCode('item');
     $data['item_code'] = getCode('payment_item');
-    $data['price']     = $data['amount'];
+    $data['price'] = $data['amount'];
 
     return $data;
   }
@@ -191,28 +178,13 @@ class PaymentAction
   {
     $owner = $livewire->getOwnerRecord();
 
-    $record->update(['amount' => $data['amount']]);
+    PaymentService::afterItemAttach($owner, $record, [
+      'quantity' => $data['quantity'],
+      'price' => $data['amount'],
+      'total' => $data['total'],
+      'has_charge' => $record->has_charge ?? false,
+    ]);
 
-    $expense         = $owner->amount + (int) $data['total'];
-    $adjustedDeposit = $owner->payment_account->deposit + $owner->amount - $expense;
-
-    $has_charge   = boolval($record->has_charge ?? 0);
-    $is_scheduled = boolval($owner->is_scheduled ?? 0);
-    $is_draft     = boolval($owner->is_draft ?? 0);
-
-    if ($is_scheduled)
-      $has_charge = true;
-
-    if ($is_draft)
-      $has_charge = true;
-
-    if (!$has_charge) {
-      $owner->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    $note = trim(($owner->name ?? '') . ', ' . "{$record->name} (x{$data['quantity']})", ', ');
-
-    $owner->update(['amount' => $expense, 'name' => $note]);
     $action->getLivewire()->dispatch('refreshForm');
   }
 }

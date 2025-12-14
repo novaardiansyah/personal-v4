@@ -16,6 +16,7 @@ use App\Http\Resources\PaymentAttachmentResource;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
+use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -359,7 +360,8 @@ class PaymentController extends Controller
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
       'has_items' => 'nullable|boolean',
       'has_charge' => 'nullable|boolean',
-      'is_scheduled' => 'nullable|boolean'
+      'is_scheduled' => 'nullable|boolean',
+      'is_draft' => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
@@ -457,7 +459,6 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    // Check if item already attached
     if ($payment->items()->where('item_id', $request->item_id)->exists()) {
       return response()->json([
         'success' => false,
@@ -467,17 +468,13 @@ class PaymentController extends Controller
 
     $data = $request->all();
 
-    // Get item data
     $item = Item::find($data['item_id']);
 
-    // Use item price if not provided
     $price = $data['price'] ?? $item->amount;
     $total = $price * $data['quantity'];
 
-    // Generate item code
     $data['item_code'] = getCode('payment_item');
 
-    // Attach item to payment
     $payment->items()->attach($data['item_id'], [
       'item_code' => $data['item_code'],
       'quantity' => $data['quantity'],
@@ -485,34 +482,20 @@ class PaymentController extends Controller
       'total' => $total
     ]);
 
-    // Update item price to match attachment price
-    $item->update(['amount' => $price]);
-
-    // Count total expense
-    $expense = $payment->amount + $total;
-
-    // Count deposit change (following Filament logic)
-    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-
-    $is_scheduled = $payment->is_scheduled ?? false;
-
-    // Update deposit payment account if not scheduled
-    if (!$is_scheduled) {
-      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    // Update payment notes
-    $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
-
-    // Update payment
-    $payment->update(['amount' => $expense, 'name' => $note]);
+    // Use PaymentService for consistent logic with Filament
+    $result = PaymentService::afterItemAttach($payment, $item, [
+      'quantity' => $data['quantity'],
+      'price' => $price,
+      'total' => $total,
+      'has_charge' => $data['has_charge'] ?? false,
+    ]);
 
     return response()->json([
       'success' => true,
       'message' => 'Item attached successfully',
       'data' => [
-        'amount' => $payment->amount,
-        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'amount' => $result['amount'],
+        'formatted_amount' => $result['formatted_amount'],
         'items_count' => $payment->items()->count()
       ]
     ]);
@@ -557,18 +540,15 @@ class PaymentController extends Controller
     $data = $request->all();
     $total = $data['price'] * $data['quantity'];
 
-    // Create new item
-    $item = new Item();
-    $item->name = $data['name'];
-    $item->type_id = $data['type_id'];
-    $item->amount = $data['price'];
-    $item->code = getCode('item');
-    $item->save();
+    $item = Item::create([
+      'name' => $data['name'],
+      'type_id' => $data['type_id'],
+      'amount' => $data['price'],
+      'code' => getCode('item')
+    ]);
 
-    // Generate item code for pivot
     $itemCode = getCode('payment_item');
 
-    // Attach item to payment
     $payment->items()->attach($item->id, [
       'item_code' => $itemCode,
       'quantity' => $data['quantity'],
@@ -576,31 +556,19 @@ class PaymentController extends Controller
       'total' => $total
     ]);
 
-    // Count total expense
-    $expense = $payment->amount + $total;
-
-    // Count deposit change (following Filament logic)
-    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-
-    $is_scheduled = $payment->is_scheduled ?? false;
-
-    // Update deposit payment account if not scheduled
-    if (!$is_scheduled) {
-      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    // Update payment notes
-    $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
-
-    // Update payment
-    $payment->update(['amount' => $expense, 'name' => $note]);
+    $result = PaymentService::afterItemAttach($payment, $item, [
+      'quantity' => $data['quantity'],
+      'price' => $data['price'],
+      'total' => $total,
+      'has_charge' => $data['has_charge'] ?? false,
+    ]);
 
     return response()->json([
       'success' => true,
       'message' => 'Item created and attached successfully',
       'data' => [
-        'amount' => $payment->amount,
-        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'amount' => $result['amount'],
+        'formatted_amount' => $result['formatted_amount'],
         'items_count' => $payment->items()->count()
       ]
     ]);
@@ -795,26 +763,21 @@ class PaymentController extends Controller
     }
 
     $item = $paymentItem->item;
-    $expense = $payment->amount - $paymentItem->total;
-    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-    $is_scheduled = $payment->is_scheduled ?? false;
 
-    if (!$is_scheduled) {
-      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    $itemName = $item->name . ' (x' . $paymentItem->quantity . ')';
-    $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
+    $result = PaymentService::beforeItemDetach($payment, $item, [
+      'quantity' => $paymentItem->quantity,
+      'total' => $paymentItem->total,
+      'has_charge' => false,
+    ]);
 
     $paymentItem->delete();
-    $payment->update(['amount' => $expense, 'name' => $note]);
 
     return response()->json([
       'success' => true,
       'message' => 'Item detached successfully',
       'data' => [
-        'amount' => $payment->amount,
-        'formatted_amount' => toIndonesianCurrency($payment->amount),
+        'amount' => $result['amount'],
+        'formatted_amount' => $result['formatted_amount'],
         'items_count' => $payment->items()->count()
       ]
     ]);
