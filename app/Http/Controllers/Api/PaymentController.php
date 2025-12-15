@@ -280,61 +280,18 @@ class PaymentController extends Controller
       ]);
     }
 
-    $record = $payment;
-    $is_scheduled = $record->is_scheduled ?? false;
-    $amount = intval($data['amount'] ?? $record->amount);
+    // Use reusable model method for balance mutation
+    $mutate = Payment::mutateDataPaymentUpdate($payment, $data);
 
-    if ($record->type_id == PaymentType::EXPENSE || $record->type_id == PaymentType::INCOME) {
-      $adjustment = ($record->type_id == PaymentType::EXPENSE) ? +$record->amount : -$record->amount;
-      $depositChange = ($record->payment_account->deposit + $adjustment);
-
-      if ($depositChange < $amount && $depositChange != 0) {
-        return response()->json([
-          'success' => false,
-          'message' => 'The amount in the payment account is not sufficient for the transaction.'
-        ], 422);
-      }
-
-      if ($record->type_id == PaymentType::EXPENSE) {
-        $amount = -$amount;
-      }
-
-      $depositChange = $depositChange + $amount;
-
-      if (!$is_scheduled) {
-        $record->payment_account->update([
-          'deposit' => $depositChange
-        ]);
-      }
-    } else if ($record->type_id == PaymentType::TRANSFER || $record->type_id == PaymentType::WITHDRAWAL) {
-      $balanceTo = $record->payment_account_to->deposit + $amount - $record->amount;
-      $balanceOrigin = $record->payment_account->deposit + $record->amount;
-
-      if ($balanceOrigin < $amount) {
-        return response()->json([
-          'success' => false,
-          'message' => 'The amount in the payment account is not sufficient for the transaction.'
-        ], 422);
-      }
-
-      if (!$is_scheduled) {
-        $record->payment_account->update([
-          'deposit' => $balanceOrigin - $amount
-        ]);
-
-        $record->payment_account_to->update([
-          'deposit' => $balanceTo
-        ]);
-      }
-    } else {
+    if (!$mutate['status']) {
       return response()->json([
         'success' => false,
-        'message' => 'The selected transaction type is invalid.'
+        'message' => $mutate['message']
       ], 422);
     }
 
-    $record->update([
-      'amount' => intval($data['amount'] ?? $record->amount),
+    $payment->update([
+      'amount' => intval($data['amount'] ?? $payment->amount),
       'name' => $data['name'],
       'date' => $data['date'],
     ]);

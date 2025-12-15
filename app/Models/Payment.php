@@ -61,7 +61,7 @@ class Payment extends Model
     if ($is_scheduled)
       $has_charge = true;
 
-    if ($is_draft) 
+    if ($is_draft)
       $has_charge = true;
 
     if ($type_id == 2) {
@@ -101,6 +101,72 @@ class Payment extends Model
     $data['code'] = getCode('payment');
 
     return ['status' => true, 'message' => 'Transaction data has been successfully transferred and saved.', 'data' => $data];
+  }
+
+  /**
+   * Mutate data for updating existing payment.
+   * Handles balance mutations with has_charge, is_scheduled, and is_draft flags.
+   *
+   * @param Payment $record The existing payment record
+   * @param array $data The new data to update
+   * @return array ['status' => bool, 'message' => string, 'data' => array]
+   */
+  public static function mutateDataPaymentUpdate(Payment $record, array $data): array
+  {
+    $has_charge = boolval($record->has_charge ?? 0);
+    $is_scheduled = boolval($record->is_scheduled ?? 0);
+    $is_draft = boolval($record->is_draft ?? 0);
+
+    // If any of these flags is true, skip balance mutation
+    if ($is_scheduled || $is_draft) {
+      $has_charge = true;
+    }
+
+    $amount = intval($data['amount'] ?? $record->amount);
+    $type_id = intval($record->type_id);
+
+    if ($type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME) {
+      $adjustment = ($type_id == PaymentType::EXPENSE) ? +$record->amount : -$record->amount;
+      $depositChange = ($record->payment_account->deposit + $adjustment);
+
+      if (!$has_charge && $depositChange < $amount && $depositChange != 0) {
+        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.', 'data' => $data];
+      }
+
+      if ($type_id == PaymentType::EXPENSE) {
+        $amount = -$amount;
+      }
+
+      $depositChange = $depositChange + $amount;
+
+      if (!$has_charge) {
+        $record->payment_account->update([
+          'deposit' => $depositChange
+        ]);
+      }
+    } else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
+      // Withdraw the balance from the destination account and return it to the origin account.
+      $balanceTo = $record->payment_account_to->deposit + intval($data['amount'] ?? $record->amount) - $record->amount;
+      $balanceOrigin = $record->payment_account->deposit + $record->amount;
+
+      if (!$has_charge && $balanceOrigin < intval($data['amount'] ?? $record->amount)) {
+        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.', 'data' => $data];
+      }
+
+      if (!$has_charge) {
+        $record->payment_account->update([
+          'deposit' => $balanceOrigin - intval($data['amount'] ?? $record->amount)
+        ]);
+
+        $record->payment_account_to->update([
+          'deposit' => $balanceTo
+        ]);
+      }
+    } else {
+      return ['status' => false, 'message' => 'The selected transaction type is invalid.', 'data' => $data];
+    }
+
+    return ['status' => true, 'message' => 'Transaction data has been successfully updated.', 'data' => $data];
   }
 
   public static function scheduledPayment(): array
