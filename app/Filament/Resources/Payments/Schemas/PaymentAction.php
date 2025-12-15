@@ -5,14 +5,19 @@ namespace App\Filament\Resources\Payments\Schemas;
 use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Payment;
+use App\Models\PaymentAccount;
 use App\Models\PaymentType;
+use Filament\Actions\Action;
 use Filament\Actions\AttachAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
@@ -187,4 +192,101 @@ class PaymentAction
 
     $action->getLivewire()->dispatch('refreshForm');
   }
+
+  // ! ManageDraft
+  public static function manageDraftSchema(Schema $schema): Schema
+  {
+    return $schema
+      ->components([
+        TextInput::make('amount')
+          ->label('Amount')
+          ->required()
+          ->numeric()
+          ->live(onBlur: true)
+          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+        Select::make('type_id')
+          ->label('Type')
+          ->options(PaymentType::all()->pluck('name', 'id'))
+          ->required()
+          ->native(false)
+          ->live(),
+
+        Select::make('payment_account_id')
+          ->label('Payment Account')
+          ->options(fn(Get $get) => PaymentAccount::where('id', '!=', $get('payment_account_to_id'))
+            ->where('user_id', auth()->id())
+            ->pluck('name', 'id'))
+          ->required()
+          ->native(false)
+          ->live()
+          ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state ?? -1)?->deposit ?? 0)),
+
+        Select::make('payment_account_to_id')
+          ->label('Payment To')
+          ->options(fn(Get $get) => PaymentAccount::where('id', '!=', $get('payment_account_id'))
+            ->where('user_id', auth()->id())
+            ->pluck('name', 'id'))
+          ->required(fn(Get $get): bool => in_array($get('type_id'), [PaymentType::TRANSFER, PaymentType::WITHDRAWAL]))
+          ->visible(fn(Get $get): bool => in_array($get('type_id'), [PaymentType::TRANSFER, PaymentType::WITHDRAWAL]))
+          ->native(false)
+          ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state ?? -1)?->deposit ?? 0)),
+
+        Toggle::make('approve_draft')
+          ->label('Approve Draft')
+          ->helperText('Jika draft disetujui, transaksi akan dijalankan dan saldo akan dimutasi.')
+          ->default(false),
+      ]);
+  }
+
+  public static function manageDraftFillForm(Payment $record): array
+  {
+    return [
+      'amount' => $record->amount,
+      'type_id' => $record->type_id,
+      'payment_account_id' => $record->payment_account_id,
+      'payment_account_to_id' => $record->payment_account_to_id,
+      'approve_draft' => false,
+    ];
+  }
+
+  public static function manageDraftAction(Action $action, Payment $record, array $data): void
+  {
+    $record->amount = intval($data['amount']);
+    $record->type_id = intval($data['type_id']);
+    $record->payment_account_id = intval($data['payment_account_id']);
+    $record->payment_account_to_id = $data['payment_account_to_id'] ?? null;
+
+    if ($data['approve_draft']) {
+      $record->is_draft = false;
+    }
+
+    $record->save();
+    $record->load(['payment_account', 'payment_account_to']);
+
+    if ($data['approve_draft']) {
+      $mutate = Payment::approveDraft($record);
+
+      if (!$mutate['status']) {
+        $record->is_draft = true;
+        $record->save();
+
+        Notification::make()
+          ->danger()
+          ->title('Transaction Failed!')
+          ->body($mutate['message'] ?? 'Something went wrong!')
+          ->send();
+
+        $action->halt();
+        return;
+      }
+    }
+
+    Notification::make()
+      ->success()
+      ->title($data['approve_draft'] ? 'Draft Approved!' : 'Draft Updated!')
+      ->body($data['approve_draft'] ? 'Draft has been approved and balance has been mutated.' : 'Draft has been updated successfully.')
+      ->send();
+  }
+  // ! End ManageDraft
 }
