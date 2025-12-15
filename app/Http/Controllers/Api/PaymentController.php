@@ -1391,15 +1391,16 @@ class PaymentController extends Controller
   /**
    * @OA\Post(
    *     path="/api/payments/generate-report",
-   *     summary="Generate payment report (PDF or Email)",
+   *     summary="Generate payment report (PDF send to Email)",
+   *     description="Report types: daily (no extra params), monthly (requires periode), date_range (requires start_date & end_date)",
    *     tags={"Payments"},
    *     security={{"bearerAuth":{}}},
    *     @OA\RequestBody(required=true, @OA\JsonContent(
    *         required={"report_type"},
-   *         @OA\Property(property="report_type", type="string", enum={"daily", "monthly", "date_range"}),
-   *         @OA\Property(property="start_date", type="string", format="date", description="Required for date_range"),
-   *         @OA\Property(property="end_date", type="string", format="date", description="Required for date_range"),
-   *         @OA\Property(property="periode", type="string", example="2024-12", description="Required for monthly (Y-m format)")
+   *         @OA\Property(property="report_type", type="string", enum={"daily", "monthly", "date_range"}, example="daily"),
+   *         @OA\Property(property="start_date", type="string", format="date", example="2024-12-01", description="Required only for date_range"),
+   *         @OA\Property(property="end_date", type="string", format="date", example="2024-12-31", description="Required only for date_range"),
+   *         @OA\Property(property="periode", type="string", example="2024-12", description="Required only for monthly (format: Y-m)")
    *     )),
    *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
@@ -1410,16 +1411,16 @@ class PaymentController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'report_type' => 'required|in:daily,monthly,date_range',
-      'start_date' => 'required_if:report_type,date_range|nullable|date_format:Y-m-d',
-      'end_date' => 'required_if:report_type,date_range|nullable|date_format:Y-m-d|after_or_equal:start_date',
-      'periode' => 'required_if:report_type,monthly|nullable|date_format:Y-m',
+      'start_date' => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d',
+      'end_date' => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d|after_or_equal:start_date',
+      'periode' => 'exclude_unless:report_type,monthly|required|date_format:Y-m',
     ]);
 
     $validator->setCustomMessages([
-      'start_date.required_if' => 'The start date is required for custom date range report.',
-      'end_date.required_if' => 'The end date is required for custom date range report.',
+      'start_date.required' => 'The start date is required for custom date range report.',
+      'end_date.required' => 'The end date is required for custom date range report.',
       'end_date.after_or_equal' => 'The end date must be after or equal to start date.',
-      'periode.required_if' => 'The periode (month) is required for monthly report.',
+      'periode.required' => 'The periode (month) is required for monthly report.',
     ]);
 
     if ($validator->fails()) {
@@ -1497,8 +1498,6 @@ class PaymentController extends Controller
 
     $validated = $validator->validated();
     $limit = $validated['limit'] ?? 50;
-
-    logger('validated', $validated);
 
     $query = Payment::where('payments.user_id', Auth()->user()->id);
 
