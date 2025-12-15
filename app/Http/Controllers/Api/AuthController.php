@@ -15,15 +15,6 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
 
-/**
- * @OA\SecurityScheme(
- *     securityScheme="bearerAuth",
- *     type="http",
- *     scheme="bearer",
- *     bearerFormat="Sanctum",
- *     description="Enter your Bearer token in the format: Bearer {token}"
- * )
- */
 class AuthController extends Controller
 {
   /**

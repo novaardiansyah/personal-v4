@@ -2,12 +2,18 @@
     "openapi": "3.0.0",
     "info": {
         "title": "API Documentation",
-        "description": "API Documentation",
+        "description": "Personal Finance API Documentation",
         "contact": {
             "email": "admin@novadev.my.id"
         },
         "version": "1.0.0"
     },
+    "servers": [
+        {
+            "url": "/",
+            "description": "Current Server"
+        }
+    ],
     "paths": {
         "/api/auth/login": {
             "post": {
@@ -345,9 +351,188 @@
                     }
                 ]
             }
+        },
+        "/api/payments": {
+            "post": {
+                "tags": [
+                    "Payments"
+                ],
+                "summary": "Create new payment",
+                "operationId": "985b848b4cb6ca6115cf4ea71e314c0c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PaymentStoreRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Payment created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/SuccessResponse"
+                                }
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthenticated",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/UnauthenticatedResponse"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ValidationErrorResponse"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "bearerAuth": []
+                    }
+                ]
+            }
         }
     },
     "components": {
+        "schemas": {
+            "PaymentStoreRequest": {
+                "required": [
+                    "date",
+                    "type_id",
+                    "payment_account_id"
+                ],
+                "properties": {
+                    "amount": {
+                        "description": "Payment amount (required if has_items is false)",
+                        "type": "number",
+                        "example": 50000
+                    },
+                    "date": {
+                        "description": "Payment date",
+                        "type": "string",
+                        "format": "date",
+                        "example": "2024-12-15"
+                    },
+                    "name": {
+                        "description": "Payment description",
+                        "type": "string",
+                        "example": "Lunch expense"
+                    },
+                    "type_id": {
+                        "description": "1=Expense, 2=Income, 3=Transfer, 4=Withdrawal",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "payment_account_id": {
+                        "description": "Source payment account ID",
+                        "type": "integer",
+                        "example": 1
+                    },
+                    "payment_account_to_id": {
+                        "description": "Destination (for Transfer/Withdrawal)",
+                        "type": "integer",
+                        "example": 2
+                    },
+                    "has_items": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "has_charge": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "is_scheduled": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "is_draft": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "request_view": {
+                        "type": "boolean",
+                        "example": false
+                    }
+                },
+                "type": "object"
+            },
+            "UnauthenticatedResponse": {
+                "properties": {
+                    "message": {
+                        "description": "Common Response Schemas",
+                        "type": "string",
+                        "example": "Unauthenticated."
+                    }
+                },
+                "type": "object"
+            },
+            "ValidationErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Validation failed"
+                    },
+                    "errors": {
+                        "type": "object",
+                        "example": {
+                            "field_name": [
+                                "The field_name field is required."
+                            ]
+                        }
+                    }
+                },
+                "type": "object"
+            },
+            "SuccessResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": true
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation successful"
+                    },
+                    "data": {
+                        "type": "object"
+                    }
+                },
+                "type": "object"
+            },
+            "ErrorResponse": {
+                "properties": {
+                    "success": {
+                        "type": "boolean",
+                        "example": false
+                    },
+                    "message": {
+                        "type": "string",
+                        "example": "Operation failed"
+                    }
+                },
+                "type": "object"
+            }
+        },
         "securitySchemes": {
             "bearerAuth": {
                 "type": "http",
@@ -361,6 +546,10 @@
         {
             "name": "Auth",
             "description": "Auth"
+        },
+        {
+            "name": "Payments",
+            "description": "Payments"
         }
     ]
 }

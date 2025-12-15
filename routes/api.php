@@ -62,7 +62,6 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   Route::prefix('payments')->group(function () {
-    // Specific routes first (before dynamic {id} routes)
     Route::post('/generate-report', [PaymentController::class, 'generateReport']);
     Route::get('/ai-summary', [PaymentController::class, 'aiSummary']);
     Route::get('/summary', [PaymentController::class, 'summary']);
@@ -70,16 +69,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
     Route::get('/item-types', [PaymentController::class, 'getItemTypes']);
 
-    // General CRUD routes
     Route::get('/', [PaymentController::class, 'index']);
     Route::post('/', [PaymentController::class, 'store']);
 
-    // Dynamic routes with {id} parameter (must be after specific routes)
     Route::get('/{id}', [PaymentController::class, 'show']);
     Route::put('/{id}', [PaymentController::class, 'update']);
     Route::delete('/{payment}', [PaymentController::class, 'destroy']);
 
-    // Item-related routes
     Route::get('/{id}/items/attached', [PaymentController::class, 'getAttachedItems']);
     Route::get('/{payment}/items/summary', [PaymentController::class, 'getPaymentItemsSummary']);
     Route::get('/{id}/items/not-attached', [PaymentController::class, 'getItemsNotAttached']);
@@ -90,7 +86,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/{payment}/items/{pivotId}', [PaymentController::class, 'updateItem']);
     Route::delete('/{payment}/items/{pivotId}', [PaymentController::class, 'detachItem']);
 
-    // Attachment routes
     Route::get('/{payment}/attachments', [PaymentController::class, 'getAttachments']);
     Route::post('/{payment}/attachments', [PaymentController::class, 'addAttachment']);
     Route::delete('/{payment}/attachments', [PaymentController::class, 'deleteAttachment']);

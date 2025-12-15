@@ -304,7 +304,16 @@ class PaymentController extends Controller
   }
 
   /**
-   * Create new payment
+   * @OA\Post(
+   *     path="/api/payments",
+   *     summary="Create new payment",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/PaymentStoreRequest")),
+   *     @OA\Response(response=201, description="Payment created successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
+   * )
    */
   public function store(Request $request): JsonResponse
   {
