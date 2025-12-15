@@ -2,15 +2,21 @@
 
 namespace App\Filament\Resources\Payments\Schemas;
 
+use App\Jobs\PaymentResource\DailyReportJob;
+use App\Jobs\PaymentResource\MonthlyReportJob;
+use App\Jobs\PaymentResource\PaymentReportPdf;
 use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
+use App\Services\PaymentService;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\AttachAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -21,7 +27,6 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
-use App\Services\PaymentService;
 
 class PaymentAction
 {
@@ -289,4 +294,81 @@ class PaymentAction
       ->send();
   }
   // ! End ManageDraft
+
+  // ! PrintPdf
+  public static function printPdfSchema(Schema $schema): Schema
+  {
+    return $schema
+      ->components([
+        Select::make('report_type')
+          ->label('Report Type')
+          ->options([
+            'date_range' => 'Custom Date Range (PDF)',
+            'daily' => 'Daily Report (Email)',
+            'monthly' => 'Monthly Report (Email)',
+          ])
+          ->default('monthly')
+          ->required()
+          ->live()
+          ->native(false),
+        DatePicker::make('start_date')
+          ->label('Start Date')
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->startOfMonth())
+          ->visible(fn($get) => $get('report_type') === 'date_range'),
+        DatePicker::make('end_date')
+          ->label('End Date')
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->endOfMonth())
+          ->visible(fn($get) => $get('report_type') === 'date_range'),
+        Select::make('periode')
+          ->label('Periode (Month)')
+          ->options(function () {
+            $options = [];
+            $year = Carbon::now()->year;
+            for ($month = 1; $month <= 12; $month++) {
+              $date = Carbon::createFromDate($year, $month, 1);
+              $options[$date->format('Y-m')] = $date->translatedFormat('F Y');
+            }
+            return $options;
+          })
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->format('Y-m'))
+          ->visible(fn($get) => $get('report_type') === 'monthly'),
+      ]);
+  }
+
+  public static function printPdfAction(Action $action, array $data): void
+  {
+    $user = getUser();
+
+    match ($data['report_type']) {
+      'daily' => DailyReportJob::dispatch(),
+      'monthly' => MonthlyReportJob::dispatch([
+        'periode' => $data['periode'],
+        'user' => $user,
+      ]),
+      default => PaymentReportPdf::dispatch([
+        'start_date' => $data['start_date'],
+        'end_date' => $data['end_date'],
+        'user' => $user,
+      ]),
+    };
+
+    $messages = [
+      'daily' => 'Daily report will be sent to your email.',
+      'monthly' => 'Monthly report will be sent to your email.',
+      'date_range' => 'Custom report will be sent to your email.',
+    ];
+
+    Notification::make()
+      ->title('Report in process')
+      ->body($messages[$data['report_type']] ?? 'Report is being processed.')
+      ->success()
+      ->send();
+  }
+  // ! End PrintPdf
 }
