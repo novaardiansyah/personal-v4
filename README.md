@@ -32,6 +32,19 @@ This project features **AI-powered transaction recording** integrated with Teleg
 <img src="public/markdown/preview-2.png" width="600" alt="Preview 2" />
 <img src="public/markdown/preview-3.png" width="600" alt="Preview 3" />
 
+## API Documentation 📚
+
+This project now includes **integrated API documentation** powered by [L5-Swagger](https://github.com/DarkaOnLine/L5-Swagger)! The API documentation provides a comprehensive overview of all available REST API endpoints with:
+
+- **Interactive API Explorer** - Test endpoints directly from the documentation
+- **Bearer Token Authentication** - Secured with Laravel Sanctum
+- **Request/Response Examples** - Clear examples for each endpoint
+- **Validation Rules** - Detailed parameter requirements
+
+Access the API documentation at: `/api/documentation`
+
+<img src="public/markdown/preview-4.png" width="600" alt="API Documentation Preview" />
+
 ## Demo Credentials 🧪
 
 Coming soon!
