@@ -65,7 +65,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/generate-report', [PaymentController::class, 'generateReport']);
     Route::get('/ai-summary', [PaymentController::class, 'aiSummary']);
     Route::get('/summary', [PaymentController::class, 'summary']);
-    Route::get('/recent-transactions', [PaymentController::class, 'recentTransactions']);
     Route::get('/types', [PaymentController::class, 'getPaymentTypes']);
     Route::get('/item-types', [PaymentController::class, 'getItemTypes']);
 
