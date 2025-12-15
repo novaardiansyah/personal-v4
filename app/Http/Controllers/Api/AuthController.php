@@ -103,26 +103,18 @@ class AuthController extends Controller
    *     path="/api/auth/change-password",
    *     summary="Change Password",
    *     tags={"Auth"},
-   *     @OA\Parameter(
-   *         name="current_password",
-   *         in="query",
+   *     security={{"bearerAuth":{}}},
+   *     @OA\RequestBody(
    *         required=true,
-   *         @OA\Schema(type="string")
-   *     ),
-   *     @OA\Parameter(
-   *         name="new_password",
-   *         in="query",
-   *         required=true,
-   *         @OA\Schema(type="string")
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description="Password changed successfully",
    *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=true),
-   *             @OA\Property(property="message", type="string", example="Password changed successfully")
+   *             required={"current_password", "new_password"},
+   *             @OA\Property(property="current_password", type="string", format="password", example="oldpassword123"),
+   *             @OA\Property(property="new_password", type="string", format="password", example="newpassword123")
    *         )
-   *     )
+   *     ),
+   *     @OA\Response(response=200, description="Password changed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=400, description="Current password is incorrect", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
    * )
    */
   public function changePassword(ChangePasswordRequest $request)

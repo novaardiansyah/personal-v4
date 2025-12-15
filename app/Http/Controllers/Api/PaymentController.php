@@ -28,9 +28,16 @@ use Illuminate\Support\Str;
 class PaymentController extends Controller
 {
   /**
-   * Get financial summary for the current month
-   *
-   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
+   * @OA\Get(
+   *     path="/api/payments/summary",
+   *     summary="Get financial summary",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(name="startDate", in="query", @OA\Schema(type="string", format="date")),
+   *     @OA\Parameter(name="endDate", in="query", @OA\Schema(type="string", format="date")),
+   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
    */
   public function summary(Request $request): JsonResponse
   {
@@ -115,9 +122,21 @@ class PaymentController extends Controller
 
 
   /**
-   * Get all payments with pagination
-   *
-   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
+   * @OA\Get(
+   *     path="/api/payments",
+   *     summary="Get all payments with pagination",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="date_from", in="query", @OA\Schema(type="string", format="date")),
+   *     @OA\Parameter(name="date_to", in="query", @OA\Schema(type="string", format="date")),
+   *     @OA\Parameter(name="type", in="query", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="account_id", in="query", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
+   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
    */
   public function index(Request $request): JsonResponse
   {
@@ -200,7 +219,16 @@ class PaymentController extends Controller
   }
 
   /**
-   * Get specific payment
+   * @OA\Get(
+   *     path="/api/payments/{id}",
+   *     summary="Get specific payment",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
    */
   public function show(Request $request, $id): JsonResponse
   {
@@ -221,12 +249,21 @@ class PaymentController extends Controller
   }
 
   /**
-   * Update existing payment
-   *
-   * For payments with items: only name and date can be edited (amount is ignored).
-   * For regular payments: amount, name, and date can be edited.
-   *
-   * ⚠️ MOBILE APP: Used by NovaApp - don't change response structure
+   * @OA\Put(
+   *     path="/api/payments/{id}",
+   *     summary="Update existing payment",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
+   *     @OA\RequestBody(required=true, @OA\JsonContent(
+   *         @OA\Property(property="amount", type="number"),
+   *         @OA\Property(property="name", type="string"),
+   *         @OA\Property(property="date", type="string", format="date")
+   *     )),
+   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
    */
   public function update(Request $request, $id): JsonResponse
   {
@@ -381,7 +418,14 @@ class PaymentController extends Controller
   }
 
   /**
-   * Get payment types for dropdown
+   * @OA\Get(
+   *     path="/api/payments/types",
+   *     summary="Get payment types for dropdown",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Response(response=200, description="Success"),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
    */
   public function getPaymentTypes(): JsonResponse
   {
