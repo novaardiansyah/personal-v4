@@ -103,6 +103,45 @@ class Payment extends Model
     return ['status' => true, 'message' => 'Transaction data has been successfully transferred and saved.', 'data' => $data];
   }
 
+  public static function approveDraft(Payment $record): array
+  {
+    $type_id = intval($record->type_id);
+    $amount = intval($record->amount);
+    $payment_account = $record->payment_account;
+    $payment_account_to = $record->payment_account_to;
+
+    if ($type_id == PaymentType::INCOME) {
+      $payment_account->deposit += $amount;
+    } else {
+      if ($payment_account->deposit < $amount) {
+        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.'];
+      }
+
+      if ($type_id == PaymentType::EXPENSE) {
+        $payment_account->deposit -= $amount;
+      } else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
+        if (!$payment_account_to) {
+          return ['status' => false, 'message' => 'The destination payment account is invalid or not found.'];
+        }
+
+        $payment_account->deposit -= $amount;
+        $payment_account_to->deposit += $amount;
+      } else {
+        return ['status' => false, 'message' => 'The selected transaction type is invalid.'];
+      }
+    }
+
+    if ($payment_account->isDirty('deposit')) {
+      $payment_account->save();
+    }
+
+    if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
+      $payment_account_to->save();
+    }
+
+    return ['status' => true, 'message' => 'Draft has been approved and balance has been mutated.'];
+  }
+
   /**
    * Mutate data for updating existing payment.
    * Handles balance mutations with has_charge, is_scheduled, and is_draft flags.

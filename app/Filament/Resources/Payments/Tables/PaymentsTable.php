@@ -7,6 +7,7 @@ use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
 use App\Models\Payment;
+use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use App\Models\Setting;
 use Carbon\Carbon;
@@ -20,7 +21,11 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
@@ -119,8 +124,8 @@ class PaymentsTable
               ->label('Report Type')
               ->options([
                 'date_range' => 'Custom Date Range (PDF)',
-                'daily'      => 'Daily Report (Email)',
-                'monthly'    => 'Monthly Report (Email)',
+                'daily' => 'Daily Report (Email)',
+                'monthly' => 'Monthly Report (Email)',
               ])
               ->default('monthly')
               ->required()
@@ -161,18 +166,18 @@ class PaymentsTable
               'daily' => DailyReportJob::dispatch(),
               'monthly' => MonthlyReportJob::dispatch([
                 'periode' => $data['periode'],
-                'user'    => $user,
+                'user' => $user,
               ]),
               default => PaymentReportPdf::dispatch([
                 'start_date' => $data['start_date'],
-                'end_date'   => $data['end_date'],
-                'user'       => $user,
+                'end_date' => $data['end_date'],
+                'user' => $user,
               ]),
             };
 
             $messages = [
-              'daily'      => 'Daily report will be sent to your email.',
-              'monthly'    => 'Monthly report will be sent to your email.',
+              'daily' => 'Daily report will be sent to your email.',
+              'monthly' => 'Monthly report will be sent to your email.',
               'date_range' => 'Custom report will be sent to your email.',
             ];
 
@@ -188,6 +193,99 @@ class PaymentsTable
           ViewAction::make(),
 
           EditAction::make(),
+
+          Action::make('manage_draft')
+            ->label('Kelola Draft')
+            ->color('success')
+            ->icon('heroicon-o-document-text')
+            ->visible(fn(Payment $record): bool => $record->is_draft === true)
+            ->modalHeading('Kelola Draft')
+            ->modalDescription('Edit transaksi draft dan tentukan statusnya.')
+            ->modalWidth(Width::Large)
+            ->schema(fn(Schema $form): Schema => $form->components([
+              TextInput::make('amount')
+                ->label('Amount')
+                ->required()
+                ->numeric()
+                ->live(onBlur: true)
+                ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+              Select::make('type_id')
+                ->label('Type')
+                ->options(PaymentType::all()->pluck('name', 'id'))
+                ->required()
+                ->native(false)
+                ->live(),
+
+              Select::make('payment_account_id')
+                ->label('Payment Account')
+                ->options(fn(Get $get) => PaymentAccount::where('id', '!=', $get('payment_account_to_id'))
+                  ->where('user_id', auth()->id())
+                  ->pluck('name', 'id'))
+                ->required()
+                ->native(false)
+                ->live()
+                ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state ?? -1)?->deposit ?? 0)),
+
+              Select::make('payment_account_to_id')
+                ->label('Payment To')
+                ->options(fn(Get $get) => PaymentAccount::where('id', '!=', $get('payment_account_id'))
+                  ->where('user_id', auth()->id())
+                  ->pluck('name', 'id'))
+                ->required(fn(Get $get): bool => in_array($get('type_id'), [PaymentType::TRANSFER, PaymentType::WITHDRAWAL]))
+                ->visible(fn(Get $get): bool => in_array($get('type_id'), [PaymentType::TRANSFER, PaymentType::WITHDRAWAL]))
+                ->native(false)
+                ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state ?? -1)?->deposit ?? 0)),
+
+              Toggle::make('approve_draft')
+                ->label('Approve Draft')
+                ->helperText('Jika draft disetujui, transaksi akan dijalankan dan saldo akan dimutasi.')
+                ->default(false),
+            ]))
+            ->fillForm(fn(Payment $record): array => [
+              'amount' => $record->amount,
+              'type_id' => $record->type_id,
+              'payment_account_id' => $record->payment_account_id,
+              'payment_account_to_id' => $record->payment_account_to_id,
+              'approve_draft' => false,
+            ])
+            ->action(function (Action $action, Payment $record, array $data): void {
+              $record->amount = intval($data['amount']);
+              $record->type_id = intval($data['type_id']);
+              $record->payment_account_id = intval($data['payment_account_id']);
+              $record->payment_account_to_id = $data['payment_account_to_id'] ?? null;
+
+              if ($data['approve_draft']) {
+                $record->is_draft = false;
+              }
+
+              $record->save();
+              $record->load(['payment_account', 'payment_account_to']);
+
+              if ($data['approve_draft']) {
+                $mutate = Payment::approveDraft($record);
+
+                if (!$mutate['status']) {
+                  $record->is_draft = true;
+                  $record->save();
+
+                  Notification::make()
+                    ->danger()
+                    ->title('Transaction Failed!')
+                    ->body($mutate['message'] ?? 'Something went wrong!')
+                    ->send();
+
+                  $action->halt();
+                  return;
+                }
+              }
+
+              Notification::make()
+                ->success()
+                ->title($data['approve_draft'] ? 'Draft Approved!' : 'Draft Updated!')
+                ->body($data['approve_draft'] ? 'Draft has been approved and balance has been mutated.' : 'Draft has been updated successfully.')
+                ->send();
+            }),
 
           DeleteAction::make(),
 
