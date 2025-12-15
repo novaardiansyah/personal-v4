@@ -35,7 +35,10 @@ jobs:
             
             echo "--> Artisan migrate..."
             php artisan migrate --force
-            
+
+            echo "--> Artisan generate api docs..."
+            php artisan l5-swagger:generate
+
             echo "--> Artisan optimize cache..."
             php artisan filament:optimize
             php artisan config:cache
