@@ -41,7 +41,8 @@ jobs:
             php artisan migrate --force
 
             echo "--> Artisan generate api docs..."
-            php artisan l5-swagger:generate
+            # php artisan l5-swagger:generate
+            echo "INFO: API docs generation skipped"
 
             echo "--> Artisan optimize cache..."
             php artisan filament:optimize
