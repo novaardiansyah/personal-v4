@@ -77,6 +77,59 @@ class PaymentService
     ];
   }
 
+  public static function manageDraft(Payment $record, bool $is_draft): array
+  {
+    if ($is_draft) {
+      $record->is_draft = true;
+      $record->save();
+
+      return ['status' => true, 'message' => 'Draft status has been updated.'];
+    }
+
+    if (!$record->is_draft) {
+      return ['status' => false, 'message' => 'This transaction is not a draft or has already been approved.'];
+    }
+
+    $type_id = intval($record->type_id);
+    $amount = intval($record->amount);
+    $payment_account = $record->payment_account;
+    $payment_account_to = $record->payment_account_to;
+
+    if ($type_id == PaymentType::INCOME) {
+      $payment_account->deposit += $amount;
+    } else {
+      if ($payment_account->deposit < $amount) {
+        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.'];
+      }
+
+      if ($type_id == PaymentType::EXPENSE) {
+        $payment_account->deposit -= $amount;
+      } else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
+        if (!$payment_account_to) {
+          return ['status' => false, 'message' => 'The destination payment account is invalid or not found.'];
+        }
+
+        $payment_account->deposit -= $amount;
+        $payment_account_to->deposit += $amount;
+      } else {
+        return ['status' => false, 'message' => 'The selected transaction type is invalid.'];
+      }
+    }
+
+    if ($payment_account->isDirty('deposit')) {
+      $payment_account->save();
+    }
+
+    if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
+      $payment_account_to->save();
+    }
+
+    $record->is_draft = false;
+    $record->save();
+
+    return ['status' => true, 'message' => 'Draft has been approved and balance has been mutated.'];
+  }
+
   public static function make_pdf(array $data)
   {
     Log::info('4236 --> PaymentService::make_pdf(): Started.');

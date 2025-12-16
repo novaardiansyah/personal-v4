@@ -28,7 +28,7 @@ jobs:
             git pull origin production
 
             echo "--> Composer install..."
-            composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+            COMPOSER_PROCESS_TIMEOUT=0 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
             
             echo "--> Artisan clear cache..."
             php artisan optimize:clear

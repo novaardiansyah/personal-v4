@@ -20,10 +20,8 @@ use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
 
 class PaymentController extends Controller
 {
@@ -1630,6 +1628,106 @@ class PaymentController extends Controller
           'account' => $item->account,
         ]),
       ]
+    ]);
+  }
+
+  /**
+   * @OA\Post(
+   *     path="/api/payments/{payment:code}/manage-draft",
+   *     summary="Manage draft payment status (approve or reject)",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="payment",
+   *         in="path",
+   *         required=true,
+   *         description="Payment code",
+   *         @OA\Schema(type="string")
+   *     ),
+   *     @OA\RequestBody(
+   *         required=true,
+   *         @OA\JsonContent(
+   *             required={"status"},
+   *             @OA\Property(
+   *                 property="status",
+   *                 type="string",
+   *                 enum={"approve", "reject"},
+   *                 description="approve = mutate balance and set is_draft=false, reject = delete draft transaction"
+   *             ),
+   *             @OA\Property(
+   *                 property="allow_empty",
+   *                 type="boolean",
+   *                 description="If true, response data will be null instead of payment resource"
+   *             )
+   *         )
+   *     ),
+   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   * )
+   */
+  public function manageDraft(Request $request, string $code): JsonResponse
+  {
+    $payment = Payment::where('code', $code)
+      ->where('user_id', Auth()->user()->id)
+      ->first();
+
+    if (!$payment) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Operation failed'
+      ], 404);
+    }
+
+    $validator = Validator::make($request->all(), [
+      'status' => 'required|in:approve,reject',
+      'allow_empty' => 'nullable|boolean'
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $payment->load(['payment_account', 'payment_account_to']);
+
+    $validated = $validator->validate();
+
+    if ($validated['status'] == 'reject') {
+      if (!$payment->is_draft) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Transaction is not a draft, cannot perform this action.',
+        ], 422);
+      }
+
+      $payment->delete();
+
+      return response()->json([
+        'success' => true,
+        'message' => 'Draft transaction rejected, and successfully deleted.',
+      ]);
+    }
+
+    $result = PaymentService::manageDraft($payment, false);
+
+    if (!$result['status']) {
+      return response()->json([
+        'success' => false,
+        'message' => $result['message']
+      ], 422);
+    }
+
+    $allow_empty = $validated['allow_empty'] ?? false;
+
+    return response()->json([
+      'success' => true,
+      'message' => $result['message'],
+      'data' => $allow_empty ? null : new PaymentResource($payment->fresh(['payment_type', 'payment_account', 'payment_account_to']))
     ]);
   }
 }

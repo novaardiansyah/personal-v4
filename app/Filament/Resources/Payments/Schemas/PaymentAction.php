@@ -261,21 +261,13 @@ class PaymentAction
     $record->type_id = intval($data['type_id']);
     $record->payment_account_id = intval($data['payment_account_id']);
     $record->payment_account_to_id = $data['payment_account_to_id'] ?? null;
-
-    if ($data['approve_draft']) {
-      $record->is_draft = false;
-    }
-
     $record->save();
     $record->load(['payment_account', 'payment_account_to']);
 
     if ($data['approve_draft']) {
-      $mutate = Payment::approveDraft($record);
+      $mutate = PaymentService::manageDraft($record, false);
 
       if (!$mutate['status']) {
-        $record->is_draft = true;
-        $record->save();
-
         Notification::make()
           ->danger()
           ->title('Transaction Failed!')

@@ -55,6 +55,7 @@ class PaymentObserver
    */
   private function _handleDeleteLogic(Payment $payment): void
   {
+    logger('Payment deleted', $payment->toArray());
     $attachments  = $payment->attachments;
     $has_charge = boolval($payment->has_charge ?? 0);
     $is_scheduled = boolval($payment->is_scheduled ?? 0);

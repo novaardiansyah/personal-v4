@@ -88,6 +88,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{payment}/attachments', [PaymentController::class, 'getAttachments']);
     Route::post('/{payment}/attachments', [PaymentController::class, 'addAttachment']);
     Route::delete('/{payment}/attachments', [PaymentController::class, 'deleteAttachment']);
+
+    Route::post('/{code}/manage-draft', [PaymentController::class, 'manageDraft']);
   });
 
   Route::prefix('payment-accounts')->group(function () {
