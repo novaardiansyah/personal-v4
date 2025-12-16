@@ -33,6 +33,10 @@ jobs:
             echo "--> Artisan clear cache..."
             php artisan optimize:clear
             
+            echo "--> Artisan storage link..."
+            rm -rf ./public/storage
+            php artisan storage:link
+
             echo "--> Artisan migrate..."
             php artisan migrate --force
 
