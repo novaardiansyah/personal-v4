@@ -246,10 +246,61 @@ class PaymentController extends Controller
     ]);
   }
 
+  /**
+   * @OA\Get(
+   *     path="/api/payments/code/{code}",
+   *     summary="Get specific payment by code",
+   *     description="Retrieve payment details using unique payment code. Supports filtering by draft status and optional request view mode.",
+   *     tags={"Payments"},
+   *     security={{"bearerAuth":{}}},
+   *     @OA\Parameter(
+   *         name="code",
+   *         in="path",
+   *         required=true,
+   *         description="Unique payment code",
+   *         @OA\Schema(type="string")
+   *     ),
+   *     @OA\Parameter(
+   *         name="request_view",
+   *         in="query",
+   *         required=false,
+   *         description="Flag to indicate request view mode for additional response data",
+   *         @OA\Schema(type="boolean", default=false)
+   *     ),
+   *     @OA\Parameter(
+   *         name="is_draft",
+   *         in="query",
+   *         required=false,
+   *         description="Filter by draft status. If true, only returns draft payments; if false or not provided, returns non-draft payments",
+   *         @OA\Schema(type="boolean", default=false)
+   *     ),
+   *     @OA\Response(
+   *         response=200,
+   *         description="Success",
+   *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
+   *     ),
+   *     @OA\Response(
+   *         response=404,
+   *         description="Payment not found",
+   *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
+   *     ),
+   *     @OA\Response(
+   *         response=422,
+   *         description="Validation error",
+   *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
+   *     ),
+   *     @OA\Response(
+   *         response=401,
+   *         description="Unauthenticated",
+   *         @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")
+   *     )
+   * )
+   */
   public function showByCode(Request $request, $code): JsonResponse
   {
     $validator = Validator::make($request->all(), [
       'request_view' => 'nullable|boolean',
+      'is_draft'     => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
@@ -269,6 +320,7 @@ class PaymentController extends Controller
     $payment = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
       ->where('code', $code)
       ->where('user_id', Auth()->user()->id)
+      ->where('is_draft', $data['is_draft'] ?? false)
       ->first();
 
     if (!$payment) {
