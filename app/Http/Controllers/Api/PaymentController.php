@@ -300,7 +300,7 @@ class PaymentController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'request_view' => 'nullable|boolean',
-      'is_draft'     => 'nullable|boolean',
+      'is_draft' => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
@@ -317,11 +317,15 @@ class PaymentController extends Controller
 
     $data = $validator->validated();
 
-    $payment = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
+    $query = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
       ->where('code', $code)
-      ->where('user_id', Auth()->user()->id)
-      ->where('is_draft', $data['is_draft'] ?? false)
-      ->first();
+      ->where('user_id', Auth()->user()->id);
+    
+    if (isset($data['is_draft']) && $data['is_draft'] != null) {
+      $query->where('is_draft', $data['is_draft']);
+    }
+
+    $payment = $query->first();
 
     if (!$payment) {
       return response()->json([
@@ -334,7 +338,7 @@ class PaymentController extends Controller
 
     return response()->json([
       'success' => true,
-      'data'    => new PaymentResource($payment)
+      'data' => new PaymentResource($payment)
     ]);
   }
 
