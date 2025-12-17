@@ -15,7 +15,14 @@ class ManagePushNotifications extends ManageRecords
   {
     return [
       CreateAction::make()
-        ->modalWidth(Width::ThreeExtraLarge),
+        ->modalWidth(Width::ThreeExtraLarge)
+        ->mutateFormDataUsing(function (array $data): array {
+          $data['data'] = array_merge($data['data'], [
+            'timestamps' => now()->toDateTimeString(),
+          ]);
+
+          return $data;
+        }),
     ];
   }
 }

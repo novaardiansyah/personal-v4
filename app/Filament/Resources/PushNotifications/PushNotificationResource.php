@@ -88,8 +88,7 @@ class PushNotificationResource extends Resource
 
         KeyValue::make('data')
           ->label('Additional Data')
-          ->columnSpanFull()
-          ->disabledOn('edit'),
+          ->columnSpanFull(),
       ]);
   }
 
@@ -234,7 +233,8 @@ class PushNotificationResource extends Resource
             ->modalWidth(Width::FiveExtraLarge),
 
           EditAction::make()
-            ->modalWidth(Width::FiveExtraLarge),
+            ->modalWidth(Width::FiveExtraLarge)
+            ->visible(fn (PushNotification $record): bool => !$record->sent_at),
 
           Action::make('sendNotification')
             ->label('Send Push Notification')

@@ -2,10 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentResource extends JsonResource
 {
@@ -26,6 +24,7 @@ class PaymentResource extends JsonResource
       'amount'               => $this->amount,
       'has_items'            => $this->has_items,
       'is_scheduled'         => $this->is_scheduled,
+      'is_draft'             => $this->is_draft,
       'formatted_amount'     => toIndonesianCurrency($this->amount),
       'formatted_date'       => carbonTranslatedFormat($this->date, 'l, d M Y', 'id'),
       'type'                 => strtolower($this->payment_type->name),
