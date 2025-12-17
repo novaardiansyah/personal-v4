@@ -248,7 +248,7 @@ class PaymentController extends Controller
 
   /**
    * @OA\Get(
-   *     path="/api/payments/code/{code}",
+   *     path="/api/payments/{payment:code}",
    *     summary="Get specific payment by code",
    *     description="Retrieve payment details using unique payment code. Supports filtering by draft status and optional request view mode.",
    *     tags={"Payments"},
