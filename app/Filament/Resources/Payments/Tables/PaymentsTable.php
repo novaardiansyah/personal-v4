@@ -34,7 +34,8 @@ class PaymentsTable
         TextColumn::make('code')
           ->label('Transaction ID')
           ->searchable()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('amount')
           ->label('Nominal')
           ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))

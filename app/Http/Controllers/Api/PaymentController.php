@@ -246,6 +246,46 @@ class PaymentController extends Controller
     ]);
   }
 
+  public function showByCode(Request $request, $code): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'request_view' => 'nullable|boolean',
+    ]);
+
+    $validator->setAttributeNames([
+      'request_view' => 'request view',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $data = $validator->validated();
+
+    $payment = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
+      ->where('code', $code)
+      ->where('user_id', Auth()->user()->id)
+      ->first();
+
+    if (!$payment) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Operation failed'
+      ], 404);
+    }
+
+    $payment->request_view = $data['request_view'] ?? false;
+
+    return response()->json([
+      'success' => true,
+      'data'    => new PaymentResource($payment)
+    ]);
+  }
+
   /**
    * @OA\Put(
    *     path="/api/payments/{id}",

@@ -71,7 +71,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/', [PaymentController::class, 'index']);
     Route::post('/', [PaymentController::class, 'store']);
 
-    Route::get('/{id}', [PaymentController::class, 'show']);
+    Route::get('/{id}', [PaymentController::class, 'show'])
+      ->whereNumber('id');
+    
+    Route::get('/{code}', [PaymentController::class, 'showByCode'])
+      ->where('code', '[A-Z0-9\-]+');
+
     Route::put('/{id}', [PaymentController::class, 'update']);
     Route::delete('/{payment}', [PaymentController::class, 'destroy']);
 
