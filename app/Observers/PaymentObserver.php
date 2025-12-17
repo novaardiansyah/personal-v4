@@ -55,11 +55,10 @@ class PaymentObserver
    */
   private function _handleDeleteLogic(Payment $payment): void
   {
-    logger('Payment deleted', $payment->toArray());
     $attachments  = $payment->attachments;
-    $has_charge = boolval($payment->has_charge ?? 0);
+    $has_charge   = boolval($payment->has_charge ?? 0);
     $is_scheduled = boolval($payment->is_scheduled ?? 0);
-    $is_draft = boolval($payment->is_draft ?? 0);
+    $is_draft     = boolval($payment->is_draft ?? 0);
 
     if ($is_scheduled)
       $has_charge = true;
@@ -92,7 +91,6 @@ class PaymentObserver
       }
     }
 
-    // Delete attachments
     if (!empty($attachments)) {
       foreach ($attachments as $attachment) {
         if (Storage::disk('public')->exists($attachment)) {
