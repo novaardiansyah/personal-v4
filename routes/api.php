@@ -20,6 +20,8 @@ use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\PaymentGoalController;
 use App\Http\Controllers\Api\PaymentGoalStatusController;
 use App\Http\Controllers\Api\NotificationController;
+use App\Http\Controllers\Api\PushNotificationController;
+use App\Http\Controllers\Api\NoteController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -73,7 +75,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/{id}', [PaymentController::class, 'show'])
       ->whereNumber('id');
-    
+
     Route::get('/{code}', [PaymentController::class, 'showByCode'])
       ->where('code', '[A-Z0-9\-]+');
 
@@ -159,5 +161,27 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('blog-posts')->group(function () {
     Route::get('/published', [BlogPostController::class, 'published']);
     Route::get('/{blogPost:slug}', [BlogPostController::class, 'showBySlug']);
+  });
+
+  Route::prefix('push-notifications')->group(function () {
+    Route::post('/', [PushNotificationController::class, 'store']);
+  });
+
+  Route::prefix('notes')->group(function () {
+    Route::get('/', [NoteController::class, 'index']);
+    Route::post('/', [NoteController::class, 'store']);
+
+    Route::get('/{note}', [NoteController::class, 'show'])
+      ->whereNumber('note');
+
+    Route::get('/{code}', [NoteController::class, 'showByCode'])
+      ->where('code', '[A-Z0-9\\-]+');
+
+    Route::put('/{note}', [NoteController::class, 'update']);
+    Route::delete('/{note}', [NoteController::class, 'destroy']);
+    Route::delete('/{note}/force', [NoteController::class, 'forceDestroy']);
+    Route::post('/{note}/restore', [NoteController::class, 'restore']);
+    Route::patch('/{note}/toggle-pin', [NoteController::class, 'togglePin']);
+    Route::patch('/{note}/toggle-archive', [NoteController::class, 'toggleArchive']);
   });
 });
