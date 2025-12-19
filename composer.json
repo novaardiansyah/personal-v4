@@ -61,10 +61,13 @@
             "@php -r \"file_exists('database/database.sqlite') || touch('database/database.sqlite');\"",
             "@php artisan migrate --graceful --ansi"
         ],
-        "dev": [
-            "Composer\\Config::disableProcessTimeout",
-            "@php artisan optimize:clear",
-            "npx concurrently -c \"#93c5fd,#c4b5fd\" \"php artisan serve\" \"php artisan queue:listen --tries=1\""
+        "serve": [
+          "Composer\\Config::disableProcessTimeout",
+          "@php artisan serve --port=8000"
+        ],
+        "queue": [
+          "Composer\\Config::disableProcessTimeout",
+          "@php artisan queue:listen --tries=1"
         ],
         "test": [
             "@php artisan config:clear --ansi",

@@ -114,7 +114,13 @@ class PaymentForm
             ->native(false)
             ->default(1)
             ->required()
-            ->disabledOn('edit')
+            ->disabled(function (string $operation, ?Payment $record) {
+              $disabled = $operation === 'edit';
+              if ($record?->is_scheduled || $record?->is_draft) {
+                $disabled = false;
+              }
+              return $disabled;
+            })
             ->afterStateUpdated(function (Set $set, ?string $state, string $operation) {
               if ($state == PaymentType::WITHDRAWAL) {
                 $set('payment_account_id', PaymentAccount::PERMATA_BANK);
@@ -143,7 +149,7 @@ class PaymentForm
             ->default(PaymentAccount::TUNAI)
             ->disabled(function (string $operation, ?Payment $record) {
               $disabled = $operation === 'edit';
-              if ($record?->is_scheduled) {
+              if ($record?->is_scheduled || $record?->is_draft) {
                 $disabled = false;
               }
               return $disabled;
@@ -178,7 +184,14 @@ class PaymentForm
             ->default(PaymentAccount::DANA)
             ->required(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
             ->visible(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
-            ->disabled(fn($get, string $operation): bool => !($get('type_id') == 3 || $get('type_id') == 4) || $operation == 'edit')
+            ->disabled(function (string $operation, Get $get, ?Payment $record) {
+              $disabled = $operation === 'edit';
+              $allowed = $get('type_id') == 3 || $get('type_id') == 4;
+              if ($record?->is_scheduled || $record?->is_draft) {
+                $disabled = false;
+              }
+              return $disabled || !$allowed;
+            })
             ->hint(function(?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
