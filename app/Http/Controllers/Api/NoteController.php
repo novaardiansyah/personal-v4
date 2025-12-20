@@ -96,7 +96,8 @@ class NoteController extends Controller
    *         @OA\Property(property="title", type="string", maxLength=255, description="Note title"),
    *         @OA\Property(property="content", type="string", nullable=true, description="Note content (supports markdown)"),
    *         @OA\Property(property="is_pinned", type="boolean", default=false, description="Pin note to top"),
-   *         @OA\Property(property="is_archived", type="boolean", default=false, description="Archive note")
+   *         @OA\Property(property="is_archived", type="boolean", default=false, description="Archive note"),
+   *         @OA\Property(property="request_view", type="boolean", default=false, description="If true, response includes view_url for admin panel link")
    *     )),
    *     @OA\Response(response=201, description="Note created successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
@@ -110,6 +111,7 @@ class NoteController extends Controller
       'content' => 'nullable|string',
       'is_pinned' => 'nullable|boolean',
       'is_archived' => 'nullable|boolean',
+      'request_view' => 'nullable|boolean',
     ]);
 
     if ($validator->fails()) {
@@ -121,9 +123,15 @@ class NoteController extends Controller
     }
 
     $validated = $validator->validated();
+
     $validated['user_id'] = auth()->user()->id;
+    $validated['code'] = getCode('note');
 
     $note = Note::create($validated);
+
+    if ($validated['request_view']) {
+      $note->view_url = url("/admin/notes?tableAction=view&tableActionRecord={$note->id}");
+    }
 
     return response()->json([
       'success' => true,

@@ -2,7 +2,6 @@
 
 namespace App\Providers\Filament;
 
-use App\Enums\NavigationGroup;
 use App\Filament\Widgets\PaymentChartWidget;
 use App\Livewire\ActivityLogTableWidget;
 use App\Livewire\PaymentStatsWidget;
@@ -15,8 +14,6 @@ use Filament\Pages\Dashboard;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
-use Filament\Widgets\AccountWidget;
-use Filament\Widgets\FilamentInfoWidget;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
@@ -57,7 +54,7 @@ class AdminPanelProvider extends PanelProvider
       ->colors(function () {
         $color = getSetting('site_theme', 'Cyan');
         return [
-          'primary' => Color::{$color}
+          'primary' => constant(Color::class . '::' . $color)
         ];
       })
       ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
