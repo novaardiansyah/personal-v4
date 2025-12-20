@@ -224,17 +224,18 @@ class NoteController extends Controller
 
   /**
    * @OA\Put(
-   *     path="/api/notes/{note}",
+   *     path="/api/notes/{code}",
    *     summary="Update existing note",
-   *     description="Update a specific note. All fields are optional.",
+   *     description="Update a specific note by unique code. All fields are optional.",
    *     tags={"Notes"},
    *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="note", in="path", required=true, description="Note ID", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="code", in="path", required=true, description="Unique note code", @OA\Schema(type="string")),
    *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         @OA\Property(property="title", type="string", maxLength=255, description="Note title"),
-   *         @OA\Property(property="content", type="string", nullable=true, description="Note content (supports markdown)"),
-   *         @OA\Property(property="is_pinned", type="boolean", description="Pin note to top"),
-   *         @OA\Property(property="is_archived", type="boolean", description="Archive note")
+   *         @OA\Property(property="title", type="string", maxLength=255, description="Note title (optional)"),
+   *         @OA\Property(property="content", type="string", description="Note content, supports markdown (optional)"),
+   *         @OA\Property(property="is_pinned", type="boolean", description="Pin note to top (optional)"),
+   *         @OA\Property(property="is_archived", type="boolean", description="Archive note (optional)"),
+   *         @OA\Property(property="request_view", type="boolean", default=false, description="If true, response includes view_url for admin panel link (optional)")
    *     )),
    *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
@@ -242,13 +243,14 @@ class NoteController extends Controller
    *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
    * )
    */
-  public function update(Request $request, Note $note): JsonResponse
+  public function update(Request $request, string $code): JsonResponse
   {
     $validator = Validator::make($request->all(), [
       'title' => 'sometimes|string|max:255',
-      'content' => 'nullable|string',
+      'content' => 'sometimes|string',
       'is_pinned' => 'sometimes|boolean',
       'is_archived' => 'sometimes|boolean',
+      'request_view' => 'sometimes|boolean',
     ]);
 
     if ($validator->fails()) {
@@ -259,7 +261,21 @@ class NoteController extends Controller
       ], 422);
     }
 
-    $note->update($validator->validated());
+    $validated = $validator->validated();
+
+    $note = Note::where('code', $code)
+      ->where('user_id', auth()->user()->id)
+      ->first();
+
+    if (!$note) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Note not found'
+      ], 404);
+    }
+
+    $note->update($validated);
+    $note->request_view = $validated['request_view'] ?? false;
 
     return response()->json([
       'success' => true,
@@ -270,19 +286,30 @@ class NoteController extends Controller
 
   /**
    * @OA\Delete(
-   *     path="/api/notes/{note}",
+   *     path="/api/notes/{code}",
    *     summary="Delete note (soft delete)",
-   *     description="Soft delete a specific note. The note can be restored later.",
+   *     description="Soft delete a specific note by unique code. The note can be restored later.",
    *     tags={"Notes"},
    *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="note", in="path", required=true, description="Note ID", @OA\Schema(type="integer")),
+   *     @OA\Parameter(name="code", in="path", required=true, description="Unique note code", @OA\Schema(type="string")),
    *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
    *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
    * )
    */
-  public function destroy(Note $note): JsonResponse
+  public function destroy(string $code): JsonResponse
   {
+    $note = Note::where('code', $code)
+      ->where('user_id', auth()->user()->id)
+      ->first();
+
+    if (!$note) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Note not found'
+      ], 404);
+    }
+
     $note->delete();
 
     return response()->json([

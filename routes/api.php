@@ -177,8 +177,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/{code}', [NoteController::class, 'showByCode'])
       ->where('code', '[A-Z0-9\\-]+');
 
-    Route::put('/{note}', [NoteController::class, 'update']);
-    Route::delete('/{note}', [NoteController::class, 'destroy']);
+    Route::put('/{code}', [NoteController::class, 'update'])
+      ->where('code', '[A-Z0-9\\-]+');
+
+    Route::delete('/{code}', [NoteController::class, 'destroy'])
+      ->where('code', '[A-Z0-9\\-]+');
+      
     Route::delete('/{note}/force', [NoteController::class, 'forceDestroy']);
     Route::post('/{note}/restore', [NoteController::class, 'restore']);
     Route::patch('/{note}/toggle-pin', [NoteController::class, 'togglePin']);
