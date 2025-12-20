@@ -128,10 +128,7 @@ class NoteController extends Controller
     $validated['code'] = getCode('note');
 
     $note = Note::create($validated);
-
-    if ($validated['request_view']) {
-      $note->view_url = url("/admin/notes?tableAction=view&tableActionRecord={$note->id}");
-    }
+    $note->request_view = $validated['request_view'] ?? false;
 
     return response()->json([
       'success' => true,
@@ -176,17 +173,34 @@ class NoteController extends Controller
    *     security={{"bearerAuth":{}}},
    *     @OA\Parameter(name="code", in="path", required=true, description="Unique note code", @OA\Schema(type="string")),
    *     @OA\Parameter(name="with_trashed", in="query", description="Include soft-deleted records", @OA\Schema(type="boolean", default=false)),
+   *     @OA\Parameter(name="request_view", in="query", description="If true, response includes view_url for admin panel link", @OA\Schema(type="boolean", default=false)),
    *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
   public function showByCode(Request $request, string $code): JsonResponse
   {
+    $validator = Validator::make($request->all(), [
+      'with_trashed' => 'nullable|boolean',
+      'request_view' => 'nullable|boolean',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+
     $query = Note::where('code', $code)
       ->where('user_id', auth()->user()->id);
 
-    if ($request->has('with_trashed') && $request->boolean('with_trashed')) {
+    if ($validated['with_trashed'] ?? false) {
       $query->withTrashed();
     }
 
@@ -198,6 +212,8 @@ class NoteController extends Controller
         'message' => 'Note not found'
       ], 404);
     }
+
+    $note->request_view = $validated['request_view'] ?? false;
 
     return response()->json([
       'success' => true,

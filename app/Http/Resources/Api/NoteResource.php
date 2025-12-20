@@ -21,7 +21,7 @@ class NoteResource extends JsonResource
       'content' => $this->content,
       'is_pinned' => $this->is_pinned,
       'is_archived' => $this->is_archived,
-      'view_url' => $this?->view_url,
+      'view_url' => $this->request_view ? url("/admin/notes?tableAction=view&tableActionRecord={$this->id}") : null,
 
       'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
       'updated_at' => $this->updated_at?->format('Y-m-d H:i:s'),
