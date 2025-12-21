@@ -33,7 +33,7 @@ class BlogSubscriberController extends Controller
   public function subscribe(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'email' => 'required|email|unique:blog_subscribers,email',
+      'email' => 'required|email',
     ]);
 
     if ($validator->fails()) {
@@ -47,12 +47,31 @@ class BlogSubscriberController extends Controller
     $validated = $validator->validated();
     $email = textLower($validated['email']);
 
-    $subscriber = BlogSubscriber::create([
-      'email' => $email,
-      'name' => explode('@', $email)[0],
-      'token' => Str::uuid7()->toString(),
-      'subscribed_at' => now(),
-    ]);
+    $subscriber = BlogSubscriber::where('email', $email)->first();
+
+    if ($subscriber) {
+      if (!$subscriber->unsubscribed_at) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Validation failed',
+          'errors' => ['email' => ['The email has already been subscribed.']]
+        ], 422);
+      }
+
+      $subscriber->update([
+        'token' => Str::uuid7()->toString(),
+        'subscribed_at' => now(),
+        'unsubscribed_at' => null,
+        'verified_at' => null,
+      ]);
+    } else {
+      $subscriber = BlogSubscriber::create([
+        'email' => $email,
+        'name' => explode('@', $email)[0],
+        'token' => Str::uuid7()->toString(),
+        'subscribed_at' => now(),
+      ]);
+    }
 
     Mail::to($subscriber->email)->send(new VerifySubscriberMail([
       'name' => $subscriber->name,
