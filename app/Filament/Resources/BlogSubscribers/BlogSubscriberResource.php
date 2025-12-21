@@ -21,7 +21,9 @@ use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
@@ -47,20 +49,30 @@ class BlogSubscriberResource extends Resource
         TextInput::make('email')
           ->email()
           ->required()
-          ->unique(ignoreRecord: true),
+          ->unique(ignoreRecord: true)
+          ->live(onBlur: true)
+          ->afterStateUpdated(function (?string $state, Set $set) {
+            if (!$state) return $set('name', null);
+            $set('email', textLower($state));
+            $set('name', explode('@', $state)[0]);
+          }),
         TextInput::make('name')
           ->default(null),
         TextInput::make('token')
           ->required()
-          ->default(fn() => Str::random(32))
+          ->default(fn() => Str::uuid7()->toString())
           ->disabled()
           ->dehydrated(),
         DateTimePicker::make('verified_at')
-          ->label('Verified At'),
+          ->label('Verified At')
+          ->native(false),
         DateTimePicker::make('subscribed_at')
-          ->label('Subscribed At'),
+          ->label('Subscribed At')
+          ->default(now())
+          ->native(false),
         DateTimePicker::make('unsubscribed_at')
-          ->label('Unsubscribed At'),
+          ->label('Unsubscribed At')
+          ->native(false),
       ])
       ->columns(2);
   }
@@ -176,7 +188,10 @@ class BlogSubscriberResource extends Resource
       ->defaultSort('created_at', 'desc')
       ->recordActions([
         ActionGroup::make([
-          ViewAction::make(),
+          ViewAction::make()
+            ->modalWidth(Width::FiveExtraLarge)
+            ->slideOver(),
+
           EditAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),

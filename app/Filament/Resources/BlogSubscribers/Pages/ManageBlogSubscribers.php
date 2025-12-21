@@ -8,12 +8,12 @@ use Filament\Resources\Pages\ManageRecords;
 
 class ManageBlogSubscribers extends ManageRecords
 {
-    protected static string $resource = BlogSubscriberResource::class;
+  protected static string $resource = BlogSubscriberResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            CreateAction::make(),
-        ];
-    }
+  protected function getHeaderActions(): array
+  {
+    return [
+      CreateAction::make(),
+    ];
+  }
 }
