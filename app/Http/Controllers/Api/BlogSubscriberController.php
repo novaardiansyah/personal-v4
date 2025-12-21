@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BlogSubscriberResource\VerifySubscriberMail;
 use App\Models\BlogSubscriber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -47,6 +49,12 @@ class BlogSubscriberController extends Controller
       'token' => Str::uuid7()->toString(),
       'subscribed_at' => now(),
     ]);
+
+    Mail::to($subscriber->email)->send(new VerifySubscriberMail([
+      'name' => $subscriber->name,
+      'email' => $subscriber->email,
+      'token' => $subscriber->token,
+    ]));
 
     return response()->json([
       'success' => true,
