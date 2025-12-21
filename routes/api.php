@@ -27,9 +27,10 @@ use App\Http\Controllers\Api\NoteController;
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::prefix('blog-subscribers')->group(function () {
-  Route::post('/subscribe', [BlogSubscriberController::class, 'subscribe']);
-  Route::post('/verify', [BlogSubscriberController::class, 'verify']);
-  Route::post('/unsubscribe', [BlogSubscriberController::class, 'unsubscribe']);
+  Route::get('/subscribe/{email}', [BlogSubscriberController::class, 'subscribe']);
+  Route::get('/verify/{token}', [BlogSubscriberController::class, 'verify']);
+  Route::get('/unsubscribe/{token}', [BlogSubscriberController::class, 'unsubscribe']);
+  Route::get('/re-subscribe/{token}', [BlogSubscriberController::class, 'reSubscribe']);
   Route::get('/{token}', [BlogSubscriberController::class, 'show']);
 });
 

@@ -22,7 +22,7 @@ class FarewellSubscriberMail extends Mailable implements ShouldQueue
 
     $this->data = array_merge($this->data, [
       'subject' => 'Sampai Jumpa Lagi! (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i', 'id') . ')',
-      'resubscribe_url' => "{$url}/subscribe/{$token}",
+      'resubscribe_url' => "{$url}/re-subscribe/{$token}",
       'blog_url' => $url,
     ]);
   }
