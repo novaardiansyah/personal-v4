@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BlogSubscriberResource\FarewellSubscriberMail;
 use App\Mail\BlogSubscriberResource\VerifySubscriberMail;
 use App\Mail\BlogSubscriberResource\WelcomeSubscriberMail;
 use App\Models\BlogSubscriber;
@@ -180,7 +181,20 @@ class BlogSubscriberController extends Controller
       ], 400);
     }
 
-    $subscriber->update(['unsubscribed_at' => now()]);
+    $newToken = Str::uuid7()->toString();
+    
+    $subscriber->update([
+      'unsubscribed_at' => now(),
+      'token' => $newToken,
+    ]);
+
+    $subscriber->refresh();
+
+    Mail::to($subscriber->email)->send(new FarewellSubscriberMail([
+      'name' => $subscriber->name,
+      'email' => $subscriber->email,
+      'token' => $newToken,
+    ]));
 
     return response()->json([
       'success' => true,
