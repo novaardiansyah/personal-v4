@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BlogSubscriberResource\VerifySubscriberMail;
+use App\Mail\BlogSubscriberResource\WelcomeSubscriberMail;
 use App\Models\BlogSubscriber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -115,6 +116,12 @@ class BlogSubscriberController extends Controller
     }
 
     $subscriber->update(['verified_at' => now()]);
+
+    Mail::to($subscriber->email)->send(new WelcomeSubscriberMail([
+      'name' => $subscriber->name,
+      'email' => $subscriber->email,
+      'token' => $subscriber->token,
+    ]));
 
     return response()->json([
       'success' => true,
