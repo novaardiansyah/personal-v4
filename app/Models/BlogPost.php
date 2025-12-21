@@ -3,10 +3,13 @@
 namespace App\Models;
 
 use App\Enums\BlogPostStatus;
+use App\Observers\BlogPostObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy([BlogPostObserver::class])]
 class BlogPost extends Model
 {
   use SoftDeletes;
@@ -16,7 +19,7 @@ class BlogPost extends Model
   protected function casts(): array
   {
     return [
-      'status'       => BlogPostStatus::class,
+      'status' => BlogPostStatus::class,
       'published_at' => 'datetime',
       'scheduled_at' => 'datetime',
     ];
