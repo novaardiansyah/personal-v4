@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Mail\BlogSubscriberResource\FarewellSubscriberMail;
+use App\Mail\BlogSubscriberResource\ResubscribeSubscriberMail;
 use App\Mail\BlogSubscriberResource\VerifySubscriberMail;
 use App\Mail\BlogSubscriberResource\WelcomeSubscriberMail;
 use App\Models\BlogSubscriber;
@@ -296,7 +297,7 @@ class BlogSubscriberController extends Controller
       'verified_at' => now(),
     ]);
 
-    Mail::to($subscriber->email)->send(new WelcomeSubscriberMail([
+    Mail::to($subscriber->email)->send(new ResubscribeSubscriberMail([
       'name' => $subscriber->name,
       'email' => $subscriber->email,
       'token' => $subscriber->token,

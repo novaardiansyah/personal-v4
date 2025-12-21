@@ -11,7 +11,7 @@ use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
 
-class FarewellSubscriberMail extends Mailable implements ShouldQueue
+class ResubscribeSubscriberMail extends Mailable implements ShouldQueue
 {
   use Queueable, SerializesModels;
 
@@ -21,10 +21,10 @@ class FarewellSubscriberMail extends Mailable implements ShouldQueue
     $token = $this->data['token'];
 
     $this->data = array_merge($this->data, [
-      'subject' => 'Sampai Jumpa Lagi! (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i', 'id') . ')',
-      'resubscribe_url' => "{$url}/re-subscribe/{$token}",
+      'subject' => 'Selamat Datang Kembali! (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i', 'id') . ')',
+      'unsubscribe_url' => "{$url}/unsubscribe/{$token}",
       'blog_url' => $url,
-      'unsubscribed_at_formatted' => carbonTranslatedFormat(Carbon::now(), 'l, d F Y \p\u\k\u\l H.i', 'id'),
+      'resubscribed_at_formatted' => carbonTranslatedFormat(Carbon::now(), 'l, d F Y \p\u\k\u\l H.i', 'id'),
     ]);
   }
 
@@ -41,7 +41,7 @@ class FarewellSubscriberMail extends Mailable implements ShouldQueue
   public function content(): Content
   {
     return new Content(
-      view: 'blog-subscriber-resource.mails.farewell-subscriber-mail',
+      view: 'blog-subscriber-resource.mails.resubscribe-subscriber-mail',
     );
   }
 
