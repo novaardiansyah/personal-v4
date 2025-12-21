@@ -8,43 +8,43 @@ use App\Mail\BlogSubscriberResource\VerifySubscriberMail;
 use App\Mail\BlogSubscriberResource\WelcomeSubscriberMail;
 use App\Models\BlogSubscriber;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class BlogSubscriberController extends Controller
 {
   /**
-   * @OA\Get(
-   *     path="/api/blog-subscribers/subscribe/{email}",
+   * @OA\Post(
+   *     path="/api/blog-subscribers/subscribe",
    *     summary="Subscribe to newsletter",
    *     description="Subscribe an email to the blog newsletter. A unique token will be generated for verification and unsubscribe purposes.",
    *     tags={"Blog Subscribers"},
-   *     @OA\Parameter(name="email", in="path", required=true, description="Email address to subscribe", @OA\Schema(type="string", format="email")),
+   *     @OA\RequestBody(required=true, @OA\JsonContent(
+   *         required={"email"},
+   *         @OA\Property(property="email", type="string", format="email", description="Email address to subscribe")
+   *     )),
    *     @OA\Response(response=201, description="Subscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function subscribe(string $email): JsonResponse
+  public function subscribe(Request $request): JsonResponse
   {
-    $email = textLower($email);
+    $validator = Validator::make($request->all(), [
+      'email' => 'required|email|unique:blog_subscribers,email',
+    ]);
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if ($validator->fails()) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors' => ['email' => ['The email must be a valid email address.']]
+        'errors' => $validator->errors()
       ], 422);
     }
 
-    $existingSubscriber = BlogSubscriber::where('email', $email)->first();
-
-    if ($existingSubscriber) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Email already subscribed',
-        'errors' => ['email' => ['The email has already been subscribed.']]
-      ], 422);
-    }
+    $validated = $validator->validated();
+    $email = textLower($validated['email']);
 
     $subscriber = BlogSubscriber::create([
       'email' => $email,
@@ -71,19 +71,37 @@ class BlogSubscriberController extends Controller
   }
 
   /**
-   * @OA\Get(
-   *     path="/api/blog-subscribers/verify/{token}",
+   * @OA\Post(
+   *     path="/api/blog-subscribers/verify",
    *     summary="Verify subscription",
    *     description="Verify a subscription using the provided token.",
    *     tags={"Blog Subscribers"},
-   *     @OA\Parameter(name="token", in="path", required=true, description="Unique verification token", @OA\Schema(type="string")),
+   *     @OA\RequestBody(required=true, @OA\JsonContent(
+   *         required={"token"},
+   *         @OA\Property(property="token", type="string", description="Unique verification token")
+   *     )),
    *     @OA\Response(response=200, description="Verified successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function verify(string $token): JsonResponse
+  public function verify(Request $request): JsonResponse
   {
-    $subscriber = BlogSubscriber::where('token', $token)->first();
+    $validator = Validator::make($request->all(), [
+      'token' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    $subscriber = BlogSubscriber::where('token', $validated['token'])->first();
 
     if (!$subscriber) {
       return response()->json([
@@ -118,19 +136,37 @@ class BlogSubscriberController extends Controller
   }
 
   /**
-   * @OA\Get(
-   *     path="/api/blog-subscribers/unsubscribe/{token}",
+   * @OA\Post(
+   *     path="/api/blog-subscribers/unsubscribe",
    *     summary="Unsubscribe from newsletter",
    *     description="Unsubscribe from the blog newsletter using the provided token.",
    *     tags={"Blog Subscribers"},
-   *     @OA\Parameter(name="token", in="path", required=true, description="Unique subscription token", @OA\Schema(type="string")),
+   *     @OA\RequestBody(required=true, @OA\JsonContent(
+   *         required={"token"},
+   *         @OA\Property(property="token", type="string", description="Unique subscription token")
+   *     )),
    *     @OA\Response(response=200, description="Unsubscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function unsubscribe(string $token): JsonResponse
+  public function unsubscribe(Request $request): JsonResponse
   {
-    $subscriber = BlogSubscriber::where('token', $token)->first();
+    $validator = Validator::make($request->all(), [
+      'token' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    $subscriber = BlogSubscriber::where('token', $validated['token'])->first();
 
     if (!$subscriber) {
       return response()->json([
@@ -208,19 +244,37 @@ class BlogSubscriberController extends Controller
   }
 
   /**
-   * @OA\Get(
-   *     path="/api/blog-subscribers/re-subscribe/{token}",
+   * @OA\Post(
+   *     path="/api/blog-subscribers/re-subscribe",
    *     summary="Re-subscribe to newsletter",
    *     description="Re-subscribe to the blog newsletter using the token from farewell email.",
    *     tags={"Blog Subscribers"},
-   *     @OA\Parameter(name="token", in="path", required=true, description="Unique re-subscription token", @OA\Schema(type="string")),
+   *     @OA\RequestBody(required=true, @OA\JsonContent(
+   *         required={"token"},
+   *         @OA\Property(property="token", type="string", description="Unique re-subscription token")
+   *     )),
    *     @OA\Response(response=200, description="Re-subscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
+   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function reSubscribe(string $token): JsonResponse
+  public function reSubscribe(Request $request): JsonResponse
   {
-    $subscriber = BlogSubscriber::where('token', $token)->first();
+    $validator = Validator::make($request->all(), [
+      'token' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    $subscriber = BlogSubscriber::where('token', $validated['token'])->first();
 
     if (!$subscriber) {
       return response()->json([
