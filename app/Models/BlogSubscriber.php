@@ -9,7 +9,7 @@ class BlogSubscriber extends Model
 {
   use SoftDeletes;
   protected $table = 'blog_subscribers';
-  protected $guarded = ['id'];
+  protected $fillable = ['email', 'name', 'token', 'subscribed_at', 'unsubscribed_at', 'verified_at'];
   protected $casts = [
     'subscribed_at' => 'datetime',
     'unsubscribed_at' => 'datetime',

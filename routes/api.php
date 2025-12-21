@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\BlogCategoryController;
 use App\Http\Controllers\Api\BlogPostController;
+use App\Http\Controllers\Api\BlogSubscriberController;
 use App\Http\Controllers\Api\BlogTagController;
 use App\Http\Controllers\Api\ContactMessageController;
 use App\Http\Controllers\Api\GenerateController;
@@ -24,6 +25,13 @@ use App\Http\Controllers\Api\PushNotificationController;
 use App\Http\Controllers\Api\NoteController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
+
+Route::prefix('blog-subscribers')->group(function () {
+  Route::post('/subscribe', [BlogSubscriberController::class, 'subscribe']);
+  Route::post('/verify', [BlogSubscriberController::class, 'verify']);
+  Route::post('/unsubscribe', [BlogSubscriberController::class, 'unsubscribe']);
+  Route::get('/{token}', [BlogSubscriberController::class, 'show']);
+});
 
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/user', function (Request $request) {
@@ -182,10 +190,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::delete('/{code}', [NoteController::class, 'destroy'])
       ->where('code', '[A-Z0-9\\-]+');
-      
+
     Route::delete('/{note}/force', [NoteController::class, 'forceDestroy']);
     Route::post('/{note}/restore', [NoteController::class, 'restore']);
     Route::patch('/{note}/toggle-pin', [NoteController::class, 'togglePin']);
     Route::patch('/{note}/toggle-archive', [NoteController::class, 'toggleArchive']);
   });
 });
+
