@@ -2,40 +2,36 @@
 
 namespace App\Http\Resources;
 
-use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentAttachmentResource extends JsonResource
 {
-  /**
-   * Transform the resource into an array.
-   *
-   * @return array<string, mixed>
-   */
   public function toArray(Request $request): array
   {
     return [
-      'id'             => $this->id,
-      'url'            => $this->url,
-      'filepath'       => $this->filepath,
-      'filename'       => $this->filename,
-      'extension'      => $this->extension,
+      'id' => $this->id,
+      'url' => $this->url,
+      'filepath' => $this->filepath,
+      'filename' => $this->filename,
+      'extension' => $this->extension,
       'formatted_size' => $this->formatFileSize($this->size),
+      'original' => [
+        'url' => $this->original_url,
+        'formatted_size' => $this->formatFileSize($this->original_size),
+      ],
     ];
   }
 
-  /**
-   * Format file size to human readable format
-   */
   private function formatFileSize($size): string
   {
-    if (!$size) return '0 Bytes';
+    if (!$size)
+      return '0 Bytes';
 
     $units = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
 
-    if ($size === 0) return '0 Bytes';
+    if ($size === 0)
+      return '0 Bytes';
 
     $base = log($size, 1024);
 

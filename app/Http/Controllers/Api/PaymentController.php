@@ -320,7 +320,7 @@ class PaymentController extends Controller
     $query = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
       ->where('code', $code)
       ->where('user_id', Auth()->user()->id);
-    
+
     if (isset($data['is_draft']) && $data['is_draft'] != null) {
       $query->where('is_draft', $data['is_draft']);
     }
@@ -1270,17 +1270,12 @@ class PaymentController extends Controller
   private function processBase64Upload($base64Data, &$attachments, &$uploadedAttachments, &$errors, $index = null)
   {
     try {
-      // Use UtilsHelper::processBase64Image() to process the image
       $path = processBase64Image($base64Data, 'images/payment');
 
       if ($path) {
-        // Apply image optimization like in CreatePayment.php afterCreate()
         $optimizedPaths = uploadAndOptimize($path, 'public', 'images/payment');
-
-        // Store the optimized paths (all versions will be stored)
         $attachments[] = $optimizedPaths['original'];
 
-        // Get the medium version for return (like in getAttachments())
         $mediumPath = $optimizedPaths['medium'];
         $mediumUrl = Storage::disk('public')->url($mediumPath);
 
@@ -1304,18 +1299,12 @@ class PaymentController extends Controller
     return false;
   }
 
-  /**
-   * Update payment attachments
-   */
   private function updatePaymentAttachments($payment, $attachments)
   {
     $payment->attachments = $attachments;
     $payment->save();
   }
 
-  /**
-   * Format attachments for response (usable for both addAttachment and getAttachments)
-   */
   private function formatAttachmentsForResponse($attachments)
   {
     $attachmentData = [];
@@ -1323,21 +1312,23 @@ class PaymentController extends Controller
     foreach ($attachments as $index => $attachment) {
       $info = pathinfo($attachment);
 
-      $filenameOriginal = $info['basename'];        // file.png
-      $extension = $info['extension'];       // png
-      $nameOnly = $info['filename'];        // file
+      $filenameOriginal = $info['basename'];
+      $extension = $info['extension'];
+      $nameOnly = $info['filename'];
 
       $mediumName = "medium-{$nameOnly}.{$extension}";
       $mediumPath = "images/payment/{$mediumName}";
 
+      $originalPath = "images/payment/{$filenameOriginal}";
+
       $disk = Storage::disk('public');
-
-      // Check for optimized version first (like in getAttachments())
-      $filepath = $disk->exists($mediumPath) ? $mediumPath : "images/payment/{$filenameOriginal}";
-
+      $filepath = $disk->exists($mediumPath) ? $mediumPath : $originalPath;
       $url = Storage::disk('public')->url($filepath);
 
       if ($disk->exists($filepath)) {
+        $originalUrl = Storage::disk('public')->url($originalPath);
+        $originalSize = $disk->exists($originalPath) ? $disk->size($originalPath) : 0;
+
         $attachmentData[] = (object) [
           'id' => $index + 1,
           'url' => $url,
@@ -1345,6 +1336,8 @@ class PaymentController extends Controller
           'filename' => basename($filepath),
           'extension' => $extension,
           'size' => $disk->size($filepath),
+          'original_url' => $originalUrl,
+          'original_size' => $originalSize,
         ];
       }
     }
@@ -1352,9 +1345,6 @@ class PaymentController extends Controller
     return $attachmentData;
   }
 
-  /**
-   * Return attachment success response
-   */
   private function attachmentSuccessResponse($payment, $attachments, $message, $uploadedAttachments = [])
   {
     $attachmentData = $this->formatAttachmentsForResponse($attachments);
