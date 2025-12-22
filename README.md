@@ -17,6 +17,10 @@ While this repository is public, please note that important configuration files 
 
 ## Sneak Peek 🌟
 
+Check out the live version of this site at: [https://personal-v4.novadev.my.id](https://personal-v4.novadev.my.id)
+
+## Demo Credentials 🧪
+
 Coming soon!
 
 ## AI Automation Integration 🤖
@@ -44,10 +48,6 @@ This project now includes **integrated API documentation** powered by [L5-Swagge
 Access the API documentation at: `/api/documentation`
 
 <img src="public/markdown/preview-4.png" width="600" alt="API Documentation Preview" />
-
-## Demo Credentials 🧪
-
-Coming soon!
 
 ## Licensing Groove 🕺
 
