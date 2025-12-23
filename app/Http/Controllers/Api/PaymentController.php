@@ -765,7 +765,7 @@ class PaymentController extends Controller
         $existingItem = Item::where('name', $itemData['name'])->first();
 
         if ($existingItem) {
-          $item->update(['amount' => $itemData['amount']]);
+          $existingItem->update(['amount' => $itemData['amount']]);
           $item = $existingItem;
         } else {
           $item = Item::create([
