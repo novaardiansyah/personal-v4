@@ -104,4 +104,9 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
     $this->has_email_authentication = $condition;
     $this->save();
   }
+
+  public function pushNotifications()
+  {
+    return $this->hasMany(PushNotification::class);
+  }
 }

@@ -33,32 +33,15 @@ class ActionPushNotifications
       return;
     }
 
-    $additionalData = is_array($record->data) ? $record->data : [];
-    $result = sendPushNotification(
-      $user,
-      $record->title,
-      $record->body,
-      $additionalData,
-      $record
-    );
+    $result = sendPushNotification($user, $record);
 
     if ($result['success']) {
-      $record->update([
-        'sent_at' => now(),
-        'response_data' => $result['data'] ?? [],
-        'error_message' => null,
-      ]);
-
       Notification::make()
         ->success()
         ->title('Notification Sent Successfully')
         ->body("Push notification sent to {$user->name}")
         ->send();
     } else {
-      $record->update([
-        'error_message' => $result['message'],
-      ]);
-
       Notification::make()
         ->danger()
         ->title('Failed to Send Notification')

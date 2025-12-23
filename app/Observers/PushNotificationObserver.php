@@ -11,6 +11,13 @@ class PushNotificationObserver
    */
   public function created(PushNotification $pushNotification): void
   {
+    if (!$pushNotification->data) {
+      $pushNotification->data = [
+        'timestamps' => now()->toDateTimeString(),
+      ];
+      $pushNotification->save();
+    }
+    
     $this->_log('Created', $pushNotification);
   }
 

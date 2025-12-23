@@ -16,10 +16,12 @@ use App\Http\Resources\PaymentAttachmentResource;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
+use App\Models\PushNotification;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
@@ -740,12 +742,12 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'items' => 'required|array|min:1',
+      'items'           => 'required|array|min:1',
       'items.*.item_id' => 'nullable|integer|exists:items,id',
-      'items.*.name' => 'required|string|max:255',
-      'items.*.amount' => 'required|numeric|min:0',
-      'items.*.qty' => 'required|integer|min:1',
-      'totalAmount' => 'required|numeric|min:0'
+      'items.*.name'    => 'required|string|max:255',
+      'items.*.amount'  => 'required|numeric|min:0',
+      'items.*.qty'     => 'required|integer|min:1',
+      'totalAmount'     => 'required|numeric|min:0'
     ]);
 
     if ($validator->fails()) {
@@ -756,9 +758,19 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $items = $request->items;
-    $totalAmount = $request->totalAmount;
+    $items         = $request->items;
+    $totalItems    = count($items);
+    $totalAmount   = $request->totalAmount;
     $attachedItems = [];
+
+    $user = Auth::user();
+
+    $record = $user->pushNotifications()->create([
+      'title' => 'Transaksi berhasil disimpan',
+      'body'  => "Total $totalItems item berhasil ditambahkan ke transaksi.",
+    ]);
+
+    sendPushNotification($user, $record);
 
     foreach ($items as $itemData) {
       if (empty($itemData['item_id'])) {
@@ -769,10 +781,10 @@ class PaymentController extends Controller
           $item = $existingItem;
         } else {
           $item = Item::create([
-            'name' => $itemData['name'],
-            'amount' => $itemData['amount'],
+            'name'    => $itemData['name'],
+            'amount'  => $itemData['amount'],
             'type_id' => 1,
-            'code' => getCode('item')
+            'code'    => getCode('item')
           ]);
         }
 
@@ -781,31 +793,31 @@ class PaymentController extends Controller
         $item = Item::find($itemData['item_id']);
       }
 
-      $price = $itemData['amount'];
+      $price    = $itemData['amount'];
       $quantity = $itemData['qty'];
-      $total = $price * $quantity;
+      $total    = $price * $quantity;
       $itemCode = getCode('payment_item');
 
       $payment->items()->attach($itemData['item_id'], [
         'item_code' => $itemCode,
-        'quantity' => $quantity,
-        'price' => $price,
-        'total' => $total
+        'quantity'  => $quantity,
+        'price'     => $price,
+        'total'     => $total
       ]);
 
       $attachedItems[] = [
-        'item_id' => $item->id,
-        'name' => $item->name,
-        'quantity' => $quantity,
-        'price' => $price,
-        'total' => $total,
+        'item_id'   => $item->id,
+        'name'      => $item->name,
+        'quantity'  => $quantity,
+        'price'     => $price,
+        'total'     => $total,
         'item_code' => $itemCode
       ];
     }
 
-    $expense = $payment->amount + $totalAmount;
+    $expense         = $payment->amount + $totalAmount;
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-    $is_scheduled = $payment->is_scheduled ?? false;
+    $is_scheduled    = $payment->is_scheduled ?? false;
 
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
@@ -823,9 +835,9 @@ class PaymentController extends Controller
       'success' => true,
       'message' => 'Multiple items attached successfully',
       'data' => [
-        'id' => $payment->id,
-        'name' => $payment->name,
-        'amount' => $payment->amount,
+        'id'               => $payment->id,
+        'name'             => $payment->name,
+        'amount'           => $payment->amount,
         'formatted_amount' => toIndonesianCurrency($payment->amount),
       ]
     ]);

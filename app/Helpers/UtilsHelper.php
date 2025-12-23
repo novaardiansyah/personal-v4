@@ -336,7 +336,7 @@ function copyFileWithRandomName(string $defaultPath): string
   return $defaultPath;
 }
 
-function sendPushNotification(User $user, string $title, string $body, array $data = [], PushNotification $record = null): array
+function sendPushNotification(User $user, PushNotification $record): array
 {
   if (!$user->has_allow_notification) {
     return [
@@ -352,37 +352,27 @@ function sendPushNotification(User $user, string $title, string $body, array $da
     ];
   }
 
-  $pushNotification = $record;
-
-  if (!$record) {
-    $pushNotification = PushNotification::create([
-      'user_id' => $user->id,
-      'title'   => $title,
-      'body'    => $body,
-      'data'    => $data,
-      'token'   => $user->notification_token,
-    ]);
-  }
+  $record->token = $user->notification_token;
 
   $notificationService = app(ExpoNotificationService::class);
 
   $result = $notificationService->sendNotification(
     $user->notification_token,
-    $title,
-    $body,
-    $data
+    $record->title,
+    $record->body,
+    $record->data
   );
 
   if ($result['success']) {
-    $pushNotification->update([
-      'sent_at'       => now(),
-      'response_data' => $result['data']
-    ]);
+    $record->sent_at = Carbon::now();
+    $record->response_data = $result['data'];
   }
   else {
-    $pushNotification->update([
-      'error_message' => $result['message'] . ': ' . $result['error'] ?? $result['message']
-    ]);
+    $record->error_message = $result['message'] . ': ' . $result['error'] ?? $result['message'];
+  }
+
+  if ($record->isDirty()) {
+    $record->save();
   }
 
   return $result;
