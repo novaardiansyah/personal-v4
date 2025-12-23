@@ -8,11 +8,9 @@ class PushNotificationObserver
 {
   public function creating(PushNotification $pushNotification): void
   {
-    if (!$pushNotification->data) {
-      $pushNotification->data = [
-        'timestamps' => now()->toDateTimeString(),
-      ];
-    }
+    $data = $pushNotification->data ?? [];
+    $data['timestamps'] = now()->toDateTimeString();
+    $pushNotification->data = $data;
   }
 
   public function created(PushNotification $pushNotification): void
@@ -43,10 +41,10 @@ class PushNotificationObserver
   private function _log(string $event, PushNotification $pushNotification): void
   {
     saveActivityLog([
-      'event' => $event,
-      'model' => 'PushNotification',
+      'event'        => $event,
+      'model'        => 'PushNotification',
       'subject_type' => PushNotification::class,
-      'subject_id' => $pushNotification->id,
+      'subject_id'   => $pushNotification->id,
     ], $pushNotification);
   }
 }
