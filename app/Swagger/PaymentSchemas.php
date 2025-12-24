@@ -15,7 +15,6 @@ namespace App\Swagger;
  *     @OA\Property(property="payment_account_id", type="integer", example=1, description="Source payment account ID"),
  *     @OA\Property(property="payment_account_to_id", type="integer", example=2, description="Destination (for Transfer/Withdrawal)"),
  *     @OA\Property(property="has_items", type="boolean", example=false),
- *     @OA\Property(property="has_charge", type="boolean", example=false),
  *     @OA\Property(property="is_scheduled", type="boolean", example=false),
  *     @OA\Property(property="is_draft", type="boolean", example=false),
  *     @OA\Property(property="request_view", type="boolean", example=false)

@@ -375,18 +375,18 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'amount' => 'nullable|numeric|min:0',
-      'name' => 'required|string|max:255',
-      'date' => 'required|date',
-      'type_id' => 'nullable|integer|exists:payment_types,id',
-      'payment_account_id' => 'nullable|integer|exists:payment_accounts,id',
+      'amount'                => 'nullable|numeric|min:0',
+      'name'                  => 'required|string|max:255',
+      'date'                  => 'required|date',
+      'type_id'               => 'nullable|integer|exists:payment_types,id',
+      'payment_account_id'    => 'nullable|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id',
     ]);
 
     $validator->setAttributeNames([
-      'name' => 'description',
-      'type_id' => 'category',
-      'payment_account_id' => 'payment account',
+      'name'                  => 'description',
+      'type_id'               => 'category',
+      'payment_account_id'    => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
@@ -394,46 +394,36 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors' => $validator->errors()
+        'errors'  => $validator->errors()
       ], 422);
     }
 
     $data = $validator->validated();
 
-    if ($payment->has_items) {
-      $payment->update([
-        'name' => $data['name'],
-        'date' => $data['date'],
-      ]);
+    $update = [
+      'name' => $data['name'],
+      'date' => $data['date'],
+    ];
+
+    if (!$payment->has_items) {
+      $update['amount'] = intval($data['amount'] ?? $payment->amount);
+    }
+
+    try {
+      $payment->update($update);
 
       return response()->json([
         'success' => true,
         'message' => 'Payment updated successfully',
-        'data' => []
+        'data'    => []
       ]);
-    }
-
-    // Use reusable model method for balance mutation
-    $mutate = Payment::mutateDataPaymentUpdate($payment, $data);
-
-    if (!$mutate['status']) {
+    } catch (ValidationException $err) {
       return response()->json([
         'success' => false,
-        'message' => $mutate['message']
-      ], 422);
+        'message' => 'Validation failed',
+        'errors'  => normalizeValidationErrors($err->errors()),
+      ], $err->status);
     }
-
-    $payment->update([
-      'amount' => intval($data['amount'] ?? $payment->amount),
-      'name' => $data['name'],
-      'date' => $data['date'],
-    ]);
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Payment updated successfully',
-      'data' => []
-    ]);
   }
 
   /**
@@ -458,7 +448,6 @@ class PaymentController extends Controller
       'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
       'has_items'             => 'nullable|boolean',
-      'has_charge'            => 'nullable|boolean',
       'is_scheduled'          => 'nullable|boolean',
       'is_draft'              => 'nullable|boolean',
       'request_view'          => 'nullable|boolean',
