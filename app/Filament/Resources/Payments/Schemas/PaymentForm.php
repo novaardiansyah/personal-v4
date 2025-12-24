@@ -18,7 +18,6 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
 
 class PaymentForm
 {
@@ -40,18 +39,9 @@ class PaymentForm
                   if ($state) {
                     $set('amount', 0);
                     $set('type_id', 1);
-                    $set('has_charge', false);
                   }
                 }),
                 
-              Toggle::make('has_charge')
-                ->label('Without Charge')
-                ->disabled(function (callable $get, callable $set, string $operation) {
-                  if ($operation === 'edit')
-                    return true;
-                  return $get('has_items');
-                }),
-
               Toggle::make('is_scheduled')
                 ->label('Scheduled')
                 ->disabledOn('edit'),
