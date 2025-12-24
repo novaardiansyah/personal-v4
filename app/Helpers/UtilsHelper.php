@@ -448,3 +448,18 @@ function uploadAndOptimize($file, string $disk = 'public', string $folder = 'ima
 
   return $paths;
 }
+
+function normalizeValidationErrors(array $errors): array
+{
+  $normalizedErrors = [];
+
+  foreach ($errors as $key => $messages) {
+    $newKey = str_starts_with($key, 'data.')
+      ? substr($key, 5)
+      : $key;
+
+    $normalizedErrors[$newKey] = $messages;
+  }
+
+  return $normalizedErrors;
+}

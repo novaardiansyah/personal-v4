@@ -16,7 +16,7 @@ use App\Http\Resources\PaymentAttachmentResource;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
-use App\Models\PushNotification;
+use Illuminate\Validation\ValidationException;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -451,28 +451,28 @@ class PaymentController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount' => 'required_if:has_items,false|nullable|numeric',
-      'date' => 'required|date',
-      'name' => 'required_if:has_items,false|nullable|string|max:255',
-      'type_id' => 'required|integer|exists:payment_types,id',
-      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
+      'amount'                => 'required_if:has_items,false|nullable|numeric',
+      'date'                  => 'required|date',
+      'name'                  => 'required_if:has_items,false|nullable|string|max:255',
+      'type_id'               => 'required|integer|exists:payment_types,id',
+      'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'has_items' => 'nullable|boolean',
-      'has_charge' => 'nullable|boolean',
-      'is_scheduled' => 'nullable|boolean',
-      'is_draft' => 'nullable|boolean',
-      'request_view' => 'nullable|boolean',
+      'has_items'             => 'nullable|boolean',
+      'has_charge'            => 'nullable|boolean',
+      'is_scheduled'          => 'nullable|boolean',
+      'is_draft'              => 'nullable|boolean',
+      'request_view'          => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
-      'name' => 'description',
-      'type_id' => 'category',
-      'payment_account_id' => 'payment account',
+      'name'                  => 'description',
+      'type_id'               => 'category',
+      'payment_account_id'    => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
     $validator->setCustomMessages([
-      'name.required_if' => 'The :attribute field is required when the payment has no items.',
+      'name.required_if'                  => 'The :attribute field is required when the payment has no items.',
       'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
     ]);
 
@@ -480,7 +480,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors' => $validator->errors()
+        'errors'  => $validator->errors()
       ], 422);
     }
 
@@ -489,28 +489,25 @@ class PaymentController extends Controller
     if (!empty($data['has_items'])) {
       $data['amount'] = 0;
       $data['type_id'] = 1;
-      $data['has_charge'] = false;
       $data['name'] = null;
     }
 
-    $payment = new Payment();
-    $mutate = $payment::mutateDataPayment($data);
+    try {
+      $payment = Payment::create($data);
+      $payment->request_view = $data['request_view'] ?? false;
 
-    if (!$mutate['status']) {
+      return response()->json([
+        'success' => true,
+        'message' => 'Payment created successfully',
+        'data'    => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
+      ], 201);
+    } catch (ValidationException $err) {
       return response()->json([
         'success' => false,
-        'message' => $mutate['message']
-      ], 422);
+        'message' => 'Validation failed',
+        'errors'  => normalizeValidationErrors($err->errors()),
+      ], $err->status);
     }
-
-    $payment = Payment::create($mutate['data']);
-    $payment->request_view = $data['request_view'] ?? false;
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Payment created successfully',
-      'data' => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
-    ], 201);
   }
 
   /**
