@@ -11,12 +11,12 @@ class PaymentObserver
 {
   public function creating(Payment $payment): void
   {
-    $payment->code    = getCode('payment');
+    $payment->code = getCode('payment');
     $payment->user_id = auth()->id();
 
-    $record  = $payment;
+    $record = $payment;
 
-    $is_draft     = $record->is_draft;
+    $is_draft = $record->is_draft;
     $is_scheduled = $record->is_scheduled;
 
     if ($is_draft || $is_scheduled) {
@@ -24,14 +24,14 @@ class PaymentObserver
     }
 
     $type_id = intval($record->type_id);
-    $amount  = intval($record->amount);
+    $amount = intval($record->amount);
 
     $insufficientBalanceError = [
       'data.payment_account_id' => ['Insufficient account balance.'],
       'data.amount' => ['The amount exceeds the account balance.'],
     ];
 
-    $incomeOrExpense      = $type_id == PaymentType::EXPENSE || $type_id  == PaymentType::INCOME;
+    $incomeOrExpense = $type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME;
     $transferOrWithdrawal = $type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL;
 
     if ($incomeOrExpense) {
@@ -91,7 +91,7 @@ class PaymentObserver
     $changes = collect($record->getDirty())->except($record->getHidden());
     $oldValue = $changes->mapWithKeys(fn($value, $key) => [$key => $record->getOriginal($key)])->toArray();
 
-    $is_draft     = $record->is_draft;
+    $is_draft = $record->is_draft;
     $is_scheduled = $record->is_scheduled;
 
     if ($is_draft || $is_scheduled) {
@@ -179,36 +179,26 @@ class PaymentObserver
   private function _handleDeleteLogic(Payment $payment): void
   {
     $attachments = $payment->attachments;
-    $has_charge = boolval($payment->has_charge ?? 0);
-    $is_scheduled = boolval($payment->is_scheduled ?? 0);
-    $is_draft = boolval($payment->is_draft ?? 0);
+    $is_draft = $payment->is_draft;
+    $is_scheduled = $payment->is_scheduled;
 
-    if ($is_scheduled)
-      $has_charge = true;
+    if (!$is_draft && !$is_scheduled) {
+      $type_id = intval($payment->type_id);
+      $amount = intval($payment->amount);
 
-    if ($is_draft)
-      $has_charge = true;
+      if ($type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME) {
+        $adjustment = ($type_id == PaymentType::EXPENSE) ? +$amount : -$amount;
 
-    if (PaymentType::TRANSFER == $payment->type_id || PaymentType::WITHDRAWAL == $payment->type_id) {
-      $balanceOrigin = $payment->payment_account->deposit + $payment->amount;
-      $balanceTo = $payment->payment_account_to - $payment->amount;
-
-      if (!$has_charge) {
         $payment->payment_account->update([
-          'deposit' => $balanceOrigin
+          'deposit' => $payment->payment_account->deposit + $adjustment
+        ]);
+      } else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
+        $payment->payment_account->update([
+          'deposit' => $payment->payment_account->deposit + $amount
         ]);
 
         $payment->payment_account_to->update([
-          'deposit' => $balanceTo
-        ]);
-      }
-    } else if (PaymentType::EXPENSE == $payment->type_id || PaymentType::INCOME == $payment->type_id) {
-      $adjustment = ($payment->type_id == PaymentType::EXPENSE) ? +$payment->amount : -$payment->amount;
-      $depositChange = ($payment->payment_account->deposit + $adjustment);
-
-      if (!$has_charge) {
-        $payment->payment_account->update([
-          'deposit' => $depositChange
+          'deposit' => $payment->payment_account_to->deposit - $amount
         ]);
       }
     }
