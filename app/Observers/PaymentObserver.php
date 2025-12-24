@@ -33,6 +33,11 @@ class PaymentObserver
     $changes = collect($record->getDirty())->except($record->getHidden());
     $oldValue = $changes->mapWithKeys(fn ($value, $key) => [$key => $record->getOriginal($key)])->toArray();
 
+    $insufficientBalanceError = [
+      'data.payment_account_id' => ['Insufficient account balance.'],
+      'data.amount' => ['The amount exceeds the account balance.'],
+    ];
+
     if ($record->isDirty('amount')) {
       $oldAmount = intval($oldValue['amount']);
       $amount    = intval($record->amount);
@@ -46,9 +51,7 @@ class PaymentObserver
         $depositChange = ($record->payment_account->deposit + $adjustment);
 
         if ($depositChange < $amount && $depositChange != 0) {
-          throw ValidationException::withMessages([
-            'amunt' => 'The amount in the payment account is not sufficient for the transaction.',
-          ]);
+          throw ValidationException::withMessages($insufficientBalanceError);
         }
 
         if ($type_id == PaymentType::EXPENSE) {
@@ -65,9 +68,7 @@ class PaymentObserver
         $balanceOrigin = $record->payment_account->deposit + $oldAmount;
 
         if ($balanceOrigin < $record->amount) {
-          throw ValidationException::withMessages([
-            'amount' => 'The amount in the payment account is not sufficient for the transaction.',
-          ]);
+          throw ValidationException::withMessages($insufficientBalanceError);
         }
 
         $record->payment_account->update([
