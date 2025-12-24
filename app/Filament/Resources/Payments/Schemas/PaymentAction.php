@@ -107,8 +107,7 @@ class PaymentAction
 
     PaymentService::beforeItemDetach($owner, $record, [
       'quantity' => $record->quantity,
-      'total' => $record->pivot_total,
-      'has_charge' => $record->has_charge ?? false,
+      'total'    => $record->pivot_total,
     ]);
 
     $action->getLivewire()->dispatch('refreshForm');
@@ -189,10 +188,9 @@ class PaymentAction
     $owner = $livewire->getOwnerRecord();
 
     PaymentService::afterItemAttach($owner, $record, [
-      'quantity' => $data['quantity'],
-      'price' => $data['amount'],
-      'total' => $data['total'],
-      'has_charge' => $record->has_charge ?? false,
+      'quantity'   => $data['quantity'],
+      'price'      => $data['amount'],
+      'total'      => $data['total'],
     ]);
 
     $action->getLivewire()->dispatch('refreshForm');

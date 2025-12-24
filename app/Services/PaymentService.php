@@ -16,64 +16,32 @@ class PaymentService
     $item->update(['amount' => $data['price']]);
 
     $expense = $payment->amount + (int) $data['total'];
-    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
+    $note    = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 
-    $has_charge = boolval($data['has_charge'] ?? ($payment->has_charge ?? 0));
-    $is_scheduled = boolval($payment->is_scheduled ?? 0);
-    $is_draft = boolval($payment->is_draft ?? 0);
-
-    if ($is_scheduled)
-      $has_charge = true;
-
-    if ($is_draft)
-      $has_charge = true;
-
-    if (!$has_charge) {
-      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
-
-    $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
     $payment->update(['amount' => $expense, 'name' => $note]);
 
     return [
-      'success' => true,
-      'amount' => $payment->amount,
+      'success'          => true,
+      'amount'           => $payment->amount,
       'formatted_amount' => toIndonesianCurrency($payment->amount),
-      'note' => $note,
-      'has_charge' => $has_charge,
+      'note'             => $note,
     ];
   }
 
   public static function beforeItemDetach(Payment $payment, Item $item, array $data): array
   {
     $expense = $payment->amount - (int) $data['total'];
-    $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-
-    $has_charge = boolval($data['has_charge'] ?? 0);
-    $is_scheduled = boolval($payment->is_scheduled ?? 0);
-    $is_draft = boolval($payment->is_draft ?? 0);
-
-    if ($is_scheduled)
-      $has_charge = true;
-
-    if ($is_draft)
-      $has_charge = true;
-
-    if (!$has_charge) {
-      $payment->payment_account->update(['deposit' => $adjustedDeposit]);
-    }
 
     $itemName = $item->name . ' (x' . $data['quantity'] . ')';
-    $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
+    $note     = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
     $payment->update(['amount' => $expense, 'name' => $note]);
 
     return [
-      'success' => true,
-      'amount' => $payment->amount,
+      'success'          => true,
+      'amount'           => $payment->amount,
       'formatted_amount' => toIndonesianCurrency($payment->amount),
-      'note' => $note,
-      'has_charge' => $has_charge,
+      'note'             => $note,
     ];
   }
 
