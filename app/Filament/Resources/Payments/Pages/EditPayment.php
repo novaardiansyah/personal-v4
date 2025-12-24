@@ -39,45 +39,4 @@ class EditPayment extends EditRecord
     $resource = static::getResource();
     return $resource::getUrl('index');
   }
-
-  protected function mutateFormDataBeforeSave(array $data): array
-  {
-    return $data;
-  }
-
-  protected function beforeSave(): void
-  {
-    $record = $this->record;
-    $data = $this->data;
-
-    // ! If items are present, this process will be handled in the ItemsRelationManager.
-    if (!$record->has_items) {
-      $mutate = Payment::mutateDataPaymentUpdate($record, $data);
-
-      if (!$mutate['status']) {
-        Notification::make()
-          ->danger()
-          ->title('Transaction Failed!')
-          ->body($mutate['message'] ?? 'Something went wrong!')
-          ->send();
-
-        $this->halt();
-      }
-    }
-
-    // ! See if there are any changes to the attachments
-    $removedAttachments = array_diff($record->attachments ?? [], $data['attachments'] ?? []);
-
-    // ? Has removed attachments
-    if (!empty($removedAttachments)) {
-      foreach ($removedAttachments as $attachment) {
-        // ? Doesnt exist
-        if (!Storage::disk('public')->exists($attachment))
-          continue;
-
-        // ! Delete attachment
-        Storage::disk('public')->delete($attachment);
-      }
-    }
-  }
 }

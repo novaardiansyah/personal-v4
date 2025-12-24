@@ -5,6 +5,7 @@ namespace App\Observers;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class PaymentObserver
 {
@@ -22,6 +23,62 @@ class PaymentObserver
   public function updated(Payment $payment): void
   {
     $this->_log('Updated', $payment);
+  }
+
+  public function updating(Payment $payment): void
+  {
+    $record   = $payment;
+    $oldValue = [];
+
+    $changes = collect($record->getDirty())->except($record->getHidden());
+    $oldValue = $changes->mapWithKeys(fn ($value, $key) => [$key => $record->getOriginal($key)])->toArray();
+
+    if ($record->isDirty('amount')) {
+      $oldAmount = intval($oldValue['amount']);
+      $amount    = intval($record->amount);
+      $type_id   = intval($oldValue['type_id'] ?? $record->type_id);
+
+      $incomeOrExpense = $type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME;
+      $transferOrWithdrawal = $type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL;
+
+      if ($incomeOrExpense) {
+        $adjustment = ($type_id == PaymentType::EXPENSE) ? +$oldAmount : -$oldAmount;
+        $depositChange = ($record->payment_account->deposit + $adjustment);
+
+        if ($depositChange < $amount && $depositChange != 0) {
+          throw ValidationException::withMessages([
+            'amunt' => 'The amount in the payment account is not sufficient for the transaction.',
+          ]);
+        }
+
+        if ($type_id == PaymentType::EXPENSE) {
+          $amount = -$amount;
+        }
+
+        $depositChange = $depositChange + $amount;
+
+        $record->payment_account->update([
+          'deposit' => $depositChange
+        ]);
+      } else if ($transferOrWithdrawal) {
+        $balanceTo = $record->payment_account_to->deposit + intval($record->amount ?? $oldAmount) - $oldAmount;
+        $balanceOrigin = $record->payment_account->deposit + $oldAmount;
+
+        if ($balanceOrigin < $record->amount) {
+          throw ValidationException::withMessages([
+            'amount' => 'The amount in the payment account is not sufficient for the transaction.',
+          ]);
+        }
+
+        $record->payment_account->update([
+          'deposit' => $balanceOrigin - $record->amount
+        ]);
+
+        $record->payment_account_to->update([
+          'deposit' => $balanceTo
+        ]);
+      }
+    }
   }
 
   /**

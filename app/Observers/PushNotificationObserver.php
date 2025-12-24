@@ -9,7 +9,7 @@ class PushNotificationObserver
   public function creating(PushNotification $pushNotification): void
   {
     $data = $pushNotification->data ?? [];
-    $data['timestamps'] = now()->toDateTimeString();
+    $data['timestamp'] = now()->toDateTimeString();
     $pushNotification->data = $data;
   }
 
