@@ -11,19 +11,27 @@ class PaymentObserver
 {
   public function creating(Payment $payment): void
   {
-    $payment->code = getCode('payment');
+    $payment->code    = getCode('payment');
     $payment->user_id = auth()->id();
 
-    $record = $payment;
+    $record  = $payment;
+
+    $is_draft     = $record->is_draft;
+    $is_scheduled = $record->is_scheduled;
+
+    if ($is_draft || $is_scheduled) {
+      return;
+    }
+
     $type_id = intval($record->type_id);
-    $amount = intval($record->amount);
+    $amount  = intval($record->amount);
 
     $insufficientBalanceError = [
       'data.payment_account_id' => ['Insufficient account balance.'],
       'data.amount' => ['The amount exceeds the account balance.'],
     ];
 
-    $incomeOrExpense = $type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME;
+    $incomeOrExpense      = $type_id == PaymentType::EXPENSE || $type_id  == PaymentType::INCOME;
     $transferOrWithdrawal = $type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL;
 
     if ($incomeOrExpense) {
@@ -82,6 +90,13 @@ class PaymentObserver
 
     $changes = collect($record->getDirty())->except($record->getHidden());
     $oldValue = $changes->mapWithKeys(fn($value, $key) => [$key => $record->getOriginal($key)])->toArray();
+
+    $is_draft     = $record->is_draft;
+    $is_scheduled = $record->is_scheduled;
+
+    if ($is_draft || $is_scheduled) {
+      return;
+    }
 
     $insufficientBalanceError = [
       'data.payment_account_id' => ['Insufficient account balance.'],

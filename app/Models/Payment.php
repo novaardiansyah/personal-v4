@@ -18,10 +18,10 @@ class Payment extends Model
   protected $guarded = ['id'];
 
   protected $casts = [
-    'attachments' => 'array',
-    'has_items' => 'boolean',
+    'attachments'  => 'array',
+    'has_items'    => 'boolean',
     'is_scheduled' => 'boolean',
-    'is_draft' => 'boolean'
+    'is_draft'     => 'boolean'
   ];
 
   public function payment_account(): BelongsTo
