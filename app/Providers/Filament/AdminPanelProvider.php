@@ -22,6 +22,9 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Enums\Width;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
+use Illuminate\Support\HtmlString;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -88,6 +91,15 @@ class AdminPanelProvider extends PanelProvider
       ])
       ->authMiddleware([
         Authenticate::class,
-      ]);
+      ])
+      ->renderHook(
+        PanelsRenderHook::HEAD_END,
+        fn(): HtmlString => new HtmlString('
+          <style>
+            *::-webkit-scrollbar { display: none; }
+            * { -ms-overflow-style: none; scrollbar-width: none; }
+          </style>
+        ')
+      );
   }
 }
