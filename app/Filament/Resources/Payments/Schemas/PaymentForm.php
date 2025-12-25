@@ -130,13 +130,6 @@ class PaymentForm
             ->native(false)
             ->required()
             ->default(PaymentAccount::TUNAI)
-            ->disabled(function (string $operation, ?Payment $record) {
-              $disabled = $operation === 'edit';
-              if ($record?->is_scheduled || $record?->is_draft) {
-                $disabled = false;
-              }
-              return $disabled;
-            })
             ->hint(function(?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
@@ -167,14 +160,6 @@ class PaymentForm
             ->default(PaymentAccount::DANA)
             ->required(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
             ->visible(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
-            ->disabled(function (string $operation, Get $get, ?Payment $record) {
-              $disabled = $operation === 'edit';
-              $allowed = $get('type_id') == 3 || $get('type_id') == 4;
-              if ($record?->is_scheduled || $record?->is_draft) {
-                $disabled = false;
-              }
-              return $disabled || !$allowed;
-            })
             ->hint(function(?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
