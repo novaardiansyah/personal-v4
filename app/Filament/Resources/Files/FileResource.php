@@ -8,19 +8,6 @@ use UnitEnum;
 use App\Filament\Resources\Files\Pages\ManageFiles;
 use App\Models\File;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
-use Filament\Actions\ViewAction;
-use Filament\Forms\Components\DateTimePicker;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -96,8 +83,10 @@ class FileResource extends Resource
           ->toggleable(),
       ])
       ->filters([
-        TrashedFilter::make(),
+        TrashedFilter::make()
+          ->native(false),
       ])
+      ->defaultSort('scheduled_deletion_time', 'desc')
       ->recordActions([
         ActionGroup::make([
 
