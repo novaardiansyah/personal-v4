@@ -20,14 +20,6 @@ use App\Http\Controllers\Api\NoteController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
-Route::prefix('blog-subscribers')->group(function () {
-  Route::post('/subscribe', [BlogSubscriberController::class, 'subscribe']);
-  Route::post('/verify', [BlogSubscriberController::class, 'verify']);
-  Route::post('/unsubscribe', [BlogSubscriberController::class, 'unsubscribe']);
-  Route::post('/re-subscribe', [BlogSubscriberController::class, 'reSubscribe']);
-  Route::get('/{token}', [BlogSubscriberController::class, 'show']);
-});
-
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/user', function (Request $request) {
     $user = $request->user();
@@ -48,8 +40,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/', [SkillController::class, 'index']);
     Route::get('/{id}', [SkillController::class, 'show']);
   });
-
-
 
   Route::prefix('short-urls')->group(function () {
     Route::get('/', [ShortUrlController::class, 'index']);
@@ -85,6 +75,14 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('blog-posts')->group(function () {
     Route::get('/published', [BlogPostController::class, 'published']);
     Route::get('/{blogPost:slug}', [BlogPostController::class, 'showBySlug']);
+  });
+
+  Route::prefix('blog-subscribers')->group(function () {
+    Route::post('/subscribe', [BlogSubscriberController::class, 'subscribe']);
+    Route::post('/verify', [BlogSubscriberController::class, 'verify']);
+    Route::post('/unsubscribe', [BlogSubscriberController::class, 'unsubscribe']);
+    Route::post('/re-subscribe', [BlogSubscriberController::class, 'reSubscribe']);
+    Route::get('/{token}', [BlogSubscriberController::class, 'show']);
   });
 
   Route::prefix('push-notifications')->group(function () {

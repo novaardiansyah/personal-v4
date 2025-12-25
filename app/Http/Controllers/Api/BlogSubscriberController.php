@@ -22,6 +22,7 @@ class BlogSubscriberController extends Controller
    *     summary="Subscribe to newsletter",
    *     description="Subscribe an email to the blog newsletter. A unique token will be generated for verification and unsubscribe purposes.",
    *     tags={"Blog Subscribers"},
+   *     security={{"bearerAuth": {}}},
    *     @OA\RequestBody(required=true, @OA\JsonContent(
    *         required={"email"},
    *         @OA\Property(property="email", type="string", format="email", description="Email address to subscribe")
@@ -96,6 +97,7 @@ class BlogSubscriberController extends Controller
    *     summary="Verify subscription",
    *     description="Verify a subscription using the provided token.",
    *     tags={"Blog Subscribers"},
+   *     security={{"bearerAuth": {}}},
    *     @OA\RequestBody(required=true, @OA\JsonContent(
    *         required={"token"},
    *         @OA\Property(property="token", type="string", description="Unique verification token")
@@ -161,6 +163,7 @@ class BlogSubscriberController extends Controller
    *     summary="Unsubscribe from newsletter",
    *     description="Unsubscribe from the blog newsletter using the provided token.",
    *     tags={"Blog Subscribers"},
+   *     security={{"bearerAuth": {}}},
    *     @OA\RequestBody(required=true, @OA\JsonContent(
    *         required={"token"},
    *         @OA\Property(property="token", type="string", description="Unique subscription token")
@@ -234,6 +237,7 @@ class BlogSubscriberController extends Controller
    *     summary="Get subscriber details",
    *     description="Retrieve subscriber information by token.",
    *     tags={"Blog Subscribers"},
+   *     security={{"bearerAuth": {}}},
    *     @OA\Parameter(name="token", in="path", required=true, description="Unique subscription token", @OA\Schema(type="string")),
    *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
    *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
@@ -269,6 +273,7 @@ class BlogSubscriberController extends Controller
    *     summary="Re-subscribe to newsletter",
    *     description="Re-subscribe to the blog newsletter using the token from farewell email.",
    *     tags={"Blog Subscribers"},
+   *     security={{"bearerAuth": {}}},
    *     @OA\RequestBody(required=true, @OA\JsonContent(
    *         required={"token"},
    *         @OA\Property(property="token", type="string", description="Unique re-subscription token")
