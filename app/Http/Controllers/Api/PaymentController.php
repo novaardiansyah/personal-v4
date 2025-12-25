@@ -17,6 +17,7 @@ use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
 use Illuminate\Validation\ValidationException;
+use App\Services\AttachmentService;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -375,18 +376,18 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'amount'                => 'nullable|numeric|min:0',
-      'name'                  => 'required|string|max:255',
-      'date'                  => 'required|date',
-      'type_id'               => 'nullable|integer|exists:payment_types,id',
-      'payment_account_id'    => 'nullable|integer|exists:payment_accounts,id',
+      'amount' => 'nullable|numeric|min:0',
+      'name' => 'required|string|max:255',
+      'date' => 'required|date',
+      'type_id' => 'nullable|integer|exists:payment_types,id',
+      'payment_account_id' => 'nullable|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'nullable|integer|exists:payment_accounts,id',
     ]);
 
     $validator->setAttributeNames([
-      'name'                  => 'description',
-      'type_id'               => 'category',
-      'payment_account_id'    => 'payment account',
+      'name' => 'description',
+      'type_id' => 'category',
+      'payment_account_id' => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
@@ -394,7 +395,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
@@ -415,13 +416,13 @@ class PaymentController extends Controller
       return response()->json([
         'success' => true,
         'message' => 'Payment updated successfully',
-        'data'    => []
+        'data' => []
       ]);
     } catch (ValidationException $err) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => normalizeValidationErrors($err->errors()),
+        'errors' => normalizeValidationErrors($err->errors()),
       ], $err->status);
     }
   }
@@ -441,27 +442,27 @@ class PaymentController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'amount'                => 'required_if:has_items,false|nullable|numeric',
-      'date'                  => 'required|date',
-      'name'                  => 'required_if:has_items,false|nullable|string|max:255',
-      'type_id'               => 'required|integer|exists:payment_types,id',
-      'payment_account_id'    => 'required|integer|exists:payment_accounts,id',
+      'amount' => 'required_if:has_items,false|nullable|numeric',
+      'date' => 'required|date',
+      'name' => 'required_if:has_items,false|nullable|string|max:255',
+      'type_id' => 'required|integer|exists:payment_types,id',
+      'payment_account_id' => 'required|integer|exists:payment_accounts,id',
       'payment_account_to_id' => 'required_if:type_id,3,4|nullable|integer|exists:payment_accounts,id|different:payment_account_id',
-      'has_items'             => 'nullable|boolean',
-      'is_scheduled'          => 'nullable|boolean',
-      'is_draft'              => 'nullable|boolean',
-      'request_view'          => 'nullable|boolean',
+      'has_items' => 'nullable|boolean',
+      'is_scheduled' => 'nullable|boolean',
+      'is_draft' => 'nullable|boolean',
+      'request_view' => 'nullable|boolean',
     ]);
 
     $validator->setAttributeNames([
-      'name'                  => 'description',
-      'type_id'               => 'category',
-      'payment_account_id'    => 'payment account',
+      'name' => 'description',
+      'type_id' => 'category',
+      'payment_account_id' => 'payment account',
       'payment_account_to_id' => 'to payment account',
     ]);
 
     $validator->setCustomMessages([
-      'name.required_if'                  => 'The :attribute field is required when the payment has no items.',
+      'name.required_if' => 'The :attribute field is required when the payment has no items.',
       'payment_account_to_id.required_if' => 'The :attribute field is required when the category is transfer or widrawal.',
     ]);
 
@@ -469,7 +470,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
@@ -488,13 +489,13 @@ class PaymentController extends Controller
       return response()->json([
         'success' => true,
         'message' => 'Payment created successfully',
-        'data'    => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
+        'data' => new PaymentResource($payment->load(['payment_type', 'payment_account', 'payment_account_to']))
       ], 201);
     } catch (ValidationException $err) {
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => normalizeValidationErrors($err->errors()),
+        'errors' => normalizeValidationErrors($err->errors()),
       ], $err->status);
     }
   }
@@ -728,12 +729,12 @@ class PaymentController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'items'           => 'required|array|min:1',
+      'items' => 'required|array|min:1',
       'items.*.item_id' => 'nullable|integer|exists:items,id',
-      'items.*.name'    => 'required|string|max:255',
-      'items.*.amount'  => 'required|numeric|min:0',
-      'items.*.qty'     => 'required|integer|min:1',
-      'totalAmount'     => 'required|numeric|min:0'
+      'items.*.name' => 'required|string|max:255',
+      'items.*.amount' => 'required|numeric|min:0',
+      'items.*.qty' => 'required|integer|min:1',
+      'totalAmount' => 'required|numeric|min:0'
     ]);
 
     if ($validator->fails()) {
@@ -744,16 +745,16 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $items         = $request->items;
-    $totalItems    = count($items);
-    $totalAmount   = $request->totalAmount;
+    $items = $request->items;
+    $totalItems = count($items);
+    $totalAmount = $request->totalAmount;
     $attachedItems = [];
 
     $user = Auth::user();
 
     $record = $user->pushNotifications()->create([
       'title' => 'Transaksi berhasil disimpan',
-      'body'  => "Total $totalItems item berhasil ditambahkan ke transaksi.",
+      'body' => "Total $totalItems item berhasil ditambahkan ke transaksi.",
     ]);
 
     sendPushNotification($user, $record);
@@ -767,10 +768,10 @@ class PaymentController extends Controller
           $item = $existingItem;
         } else {
           $item = Item::create([
-            'name'    => $itemData['name'],
-            'amount'  => $itemData['amount'],
+            'name' => $itemData['name'],
+            'amount' => $itemData['amount'],
             'type_id' => 1,
-            'code'    => getCode('item')
+            'code' => getCode('item')
           ]);
         }
 
@@ -779,31 +780,31 @@ class PaymentController extends Controller
         $item = Item::find($itemData['item_id']);
       }
 
-      $price    = $itemData['amount'];
+      $price = $itemData['amount'];
       $quantity = $itemData['qty'];
-      $total    = $price * $quantity;
+      $total = $price * $quantity;
       $itemCode = getCode('payment_item');
 
       $payment->items()->attach($itemData['item_id'], [
         'item_code' => $itemCode,
-        'quantity'  => $quantity,
-        'price'     => $price,
-        'total'     => $total
+        'quantity' => $quantity,
+        'price' => $price,
+        'total' => $total
       ]);
 
       $attachedItems[] = [
-        'item_id'   => $item->id,
-        'name'      => $item->name,
-        'quantity'  => $quantity,
-        'price'     => $price,
-        'total'     => $total,
+        'item_id' => $item->id,
+        'name' => $item->name,
+        'quantity' => $quantity,
+        'price' => $price,
+        'total' => $total,
         'item_code' => $itemCode
       ];
     }
 
-    $expense         = $payment->amount + $totalAmount;
+    $expense = $payment->amount + $totalAmount;
     $adjustedDeposit = $payment->payment_account->deposit + $payment->amount - $expense;
-    $is_scheduled    = $payment->is_scheduled ?? false;
+    $is_scheduled = $payment->is_scheduled ?? false;
 
     if (!$is_scheduled) {
       $payment->payment_account->update(['deposit' => $adjustedDeposit]);
@@ -821,9 +822,9 @@ class PaymentController extends Controller
       'success' => true,
       'message' => 'Multiple items attached successfully',
       'data' => [
-        'id'               => $payment->id,
-        'name'             => $payment->name,
-        'amount'           => $payment->amount,
+        'id' => $payment->id,
+        'name' => $payment->name,
+        'amount' => $payment->amount,
         'formatted_amount' => toIndonesianCurrency($payment->amount),
       ]
     ]);
@@ -1416,15 +1417,7 @@ class PaymentController extends Controller
     }
 
     try {
-      foreach ($size as $row) {
-        $basename = basename($filepath);
-        $replace = $row === 'original' ? $basename : $row . '-' . $basename;
-        $newFilePath = str_replace($basename, $replace, $filepath);
-
-        if (Storage::disk('public')->exists($newFilePath)) {
-          Storage::disk('public')->delete($newFilePath);
-        }
-      }
+      AttachmentService::deleteAttachmentFiles($filepath);
 
       unset($attachments[$attachmentIndex]);
       $attachments = array_values($attachments); // Re-index the array

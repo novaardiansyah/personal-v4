@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\Payment;
 use App\Models\PaymentType;
+use App\Services\AttachmentService;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
@@ -204,11 +205,7 @@ class PaymentObserver
     }
 
     if (!empty($attachments)) {
-      foreach ($attachments as $attachment) {
-        if (Storage::disk('public')->exists($attachment)) {
-          Storage::disk('public')->delete($attachment);
-        }
-      }
+      AttachmentService::deleteAttachmentFiles($attachments);
     }
 
     $payment->items()->detach();

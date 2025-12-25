@@ -31,3 +31,4 @@ AGENTS.md
 todo.md
 CLAUDE.md
 docker-compose.override.yml
+.agent/.docs/task.md
