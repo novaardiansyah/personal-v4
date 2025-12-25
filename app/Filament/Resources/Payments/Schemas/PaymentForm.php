@@ -27,7 +27,7 @@ class PaymentForm
       ->components([
         Section::make([
           Grid::make([
-            'default' => 4
+            'default' => 3
           ])
             ->columnSpanFull()
             ->schema([
@@ -104,13 +104,6 @@ class PaymentForm
             ->native(false)
             ->default(1)
             ->required()
-            ->disabled(function (string $operation, ?Payment $record) {
-              $disabled = $operation === 'edit';
-              if ($record?->is_scheduled || $record?->is_draft) {
-                $disabled = false;
-              }
-              return $disabled;
-            })
             ->afterStateUpdated(function (Set $set, ?string $state, string $operation) {
               if ($state == PaymentType::WITHDRAWAL) {
                 $set('payment_account_id', PaymentAccount::PERMATA_BANK);

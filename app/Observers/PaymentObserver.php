@@ -104,10 +104,73 @@ class PaymentObserver
       'data.amount' => ['The amount exceeds the account balance.'],
     ];
 
-    if ($record->isDirty('amount')) {
+    $typeChanged = $record->isDirty('type_id');
+    $amountChanged = $record->isDirty('amount');
+
+    if ($typeChanged) {
+      $oldTypeId = intval($oldValue['type_id']);
+      $newTypeId = intval($record->type_id);
+      $oldAmount = intval($oldValue['amount'] ?? $record->amount);
+      $newAmount = intval($record->amount);
+
+      $oldIncomeOrExpense = $oldTypeId == PaymentType::EXPENSE || $oldTypeId == PaymentType::INCOME;
+      $oldTransferOrWithdrawal = $oldTypeId == PaymentType::TRANSFER || $oldTypeId == PaymentType::WITHDRAWAL;
+
+      if ($oldIncomeOrExpense) {
+        $revertAdjustment = ($oldTypeId == PaymentType::EXPENSE) ? +$oldAmount : -$oldAmount;
+        $record->payment_account->update([
+          'deposit' => $record->payment_account->deposit + $revertAdjustment
+        ]);
+        $record->payment_account->refresh();
+      } else if ($oldTransferOrWithdrawal) {
+        $record->payment_account->update([
+          'deposit' => $record->payment_account->deposit + $oldAmount
+        ]);
+        $record->payment_account_to->update([
+          'deposit' => $record->payment_account_to->deposit - $oldAmount
+        ]);
+        $record->payment_account->refresh();
+        $record->payment_account_to->refresh();
+      }
+
+      $newIncomeOrExpense = $newTypeId == PaymentType::EXPENSE || $newTypeId == PaymentType::INCOME;
+      $newTransferOrWithdrawal = $newTypeId == PaymentType::TRANSFER || $newTypeId == PaymentType::WITHDRAWAL;
+
+      if ($newIncomeOrExpense) {
+        $depositChange = $record->payment_account->deposit;
+
+        if ($newTypeId == PaymentType::EXPENSE) {
+          if ($depositChange < $newAmount) {
+            throw ValidationException::withMessages($insufficientBalanceError);
+          }
+          $depositChange -= $newAmount;
+        } else {
+          $depositChange += $newAmount;
+        }
+
+        $record->payment_account->update([
+          'deposit' => $depositChange
+        ]);
+      } else if ($newTransferOrWithdrawal) {
+        $balanceOrigin = $record->payment_account->deposit;
+        $balanceTo = $record->payment_account_to->deposit;
+
+        if ($balanceOrigin < $newAmount) {
+          throw ValidationException::withMessages($insufficientBalanceError);
+        }
+
+        $record->payment_account->update([
+          'deposit' => $balanceOrigin - $newAmount
+        ]);
+
+        $record->payment_account_to->update([
+          'deposit' => $balanceTo + $newAmount
+        ]);
+      }
+    } else if ($amountChanged) {
       $oldAmount = intval($oldValue['amount']);
       $amount = intval($record->amount);
-      $type_id = intval($oldValue['type_id'] ?? $record->type_id);
+      $type_id = intval($record->type_id);
 
       $incomeOrExpense = $type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME;
       $transferOrWithdrawal = $type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL;
