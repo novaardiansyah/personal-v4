@@ -10,6 +10,7 @@ use App\Mail\BlogSubscriberResource\WelcomeSubscriberMail;
 use App\Models\BlogSubscriber;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -34,7 +35,8 @@ class BlogSubscriberController extends Controller
   public function subscribe(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'email' => 'required|email',
+      'email'         => 'required|email',
+      'captcha_token' => 'required|string',
     ]);
 
     if ($validator->fails()) {
@@ -46,8 +48,21 @@ class BlogSubscriberController extends Controller
     }
 
     $validated = $validator->validated();
-    $email = textLower($validated['email']);
 
+    $check_captcha = Http::asForm()->post(config('services.cloudflare.turnstile.site_url'), [
+      'secret'   => config('services.cloudflare.turnstile.secret_key'),
+      'response' => $validated['captcha_token'],
+    ])->json();
+
+    if (!($check_captcha['success'] ?? false)) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors'  => ['email' => ['You have entered an invalid captcha, please try again!']],
+      ], 422);
+    }
+
+    $email = textLower($validated['email']);
     $subscriber = BlogSubscriber::where('email', $email)->first();
 
     if ($subscriber) {
@@ -55,7 +70,7 @@ class BlogSubscriberController extends Controller
         return response()->json([
           'success' => false,
           'message' => 'Validation failed',
-          'errors' => ['email' => ['The email has already been subscribed.']]
+          'errors'  => ['email' => ['The email has already been subscribed.']]
         ], 422);
       }
 
