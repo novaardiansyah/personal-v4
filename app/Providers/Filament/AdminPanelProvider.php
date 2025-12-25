@@ -22,7 +22,6 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use Filament\Support\Enums\Width;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
-use Filament\Support\Facades\FilamentView;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\HtmlString;
 

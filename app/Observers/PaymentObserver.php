@@ -6,7 +6,6 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use App\Services\AttachmentService;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class PaymentObserver
