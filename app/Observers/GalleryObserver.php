@@ -48,10 +48,10 @@ class GalleryObserver
   private function _log(string $event, Gallery $gallery): void
   {
     saveActivityLog([
-      'event' => $event,
-      'model' => 'Gallery',
+      'event'        => $event,
+      'model'        => 'Gallery',
       'subject_type' => Gallery::class,
-      'subject_id' => $gallery->id,
+      'subject_id'   => $gallery->id,
     ], $gallery);
   }
 }

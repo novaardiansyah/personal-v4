@@ -8,6 +8,7 @@ use App\Models\PaymentType;
 use Carbon\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -81,7 +82,10 @@ class PaymentForm
             ->image()
             ->imageEditor()
             ->multiple()
-            ->columnSpanFull()
+            ->columnSpanFull(),
+
+          Hidden::make('old_attachments')
+            ->label('Old Attachments'),
         ])
           ->description('Transaction details')
           ->columns(2)
