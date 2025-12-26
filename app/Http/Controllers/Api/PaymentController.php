@@ -16,6 +16,7 @@ use App\Http\Resources\PaymentAttachmentResource;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
+use App\Models\Gallery;
 use Illuminate\Validation\ValidationException;
 use App\Services\AttachmentService;
 use App\Services\PaymentService;
@@ -1209,8 +1210,8 @@ class PaymentController extends Controller
   public function addAttachment(Request $request, Payment $payment): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'attachment_base64' => 'required_without:attachment_base64_array|string',
-      'attachment_base64_array' => 'required_without:attachment_base64|array',
+      'attachment_base64'         => 'required_without:attachment_base64_array|string',
+      'attachment_base64_array'   => 'required_without:attachment_base64|array',
       'attachment_base64_array.*' => 'string'
     ]);
 
@@ -1218,7 +1219,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors' => $validator->errors()
+        'errors'  => $validator->errors()
       ], 422);
     }
 
@@ -1226,18 +1227,18 @@ class PaymentController extends Controller
     $uploadedAttachments = [];
     $errors = [];
 
-    // Handle single upload
     if ($request->has('attachment_base64')) {
       $base64Data = $request->input('attachment_base64');
 
       if ($this->processBase64Upload($base64Data, $attachments, $uploadedAttachments, $errors)) {
         $this->updatePaymentAttachments($payment, $attachments);
 
+        $this->saveAttachmentToGallery($uploadedAttachments, $payment);
+
         return $this->attachmentSuccessResponse($payment, $attachments, 'Attachment added successfully', $uploadedAttachments);
       }
     }
 
-    // Handle multiple upload
     if ($request->has('attachment_base64_array')) {
       $base64Array = $request->input('attachment_base64_array');
 
@@ -1252,6 +1253,8 @@ class PaymentController extends Controller
           ? 'Attachment added successfully'
           : count($uploadedAttachments) . ' attachments added successfully';
 
+        $this->saveAttachmentToGallery($uploadedAttachments, $payment);
+        
         return $this->attachmentSuccessResponse($payment, $attachments, $message, $uploadedAttachments);
       }
     }
@@ -1259,8 +1262,37 @@ class PaymentController extends Controller
     return response()->json([
       'success' => false,
       'message' => 'Invalid image format',
-      'errors' => $errors
+      'errors'  => $errors
     ], 422);
+  }
+
+  private function saveAttachmentToGallery(array $optimizedAttachments = [], Payment $payment): void
+  {
+    if (empty($optimizedAttachments)) return;
+
+    foreach ($optimizedAttachments as $attachment) {
+      $optimized = $attachment['optimized_paths'];
+      $original = $optimized['original'];
+
+      $gallery = Gallery::create([
+        'file_path'     => $original,
+        'subject_id'    => $payment->id,
+        'subject_type'  => Payment::class,
+        'has_optimized' => true,
+      ]);
+
+      foreach ($optimized as $key => $image) {
+        if ($key === 'original')
+          continue;
+
+        $gallery = $gallery->replicate();
+
+        $gallery->file_path = $image;
+        $gallery->has_optimized = false;
+
+        $gallery->save();
+      }
+    }
   }
 
   /**
@@ -1276,15 +1308,16 @@ class PaymentController extends Controller
         $attachments[] = $optimizedPaths['original'];
 
         $mediumPath = $optimizedPaths['medium'];
-        $mediumUrl = Storage::disk('public')->url($mediumPath);
+        $mediumUrl  = Storage::disk('public')->url($mediumPath);
 
         $uploadedAttachments[] = [
-          'path' => $optimizedPaths['original'],
-          'medium_path' => $mediumPath,
-          'url' => $mediumUrl,
-          'index' => $index,
+          'path'            => $optimizedPaths['original'],
+          'medium_path'     => $mediumPath,
+          'url'             => $mediumUrl,
+          'index'           => $index,
           'optimized_paths' => $optimizedPaths
         ];
+
         return true;
       } else {
         $errorKey = $index !== null ? "attachment_{$index}" : "attachment";
@@ -1386,11 +1419,11 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors' => $validator->errors()
+        'errors'  => $validator->errors()
       ], 422);
     }
 
-    $filepath = $request->input('filepath');
+    $filepath    = $request->input('filepath');
     $attachments = $payment->attachments ?? [];
 
     $size = ['small', 'medium', 'large', 'original'];
