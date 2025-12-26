@@ -109,7 +109,7 @@ class GalleryResource extends Resource
           ImageEntry::make('file_path')
             ->disk('public')
             ->columnSpanFull()
-            ->width('80%')
+            ->width('60%')
             ->height('auto')
             ->label('Preview'),
         ])
