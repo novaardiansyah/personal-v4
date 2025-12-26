@@ -62,5 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   require __DIR__ . '/api/note.php';
+
+  require __DIR__ . '/api/gallery.php';
 });
 
