@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Filament\Resources\Payments\PaymentResource;
+use App\Models\Gallery;
+use App\Models\Payment;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreatePayment extends CreateRecord
@@ -17,7 +19,26 @@ class CreatePayment extends CreateRecord
     if (!empty($attachments)) {
       foreach ($attachments as $attachment) {
         $file = $attachment;
-        uploadAndOptimize($file, 'public', 'images/payment');
+
+        $gallery = Gallery::create([
+          'file_path'     => $file,
+          'subject_id'    => $record->id,
+          'subject_type'  => Payment::class,
+          'has_optimized' => true,
+        ]);
+
+        $optimized = uploadAndOptimize($file, 'public', 'images/payment');
+
+        foreach ($optimized as $key => $image) {
+          if ($key === 'original') continue;
+
+          $gallery = $gallery->replicate();
+
+          $gallery->file_path     = $image;
+          $gallery->has_optimized = false;
+
+          $gallery->save();
+        }
       }
     }
   }
