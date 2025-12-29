@@ -154,7 +154,7 @@ class GalleryResource extends Resource
         ImageColumn::make('file_path')
           ->label('Preview')
           ->circular()
-          ->disk('public'),
+          ->state(fn ($record): string => config('services.self.go_url') . '/' . $record->file_path),
         TextColumn::make('file_name')
           ->searchable()
           ->wrap()

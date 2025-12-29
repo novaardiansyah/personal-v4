@@ -47,6 +47,8 @@ return [
   ],
 
   'self' => [
-    'short_url_token' => env('SHORTURL_TOKEN')
+    'short_url_token' => env('SHORTURL_TOKEN'),
+    'go_api_url'      => env('GO_API_URL') . '/api',
+    'go_url'          => env('GO_API_URL'),
   ],
 ];
