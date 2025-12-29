@@ -106,29 +106,46 @@ class AuthController extends Controller
    *     security={{"bearerAuth":{}}},
    *     @OA\RequestBody(
    *         required=true,
-   *         @OA\JsonContent(
-   *             required={"current_password", "new_password"},
-   *             @OA\Property(property="current_password", type="string", format="password", example="oldpassword123"),
-   *             @OA\Property(property="new_password", type="string", format="password", example="newpassword123")
-   *         )
+   *         @OA\JsonContent(ref="#/components/schemas/ChangePasswordRequest")
    *     ),
-   *     @OA\Response(response=200, description="Password changed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
+   *     @OA\Response(response=200, description="Password changed successfully", @OA\JsonContent(ref="#/components/schemas/ChangePasswordResponse")),
    *     @OA\Response(response=400, description="Current password is incorrect", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function changePassword(ChangePasswordRequest $request)
+  public function changePassword(Request $request)
   {
-    $user = $request->user();
+    $user = auth()->user();
 
-    if (!Hash::check($request->current_password, $user->password)) {
+    $validator = Validator::make($request->all(), [
+      'current_password' => 'required|string|min:6',
+      'new_password' => 'required|string|min:6|confirmed',
+    ]);
+
+    $validator->setAttributeNames([
+      'current_password' => 'kata sandi saat ini',
+      'new_password' => 'kata sandi baru',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+
+    if (!Hash::check($validated['current_password'], $user->password)) {
       return response()->json([
         'success' => false,
         'message' => 'Current password is incorrect'
       ], 400);
     }
 
-    $user->password = Hash::make($request->new_password);
+    $user->password = Hash::make($validated['new_password']);
     $user->save();
 
     $user->tokens()->delete();

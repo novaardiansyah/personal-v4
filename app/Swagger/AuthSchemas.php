@@ -26,6 +26,23 @@ namespace App\Swagger;
  *         )
  *     )
  * )
+ *
+ * @OA\Schema(
+ *     schema="ChangePasswordRequest",
+ *     required={"current_password", "new_password", "new_password_confirmation"},
+ *     @OA\Property(property="current_password", type="string", format="password", example="oldpassword123"),
+ *     @OA\Property(property="new_password", type="string", format="password", example="newpassword123"),
+ *     @OA\Property(property="new_password_confirmation", type="string", format="password", example="newpassword123")
+ * )
+ *
+ * @OA\Schema(
+ *     schema="ChangePasswordResponse",
+ *     @OA\Property(property="success", type="boolean", example=true),
+ *     @OA\Property(property="message", type="string", example="Password changed successfully"),
+ *     @OA\Property(property="data", type="object",
+ *         @OA\Property(property="token", type="string", example="1|abc123xyz...")
+ *     )
+ * )
  */
 class AuthSchemas
 {
