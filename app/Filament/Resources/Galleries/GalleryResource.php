@@ -107,11 +107,11 @@ class GalleryResource extends Resource
             ->copyable(),
 
           ImageEntry::make('file_path')
-            ->disk('public')
             ->columnSpanFull()
             ->width('60%')
             ->height('auto')
-            ->label('Preview'),
+            ->label('Preview')
+            ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
         ])
           ->description('Image preview')
           ->collapsible(),
@@ -154,7 +154,7 @@ class GalleryResource extends Resource
         ImageColumn::make('file_path')
           ->label('Preview')
           ->circular()
-          ->state(fn ($record): string => config('services.self.go_url') . '/' . $record->file_path),
+          ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
         TextColumn::make('file_name')
           ->searchable()
           ->wrap()

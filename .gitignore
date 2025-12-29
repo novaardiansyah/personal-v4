@@ -11,6 +11,8 @@
 /.phpunit.cache
 /.vscode
 /.zed
+/.antigravity
+/.agent
 /auth.json
 /node_modules
 /public/build
@@ -23,12 +25,5 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
-.claude/
-deploy/task.md
-private/
-AGENTS.md
 .factory/
-todo.md
-CLAUDE.md
 docker-compose.override.yml
-.agent/.docs/task.md
