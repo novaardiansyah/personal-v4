@@ -62,15 +62,17 @@ class GalleryController extends Controller
       $query->withTrashed();
     }
 
-    $perPage = $request->get('per_page', 15);
+    $perPage = $request->get('per_page', 10);
     $perPage = min($perPage, 100);
 
     $galleries = $query->paginate($perPage);
+    $result = (new GalleryCollection($galleries))->toArray($request);
 
     return response()->json([
       'success' => true,
       'message' => 'Galleries retrieved successfully',
-      'data' => new GalleryCollection($galleries),
+      'data'    => $result['data'] ?? null,
+      'meta'    => $result['meta'] ?? null,
     ]);
   }
 

@@ -206,60 +206,51 @@ class AuthController extends Controller
    *     security={{"bearerAuth":{}}},
    *     @OA\RequestBody(
    *         required=true,
-   *         @OA\JsonContent(
-   *             @OA\Property(property="name", type="string", example="John Doe", description="User's full name"),
-   *             @OA\Property(property="email", type="string", format="email", example="john@example.com", description="User's email address"),
-   *             @OA\Property(property="avatar_base64", type="string", example="data:image/png;base64,...", description="Base64 encoded avatar image")
-   *         )
+   *         @OA\JsonContent(ref="#/components/schemas/UpdateProfileRequest")
    *     ),
    *     @OA\Response(
    *         response=200,
    *         description="Profile updated successfully",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=true),
-   *             @OA\Property(property="message", type="string", example="Profile updated successfully"),
-   *             @OA\Property(property="data", type="object",
-   *                 @OA\Property(property="user", type="object",
-   *                     @OA\Property(property="id", type="integer", example=1),
-   *                     @OA\Property(property="name", type="string", example="John Doe"),
-   *                     @OA\Property(property="email", type="string", example="john@example.com"),
-   *                     @OA\Property(property="avatar_url", type="string", example="http://example.com/storage/images/avatar/image.png")
-   *                 )
-   *             )
-   *         )
+   *         @OA\JsonContent(ref="#/components/schemas/UpdateProfileResponse")
    *     ),
-   *     @OA\Response(
-   *         response=401,
-   *         description="Unauthenticated",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="message", type="string", example="Unauthenticated.")
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=422,
-   *         description="Validation error",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="message", type="string", example="The given data was invalid."),
-   *             @OA\Property(property="errors", type="object")
-   *         )
-   *     )
+   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
+   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
    * )
    */
-  public function updateProfile(UpdateProfileRequest $request)
+  public function updateProfile(Request $request)
   {
-    $user = $request->user();
+    $user = auth()->user();
 
-    $validated = $request->validated();
+    $validator = Validator::make($request->all(), [
+      'name' => 'required|string|max:255',
+      'email' => 'sometimes|email|max:255|unique:users,email,' . $user->id,
+      'avatar_base64' => 'sometimes|nullable|string',
+    ]);
+
+    $validator->setAttributeNames([
+      'name' => 'nama lengkap',
+      'email' => 'email',
+      'avatar_base64' => 'avatar',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation failed',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
 
     if (!empty($validated['avatar_base64'])) {
-      // Delete old avatar if exists
       if ($user->avatar_url) {
         $oldPath = str_replace(Storage::url(''), '', $user->avatar_url);
         Storage::disk('public')->delete($oldPath);
       }
 
-      // Process new avatar
       $path = processBase64Image($validated['avatar_base64'], 'images/avatar');
+
       if ($path) {
         $validated['avatar_url'] = $path;
       }

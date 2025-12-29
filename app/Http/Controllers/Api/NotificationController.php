@@ -64,14 +64,13 @@ class NotificationController extends Controller
   {
     $user = Auth::user();
 
-    $result = sendPushNotification(
-      $user,
-      'Test Notification',
-      'This is a test notification from your Laravel app!',
-      ['action' => 'test', 'timestamp' => Carbon::now()->translatedFormat('Y-m-d H:i:s')],
-    );
+    $record = $user->pushNotifications()->create([
+      'title' => 'Test Notification',
+      'body' => 'This is a test notification from your Laravel app!',
+    ]);
 
-    // Jika error dari helper, kembalikan response yang sesuai
+    $result = sendPushNotification($user, $record);
+
     if (!$result['success']) {
       return response()->json($result, 400);
     }
