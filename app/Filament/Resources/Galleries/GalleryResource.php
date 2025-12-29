@@ -76,71 +76,7 @@ class GalleryResource extends Resource
   public static function infolist(Schema $schema): Schema
   {
     return $schema
-      ->components([
-        Section::make([
-          TextEntry::make('file_name')
-            ->copyable()
-            ->columnSpan(2),
-
-          TextEntry::make('file_size')
-            ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB'),
-
-          TextEntry::make('subject_type')
-            ->label('Subject')
-            ->formatStateUsing(function ($state, Model $record) {
-              if (!$state)
-                return '-';
-              return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
-            }),
-
-          TextEntry::make('description')
-            ->markdown()
-            ->prose()
-            ->columnSpanFull(),
-        ])
-          ->description('File information')
-          ->collapsible()
-          ->columns(4),
-
-        Section::make([
-          TextEntry::make('file_path')
-            ->copyable(),
-
-          ImageEntry::make('file_path')
-            ->columnSpanFull()
-            ->width('60%')
-            ->height('auto')
-            ->label('Preview')
-            ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
-        ])
-          ->description('Image preview')
-          ->collapsible(),
-
-        Section::make([
-          IconEntry::make('is_private')
-            ->boolean(),
-          IconEntry::make('has_optimized')
-            ->boolean(),
-        ])
-          ->description('Status')
-          ->collapsible()
-          ->columns(2),
-
-        Section::make([
-          TextEntry::make('created_at')
-            ->dateTime()
-            ->sinceTooltip(),
-          TextEntry::make('updated_at')
-            ->dateTime()
-            ->sinceTooltip(),
-          TextEntry::make('deleted_at')
-            ->dateTime(),
-        ])
-          ->description('Timestamps')
-          ->collapsible()
-          ->columns(3),
-      ])
-      ->columns(1);
+      ->components([]);
   }
 
   public static function table(Table $table): Table
@@ -206,9 +142,6 @@ class GalleryResource extends Resource
             ->modalHeading('View Gallery')
             ->modalWidth(Width::FourExtraLarge)
             ->slideOver(),
-
-          EditAction::make()
-            ->modalWidth(Width::ThreeExtraLarge),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),

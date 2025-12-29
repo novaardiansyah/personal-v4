@@ -49,6 +49,7 @@ return [
   'self' => [
     'short_url_token' => env('SHORTURL_TOKEN'),
     'cdn_api_url'     => env('CDN_URL') . '/api',
+    'cdn_api_key'     => env('CDN_API_KEY'),
     'cdn_url'         => env('CDN_URL'),
   ],
 ];
