@@ -25,6 +25,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
@@ -121,11 +122,12 @@ class GalleriesRelationManager extends RelationManager
               ->label('Image')
               ->image()
               ->disk('public')
-              ->directory('images/payment')
+              ->directory('images/gallery')
               ->required()
               ->maxSize(10240)
               ->imageEditor()
-              ->columnSpanFull(),
+              ->columnSpanFull()
+              ->multiple(),
             Textarea::make('description')
               ->default(null)
               ->rows(3)
@@ -136,21 +138,25 @@ class GalleriesRelationManager extends RelationManager
                   ->default(false),
               ]),
           ]))
-          ->action(function (CreateAction $action, array $data, RelationManager $livewire) {
+          ->action(function (array $data, RelationManager $livewire) {
             $filePath = $data['file_path'];
             $ownerRecord = $livewire->getOwnerRecord();
 
-            UploadGalleryJob::dispatch(
-              $filePath,
-              $data['description'] ?? null,
-              (bool) ($data['is_private'] ?? false),
-              get_class($ownerRecord),
-              $ownerRecord->id,
-              'payment',
-            );
-
-            ManageGalleries::_backgroundNotification();
-            $action->cancel();
+            foreach ($filePath as $path) {
+              UploadGalleryJob::dispatch(
+                $path,
+                $data['description'] ?? null,
+                (bool) ($data['is_private'] ?? false),
+                get_class($ownerRecord),
+                $ownerRecord->id,
+                'payment',
+              );
+            }
+          })
+          ->successNotification(function (Notification $notification) {
+            $notification->title('Background Process')
+              ->body('You will see the result in the next page refresh')
+              ->success();
           }),
       ])
       ->recordActions([
