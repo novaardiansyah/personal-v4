@@ -33,6 +33,7 @@ use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -105,12 +106,7 @@ class GalleryResource extends Resource
           TextEntry::make('size')
             ->label('Size')
             ->badge()
-            ->color(fn(Gallery $record) => match ($record->size) {
-              GallerySize::Original => 'info',
-              GallerySize::Small    => 'success',
-              GallerySize::Medium   => 'warning',
-              GallerySize::Large    => 'danger',
-            }),
+            ->color(fn(Gallery $record) => $record->size->color()),
           IconEntry::make('is_private')
             ->boolean(),
           IconEntry::make('has_optimized')
@@ -158,12 +154,7 @@ class GalleryResource extends Resource
           ->label('Size')
           ->toggleable(isToggledHiddenByDefault: false)
           ->badge()
-          ->color(fn(Gallery $record) => match ($record->size) {
-            GallerySize::Original => 'info',
-            GallerySize::Small    => 'success',
-            GallerySize::Medium   => 'warning',
-            GallerySize::Large    => 'danger',
-          }),
+          ->color(fn(Gallery $record) => $record->size->color()),
         TextColumn::make('file_size')
           ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB')
           ->sortable(),
@@ -200,6 +191,9 @@ class GalleryResource extends Resource
           ->toggleable(isToggledHiddenByDefault: false),
       ])
       ->filters([
+        SelectFilter::make('size')
+          ->options(GallerySize::class)
+          ->native(false),
         TrashedFilter::make()
           ->native(false),
       ])
