@@ -11,6 +11,7 @@ use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
 use App\Jobs\GalleryResource\DeleteGalleryJob;
 use App\Jobs\GalleryResource\ForceDeleteGalleryJob;
+use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -190,16 +191,28 @@ class GalleryResource extends Resource
 
           DeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              DeleteGalleryJob::dispatch($record->id);
-              ManageGalleries::_backgroundNotification();
-              $action->cancel();
+              $response = app(CdnService::class)->delete($record->id);
+
+              if ($response->successful()) {
+                $action->success();
+                $action->successNotificationTitle('Image deleted successfully');
+              } else {
+                $action->failure();
+                $action->failureNotificationTitle('Failed to delete image');
+              }
             }),
 
           ForceDeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              ForceDeleteGalleryJob::dispatch($record->id);
-              ManageGalleries::_backgroundNotification();
-              $action->cancel();
+              $response = app(CdnService::class)->forceDelete($record->id);
+
+              if ($response->successful()) {
+                $action->success();
+                $action->successNotificationTitle('Image deleted successfully');
+              } else {
+                $action->failure();
+                $action->failureNotificationTitle('Failed to delete image');
+              }
             }),
 
           RestoreAction::make(),
@@ -209,23 +222,42 @@ class GalleryResource extends Resource
         BulkActionGroup::make([
           DeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
+              $isQueued = $records->count() > 5;
+              $cdnService = $isQueued ? null : app(CdnService::class);
+
               foreach ($records as $record) {
-                DeleteGalleryJob::dispatch($record->id);
+                $isQueued
+                  ? DeleteGalleryJob::dispatch($record->id)
+                  : $cdnService->delete($record->id);
               }
 
-              ManageGalleries::_backgroundNotification();
+              if ($isQueued) {
+                ManageGalleries::_backgroundNotification();
+                return $action->cancel();
+              }
 
-              $action->cancel();
+              $action->success();
+              $action->successNotificationTitle('Images deleted successfully');
             }),
 
           ForceDeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
+              $isQueued = $records->count() > 5;
+              $cdnService = $isQueued ? null : app(CdnService::class);
+
               foreach ($records as $record) {
-                ForceDeleteGalleryJob::dispatch($record->id);
+                $isQueued
+                  ? ForceDeleteGalleryJob::dispatch($record->id)
+                  : $cdnService->forceDelete($record->id);
               }
-              
-              ManageGalleries::_backgroundNotification();
-              $action->cancel();
+
+              if ($isQueued) {
+                ManageGalleries::_backgroundNotification();
+                return $action->cancel();
+              }
+
+              $action->success();
+              $action->successNotificationTitle('Images deleted successfully');
             }),
 
           RestoreBulkAction::make(),
