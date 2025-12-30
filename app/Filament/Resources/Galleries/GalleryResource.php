@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Galleries;
 use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
 use BackedEnum;
+use Filament\Actions\Action;
 use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -22,6 +23,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -36,6 +38,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class GalleryResource extends Resource
@@ -143,15 +147,75 @@ class GalleryResource extends Resource
             ->modalWidth(Width::FourExtraLarge)
             ->slideOver(),
 
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
+          DeleteAction::make()
+            ->action(function (Gallery $record, Action $action) {
+              $cdnUrl = config('services.self.cdn_api_url') . '/galleries/' . $record->id;
+              $cdnKey = config('services.self.cdn_api_key');
+
+              $response = Http::withToken($cdnKey)
+                ->delete($cdnUrl);
+
+              if ($response->successful()) {
+                $action->success();
+                $action->successNotificationTitle('Image deleted successfully');
+              } else {
+                $action->failure();
+                $action->failureNotificationTitle('Failed to delete image');
+              }
+            }),
+
+          ForceDeleteAction::make()
+            ->action(function (Gallery $record, Action $action) {
+              $cdnUrl = config('services.self.cdn_api_url') . '/galleries/' . $record->id . '/force';
+              $cdnKey = config('services.self.cdn_api_key');
+
+              $response = Http::withToken($cdnKey)
+                ->delete($cdnUrl);
+
+              if ($response->successful()) {
+                $action->success();
+                $action->successNotificationTitle('Image deleted successfully');
+              } else {
+                $action->failure();
+                $action->failureNotificationTitle('Failed to delete image');
+              }
+            }),
+
           RestoreAction::make(),
         ]),
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
+          DeleteBulkAction::make()
+            ->action(function (Collection $records) {
+              $cdnKey = config('services.self.cdn_api_key');
+              $cdnBaseUrl = config('services.self.cdn_api_url') . '/galleries/';
+
+              foreach ($records as $record) {
+                Http::withToken($cdnKey)->delete($cdnBaseUrl . $record->id);
+              }
+
+              Notification::make()
+                ->title('Images deleted successfully')
+                ->success()
+                ->send();
+            }),
+
+          ForceDeleteBulkAction::make()
+            ->action(function (Collection $records) {
+              $cdnKey = config('services.self.cdn_api_key');
+              $cdnBaseUrl = config('services.self.cdn_api_url') . '/galleries/';
+
+              foreach ($records as $record) {
+                Http::withToken($cdnKey)->delete($cdnBaseUrl . $record->id . '/force');
+              }
+
+              Notification::make()
+                ->title('Images deleted successfully')
+                ->success()
+                ->send();
+            }),
+            
           RestoreBulkAction::make(),
         ]),
       ]);
