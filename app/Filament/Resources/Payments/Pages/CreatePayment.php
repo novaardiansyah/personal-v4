@@ -11,38 +11,6 @@ class CreatePayment extends CreateRecord
 {
   protected static string $resource = PaymentResource::class;
 
-  protected function afterCreate(): void
-  {
-    $record = $this->record;
-    $attachments = $record->attachments ?? [];
-
-    if (!empty($attachments)) {
-      foreach ($attachments as $attachment) {
-        $file = $attachment;
-
-        $gallery = Gallery::create([
-          'file_path'     => $file,
-          'subject_id'    => $record->id,
-          'subject_type'  => Payment::class,
-          'has_optimized' => true,
-        ]);
-
-        $optimized = uploadAndOptimize($file, 'public', 'images/payment');
-
-        foreach ($optimized as $key => $image) {
-          if ($key === 'original') continue;
-
-          $gallery = $gallery->replicate();
-
-          $gallery->file_path     = $image;
-          $gallery->has_optimized = false;
-
-          $gallery->save();
-        }
-      }
-    }
-  }
-  
   protected function getRedirectUrl(): string
   {
     $resource = static::getResource();

@@ -17,58 +17,6 @@ class EditPayment extends EditRecord
 {
   protected static string $resource = PaymentResource::class;
 
-  protected function mutateFormDataBeforeFill(array $data): array
-  {
-    $data['old_attachments'] = $data['attachments'] ?? [];
-    return $data;
-  }
-
-  protected function mutateFormDataBeforeSave(array $data): array
-  {
-    $record = $this->record;
-    
-    $newAttachments = $data['attachments'] ?? [];
-    $oldAttachments = $data['old_attachments'] ?? [];
-
-    $removedAttachments = array_diff($oldAttachments, $newAttachments);
-    $addedAttachments = array_diff($newAttachments, $oldAttachments);
-
-    if (!empty($removedAttachments)) {
-      foreach ($removedAttachments as $attachment) {
-        AttachmentService::deleteAttachmentFiles($attachment);
-      }
-    }
-
-    if (!empty($addedAttachments)) {
-      foreach ($addedAttachments as $attachment) {
-        $file = $attachment;
-
-        $gallery = Gallery::create([
-          'file_path'     => $file,
-          'subject_id'    => $record->id,
-          'subject_type'  => Payment::class,
-          'has_optimized' => true,
-        ]);
-
-        $optimized = uploadAndOptimize($file, 'public', 'images/payment');
-
-        foreach ($optimized as $key => $image) {
-          if ($key === 'original')
-            continue;
-
-          $gallery = $gallery->replicate();
-
-          $gallery->file_path = $image;
-          $gallery->has_optimized = false;
-
-          $gallery->save();
-        }
-      }
-    }
-
-    return $data;
-  }
-
   protected function getHeaderActions(): array
   {
     return [

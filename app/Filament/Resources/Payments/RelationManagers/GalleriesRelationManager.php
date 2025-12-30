@@ -33,7 +33,6 @@ use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
 
@@ -44,6 +43,8 @@ class GalleriesRelationManager extends RelationManager
   protected static ?string $relatedResource = GalleryResource::class;
 
   protected static int $numBulkQueue = 5;
+  
+  protected static ?string $title = 'Attachments';
 
   public function isReadOnly(): bool
   {

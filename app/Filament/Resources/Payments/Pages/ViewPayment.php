@@ -67,43 +67,28 @@ class ViewPayment extends ViewRecord
                 TextEntry::make('name')
                   ->label('Notes')
                   ->columnSpanFull()
-                  ->markdown()
-                  ->prose()
                   ->placeholder('No notes available'),
               ])
-              ->columns(3)
+              ->columns(4)
               ->columnSpan(2),
 
-            Section::make('')
-              ->description('Attachments')
-              ->schema([
-                ImageEntry::make('attachments')
-                  ->checkFileExistence(false)
-                  ->stacked()
-                  ->imageWidth(100)
-                  ->imageHeight('100%')
-                  ->columnSpanFull(),
-              ])
-              ->visible(fn(Payment $record): bool => !empty($record->attachments))
-              ->collapsible()
-              ->columnSpan(2),
+              Section::make('')
+                ->description('Payment Account')
+                ->schema([
+                  TextEntry::make('payment_account.name')
+                    ->label('From Account')
+                    ->icon('heroicon-o-wallet')
+                    ->placeholder('N/A'),
+                  TextEntry::make('payment_account_to.name')
+                    ->label('To Account')
+                    ->icon('heroicon-o-arrow-right-circle')
+                    ->placeholder('N/A')
+                    ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
+                ]),
           ]),
 
         Grid::make(1)
           ->schema([
-            Section::make('')
-              ->description('Payment Account')
-              ->schema([
-                TextEntry::make('payment_account.name')
-                  ->label('From Account')
-                  ->icon('heroicon-o-wallet')
-                  ->placeholder('N/A'),
-                TextEntry::make('payment_account_to.name')
-                  ->label('To Account')
-                  ->icon('heroicon-o-arrow-right-circle')
-                  ->placeholder('N/A')
-                  ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
-              ]),
             Section::make('')
               ->description('Status')
               ->schema([

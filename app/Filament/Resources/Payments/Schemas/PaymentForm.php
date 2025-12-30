@@ -74,18 +74,6 @@ class PaymentForm
             ->columnSpanFull()
             ->required(fn(Get $get) => !$get('has_items'))
             ->rows(3),
-
-          FileUpload::make('attachments')
-            ->label('Attachments')
-            ->disk('public')
-            ->directory('images/payment')
-            ->image()
-            ->imageEditor()
-            ->multiple()
-            ->columnSpanFull(),
-
-          Hidden::make('old_attachments')
-            ->label('Old Attachments'),
         ])
           ->description('Transaction details')
           ->columns(2)

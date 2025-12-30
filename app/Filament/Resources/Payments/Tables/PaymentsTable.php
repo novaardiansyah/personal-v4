@@ -77,11 +77,6 @@ class PaymentsTable
           ->date('M d, Y')
           ->sortable()
           ->toggleable(),
-        ImageColumn::make('attachments')
-          ->checkFileExistence(false)
-          ->wrap()
-          ->limit(3)
-          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
