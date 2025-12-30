@@ -4,7 +4,7 @@ namespace App\Filament\Resources\Galleries\Pages;
 
 use App\Filament\Resources\Galleries\GalleryResource;
 use App\Jobs\GalleryResource\UploadGalleryJob;
-use Filament\Actions\Action;
+use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -12,7 +12,6 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
-use Illuminate\Support\Facades\Storage;
 
 class ManageGalleries extends ManageRecords
 {
@@ -21,11 +20,11 @@ class ManageGalleries extends ManageRecords
   protected function getHeaderActions(): array
   {
     return [
-      Action::make('upload')
-        ->modalWidth(Width::ThreeExtraLarge)
+      CreateAction::make()
         ->label('Upload Image')
         ->modalHeading('Upload image to CDN')
-        ->schema([
+        ->modalWidth(Width::ThreeExtraLarge)
+        ->form([
           FileUpload::make('file_path')
             ->label('Image')
             ->image()
@@ -45,7 +44,7 @@ class ManageGalleries extends ManageRecords
                 ->default(false),
             ]),
         ])
-        ->action(function (Action $action, array $data) {
+        ->action(function (CreateAction $action, array $data) {
           $filePath = $data['file_path'];
 
           UploadGalleryJob::dispatch(
