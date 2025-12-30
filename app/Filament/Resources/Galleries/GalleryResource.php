@@ -69,7 +69,7 @@ class GalleryResource extends Resource
             ->columnSpan(2),
 
           TextEntry::make('file_size')
-            ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB'),
+            ->formatStateUsing(fn($state) => sizeFormat($state)),
 
           TextEntry::make('subject_type')
             ->label('Subject')
@@ -156,7 +156,7 @@ class GalleryResource extends Resource
           ->badge()
           ->color(fn(Gallery $record) => $record->size->color()),
         TextColumn::make('file_size')
-          ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB')
+          ->formatStateUsing(fn($state) => sizeFormat($state))
           ->sortable(),
         TextColumn::make('subject_id')
           ->label('Subject')

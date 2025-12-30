@@ -463,3 +463,10 @@ function normalizeValidationErrors(array $errors): array
 
   return $normalizedErrors;
 }
+
+function sizeFormat(float $size): string
+{
+  $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  $i = floor(log($size, 1024));
+  return round($size / pow(1024, $i), 2) . ' ' . $units[$i];
+}

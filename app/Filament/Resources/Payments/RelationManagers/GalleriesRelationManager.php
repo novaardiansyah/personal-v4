@@ -78,7 +78,7 @@ class GalleriesRelationManager extends RelationManager
           ->badge()
           ->color(fn(Gallery $record) => $record->size->color()),
         TextColumn::make('file_size')
-          ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB')
+          ->formatStateUsing(fn($state) => sizeFormat($state))
           ->sortable(),
         TextColumn::make('description')
           ->searchable()
