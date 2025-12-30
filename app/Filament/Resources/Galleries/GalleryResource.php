@@ -9,7 +9,8 @@ use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
-use App\Services\GalleryResource\CdnService;
+use App\Jobs\GalleryResource\DeleteGalleryJob;
+use App\Jobs\GalleryResource\ForceDeleteGalleryJob;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -91,7 +92,7 @@ class GalleryResource extends Resource
             ->width('60%')
             ->height('auto')
             ->label('Preview')
-            ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
+            ->state(fn($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
         ])
           ->description('Image preview')
           ->collapsible(),
@@ -189,28 +190,16 @@ class GalleryResource extends Resource
 
           DeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              $response = app(CdnService::class)->delete($record->id);
-
-              if ($response->successful()) {
-                $action->success();
-                $action->successNotificationTitle('Image deleted successfully');
-              } else {
-                $action->failure();
-                $action->failureNotificationTitle('Failed to delete image');
-              }
+              DeleteGalleryJob::dispatch($record->id);
+              ManageGalleries::_backgroundNotification();
+              $action->cancel();
             }),
 
           ForceDeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              $response = app(CdnService::class)->forceDelete($record->id);
-
-              if ($response->successful()) {
-                $action->success();
-                $action->successNotificationTitle('Image deleted successfully');
-              } else {
-                $action->failure();
-                $action->failureNotificationTitle('Failed to delete image');
-              }
+              ForceDeleteGalleryJob::dispatch($record->id);
+              ManageGalleries::_backgroundNotification();
+              $action->cancel();
             }),
 
           RestoreAction::make(),
@@ -219,31 +208,24 @@ class GalleryResource extends Resource
       ->toolbarActions([
         BulkActionGroup::make([
           DeleteBulkAction::make()
-            ->action(function (Collection $records) {
-              $cdnService = app(CdnService::class);
-
+            ->action(function (Collection $records, Action $action) {
               foreach ($records as $record) {
-                $cdnService->delete($record->id);
+                DeleteGalleryJob::dispatch($record->id);
               }
 
-              Notification::make()
-                ->title('Images deleted successfully')
-                ->success()
-                ->send();
+              ManageGalleries::_backgroundNotification();
+
+              $action->cancel();
             }),
 
           ForceDeleteBulkAction::make()
-            ->action(function (Collection $records) {
-              $cdnService = app(CdnService::class);
-
+            ->action(function (Collection $records, Action $action) {
               foreach ($records as $record) {
-                $cdnService->forceDelete($record->id);
+                ForceDeleteGalleryJob::dispatch($record->id);
               }
-
-              Notification::make()
-                ->title('Images deleted successfully')
-                ->success()
-                ->send();
+              
+              ManageGalleries::_backgroundNotification();
+              $action->cancel();
             }),
 
           RestoreBulkAction::make(),
