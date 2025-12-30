@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Payments;
 
 use BackedEnum;
 use UnitEnum;
+use App\Filament\Resources\Payments\RelationManagers\GalleriesRelationManager;
 use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
@@ -23,8 +24,8 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PaymentResource extends Resource
 {
   protected static ?string $model = Payment::class;
-  protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedBanknotes;
-  protected static string | UnitEnum | null $navigationGroup = 'Payments';
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+  protected static string|UnitEnum|null $navigationGroup = 'Payments';
   protected static ?int $navigationSort = 9;
 
   protected static ?string $recordTitleAttribute = 'name';
@@ -48,16 +49,17 @@ class PaymentResource extends Resource
   {
     return [
       ItemsRelationManager::class,
+      GalleriesRelationManager::class,
     ];
   }
 
   public static function getPages(): array
   {
     return [
-      'index'  => ListPayments::route('/'),
+      'index' => ListPayments::route('/'),
       'create' => CreatePayment::route('/create'),
-      'view'   => ViewPayment::route('/{record}'),
-      'edit'   => EditPayment::route('/{record}/edit'),
+      'view' => ViewPayment::route('/{record}'),
+      'edit' => EditPayment::route('/{record}/edit'),
     ];
   }
 

@@ -17,13 +17,16 @@ class UploadGalleryJob implements ShouldQueue
   public function __construct(
     protected string $filePath,
     protected ?string $description = null,
-    protected bool $isPrivate = false
+    protected bool $isPrivate = false,
+    protected ?string $subjectType = null,
+    protected ?int $subjectId = null,
+    protected ?string $dir = null,
   ) {
   }
 
   public function handle(CdnService $service): void
   {
-    $service->upload($this->filePath, $this->description, $this->isPrivate);
+    $service->upload($this->filePath, $this->description, $this->isPrivate, $this->subjectType, $this->subjectId, $this->dir);
 
     Storage::disk('public')->delete($this->filePath);
   }

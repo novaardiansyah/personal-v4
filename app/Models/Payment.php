@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([PaymentObserver::class])]
@@ -15,13 +16,13 @@ class Payment extends Model
 {
   use SoftDeletes;
 
-  protected $guarded = ['id'];
+  protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'attachments', 'created_at', 'updated_at', 'deleted_at'];
 
   protected $casts = [
-    'attachments'  => 'array',
-    'has_items'    => 'boolean',
+    'attachments' => 'array',
+    'has_items' => 'boolean',
     'is_scheduled' => 'boolean',
-    'is_draft'     => 'boolean'
+    'is_draft' => 'boolean'
   ];
 
   public function payment_account(): BelongsTo
@@ -44,6 +45,11 @@ class Payment extends Model
   public function items(): BelongsToMany
   {
     return $this->belongsToMany(Item::class, 'payment_item')->withPivot(['id', 'item_code', 'quantity', 'price', 'total'])->withTimestamps();
+  }
+
+  public function galleries(): MorphMany
+  {
+    return $this->morphMany(Gallery::class, 'subject');
   }
 
   public static function mutateDataPayment(array $data): array
