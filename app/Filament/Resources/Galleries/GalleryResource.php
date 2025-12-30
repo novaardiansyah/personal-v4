@@ -4,6 +4,9 @@ namespace App\Filament\Resources\Galleries;
 
 use BackedEnum;
 use UnitEnum;
+use Filament\Infolists\Components\ImageEntry;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
 use App\Services\GalleryResource\CdnService;
@@ -17,12 +20,9 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
@@ -49,33 +49,78 @@ class GalleryResource extends Resource
   {
     return $schema
       ->components([
-        FileUpload::make('file_path')
-          ->image()
-          ->directory('images/gallery')
-          ->disk('public')
-          ->maxSize(5120)
-          ->imageEditor()
-          ->columnSpanFull(),
-        Textarea::make('description')
-          ->default(null)
-          ->rows(3)
-          ->columnSpanFull(),
-        Grid::make(4)
-          ->schema([
-            Toggle::make('is_private')
-              ->default(false),
-            Toggle::make('has_optimized')
-              ->default(true)
-              ->disabledOn('edit'),
-          ]),
-      ])
-      ->columns(1);
+        // ! Form is handled by CdnService
+      ]);
   }
 
   public static function infolist(Schema $schema): Schema
   {
     return $schema
-      ->components([]);
+      ->components([
+        Section::make([
+          TextEntry::make('file_name')
+            ->copyable()
+            ->columnSpan(2),
+
+          TextEntry::make('file_size')
+            ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB'),
+
+          TextEntry::make('subject_type')
+            ->label('Subject')
+            ->formatStateUsing(function ($state, Model $record) {
+              if (!$state)
+                return '-';
+              return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
+            }),
+
+          TextEntry::make('description')
+            ->markdown()
+            ->prose()
+            ->columnSpanFull(),
+        ])
+          ->description('File information')
+          ->collapsible()
+          ->columns(4),
+
+        Section::make([
+          TextEntry::make('file_path')
+            ->copyable(),
+
+          ImageEntry::make('file_path')
+            ->columnSpanFull()
+            ->width('60%')
+            ->height('auto')
+            ->label('Preview')
+            ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
+        ])
+          ->description('Image preview')
+          ->collapsible(),
+
+        Section::make([
+          IconEntry::make('is_private')
+            ->boolean(),
+          IconEntry::make('has_optimized')
+            ->boolean(),
+        ])
+          ->description('Status')
+          ->collapsible()
+          ->columns(2),
+
+        Section::make([
+          TextEntry::make('created_at')
+            ->dateTime()
+            ->sinceTooltip(),
+          TextEntry::make('updated_at')
+            ->dateTime()
+            ->sinceTooltip(),
+          TextEntry::make('deleted_at')
+            ->dateTime(),
+        ])
+          ->description('Timestamps')
+          ->collapsible()
+          ->columns(3),
+      ])
+      ->columns(1);
   }
 
   public static function table(Table $table): Table
