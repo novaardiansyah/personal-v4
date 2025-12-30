@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments\RelationManagers;
 
+use App\Enums\GallerySize;
 use App\Filament\Resources\Galleries\GalleryResource;
 use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Jobs\GalleryResource\DeleteGalleryJob;
@@ -69,6 +70,16 @@ class GalleriesRelationManager extends RelationManager
           ->wrap()
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('size')
+          ->label('Size')
+          ->toggleable(isToggledHiddenByDefault: false)
+          ->badge()
+          ->color(fn(Gallery $record) => match ($record->size) {
+            GallerySize::Original => 'info',
+            GallerySize::Small    => 'success',
+            GallerySize::Medium   => 'warning',
+            GallerySize::Large    => 'danger',
+          }),
         TextColumn::make('file_size')
           ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB')
           ->sortable(),

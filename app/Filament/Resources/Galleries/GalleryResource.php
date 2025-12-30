@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Galleries;
 
+use App\Enums\GallerySize;
 use BackedEnum;
 use UnitEnum;
 use Filament\Infolists\Components\ImageEntry;
@@ -101,6 +102,15 @@ class GalleryResource extends Resource
           ->collapsible(),
 
         Section::make([
+          TextEntry::make('size')
+            ->label('Size')
+            ->badge()
+            ->color(fn(Gallery $record) => match ($record->size) {
+              GallerySize::Original => 'info',
+              GallerySize::Small    => 'success',
+              GallerySize::Medium   => 'warning',
+              GallerySize::Large    => 'danger',
+            }),
           IconEntry::make('is_private')
             ->boolean(),
           IconEntry::make('has_optimized')
@@ -108,7 +118,7 @@ class GalleryResource extends Resource
         ])
           ->description('Status')
           ->collapsible()
-          ->columns(2),
+          ->columns(3),
 
         Section::make([
           TextEntry::make('created_at')
@@ -144,6 +154,16 @@ class GalleryResource extends Resource
           ->wrap()
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('size')
+          ->label('Size')
+          ->toggleable(isToggledHiddenByDefault: false)
+          ->badge()
+          ->color(fn(Gallery $record) => match ($record->size) {
+            GallerySize::Original => 'info',
+            GallerySize::Small    => 'success',
+            GallerySize::Medium   => 'warning',
+            GallerySize::Large    => 'danger',
+          }),
         TextColumn::make('file_size')
           ->formatStateUsing(fn($state) => number_format($state / 1024, 2) . ' KB')
           ->sortable(),
