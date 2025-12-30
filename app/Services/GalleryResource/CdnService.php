@@ -32,7 +32,7 @@ class CdnService
     return Http::withToken($this->apiKey)->post("{$this->baseUrl}/{$id}/restore");
   }
 
-  public function upload(string $filePath, ?string $description = null, bool $isPrivate = false, ?string $subjectType = null, ?int $subjectId = null, ?string $dir = null): Response
+  public function upload(string $filePath, ?string $description = null, bool $isPrivate = false, ?string $subjectType = null, ?int $subjectId = null, ?string $dir = 'gallery'): Response
   {
     $disk = Storage::disk('public');
     $fileContent = $disk->get($filePath);
@@ -49,9 +49,13 @@ class CdnService
       $postData['subject_id'] = $subjectId;
     }
 
-    if ($dir) {
-      $postData['dir'] = $dir;
+    $allowed_dir = ['gallery', 'payment', 'item'];
+
+    if (!in_array($dir, $allowed_dir)) {
+      $dir = 'gallery';
     }
+
+    $postData['dir'] = $dir;
 
     return Http::withToken($this->apiKey)
       ->attach('file', $fileContent, $fileName, ['Content-Type' => $mimeType])
