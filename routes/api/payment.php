@@ -37,10 +37,6 @@ Route::prefix('payments')->group(function () {
   Route::put('/{payment}/items/{pivotId}', [PaymentController::class, 'updateItem']);
   Route::delete('/{payment}/items/{pivotId}', [PaymentController::class, 'detachItem']);
 
-  Route::get('/{payment}/attachments', [PaymentController::class, 'getAttachments']);
-  Route::post('/{payment}/attachments', [PaymentController::class, 'addAttachment']);
-  Route::delete('/{payment}/attachments', [PaymentController::class, 'deleteAttachment']);
-
   Route::post('/{code}/manage-draft', [PaymentController::class, 'manageDraft']);
 });
 
