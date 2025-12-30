@@ -27,6 +27,11 @@ class CdnService
     return Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$id}/force");
   }
 
+  public function restore(string|int $id): Response
+  {
+    return Http::withToken($this->apiKey)->post("{$this->baseUrl}/{$id}/restore");
+  }
+
   public function upload(string $filePath, ?string $description = null, bool $isPrivate = false): Response
   {
     $disk = Storage::disk('public');

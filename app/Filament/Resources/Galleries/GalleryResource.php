@@ -11,6 +11,7 @@ use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
 use App\Jobs\GalleryResource\DeleteGalleryJob;
 use App\Jobs\GalleryResource\ForceDeleteGalleryJob;
+use App\Jobs\GalleryResource\RestoreGalleryJob;
 use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -46,6 +47,7 @@ class GalleryResource extends Resource
   protected static string|UnitEnum|null $navigationGroup = 'Productivity';
   protected static ?int $navigationSort = 10;
   protected static ?string $recordTitleAttribute = 'file_name';
+  protected static int $numBulkQueue = 5;
 
   public static function form(Schema $schema): Schema
   {
@@ -215,14 +217,25 @@ class GalleryResource extends Resource
               }
             }),
 
-          RestoreAction::make(),
+          RestoreAction::make()
+            ->action(function (Gallery $record, Action $action) {
+              $response = app(CdnService::class)->restore($record->id);
+
+              if ($response->successful()) {
+                $action->success();
+                $action->successNotificationTitle('Image restored successfully');
+              } else {
+                $action->failure();
+                $action->failureNotificationTitle('Failed to restore image');
+              }
+            }),
         ]),
       ])
       ->toolbarActions([
         BulkActionGroup::make([
           DeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
-              $isQueued = $records->count() > 5;
+              $isQueued = $records->count() >= self::$numBulkQueue;
               $cdnService = $isQueued ? null : app(CdnService::class);
 
               foreach ($records as $record) {
@@ -242,7 +255,7 @@ class GalleryResource extends Resource
 
           ForceDeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
-              $isQueued = $records->count() > 5;
+              $isQueued = $records->count() >= self::$numBulkQueue;
               $cdnService = $isQueued ? null : app(CdnService::class);
 
               foreach ($records as $record) {
@@ -260,7 +273,25 @@ class GalleryResource extends Resource
               $action->successNotificationTitle('Images deleted successfully');
             }),
 
-          RestoreBulkAction::make(),
+          RestoreBulkAction::make()
+            ->action(function (Collection $records, Action $action) {
+              $isQueued = $records->count() >= self::$numBulkQueue;
+              $cdnService = $isQueued ? null : app(CdnService::class);
+
+              foreach ($records as $record) {
+                $isQueued
+                  ? RestoreGalleryJob::dispatch($record->id)
+                  : $cdnService->restore($record->id);
+              }
+
+              if ($isQueued) {
+                ManageGalleries::_backgroundNotification();
+                return $action->cancel();
+              }
+
+              $action->success();
+              $action->successNotificationTitle('Images restored successfully');
+            }),
         ]),
       ]);
   }
