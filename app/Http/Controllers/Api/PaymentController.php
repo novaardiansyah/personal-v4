@@ -1210,8 +1210,8 @@ class PaymentController extends Controller
   public function addAttachment(Request $request, Payment $payment): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'attachment_base64'         => 'required_without:attachment_base64_array|string',
-      'attachment_base64_array'   => 'required_without:attachment_base64|array',
+      'attachment_base64' => 'required_without:attachment_base64_array|string',
+      'attachment_base64_array' => 'required_without:attachment_base64|array',
       'attachment_base64_array.*' => 'string'
     ]);
 
@@ -1219,7 +1219,7 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
@@ -1233,7 +1233,7 @@ class PaymentController extends Controller
       if ($this->processBase64Upload($base64Data, $attachments, $uploadedAttachments, $errors)) {
         $this->updatePaymentAttachments($payment, $attachments);
 
-        $this->saveAttachmentToGallery($uploadedAttachments, $payment);
+        $this->saveAttachmentToGallery($payment, $uploadedAttachments);
 
         return $this->attachmentSuccessResponse($payment, $attachments, 'Attachment added successfully', $uploadedAttachments);
       }
@@ -1253,8 +1253,8 @@ class PaymentController extends Controller
           ? 'Attachment added successfully'
           : count($uploadedAttachments) . ' attachments added successfully';
 
-        $this->saveAttachmentToGallery($uploadedAttachments, $payment);
-        
+        $this->saveAttachmentToGallery($payment, $uploadedAttachments);
+
         return $this->attachmentSuccessResponse($payment, $attachments, $message, $uploadedAttachments);
       }
     }
@@ -1262,22 +1262,23 @@ class PaymentController extends Controller
     return response()->json([
       'success' => false,
       'message' => 'Invalid image format',
-      'errors'  => $errors
+      'errors' => $errors
     ], 422);
   }
 
-  private function saveAttachmentToGallery(array $optimizedAttachments = [], Payment $payment): void
+  private function saveAttachmentToGallery(Payment $payment, array $optimizedAttachments = []): void
   {
-    if (empty($optimizedAttachments)) return;
+    if (empty($optimizedAttachments))
+      return;
 
     foreach ($optimizedAttachments as $attachment) {
       $optimized = $attachment['optimized_paths'];
       $original = $optimized['original'];
 
       $gallery = Gallery::create([
-        'file_path'     => $original,
-        'subject_id'    => $payment->id,
-        'subject_type'  => Payment::class,
+        'file_path' => $original,
+        'subject_id' => $payment->id,
+        'subject_type' => Payment::class,
         'has_optimized' => true,
       ]);
 
@@ -1308,13 +1309,13 @@ class PaymentController extends Controller
         $attachments[] = $optimizedPaths['original'];
 
         $mediumPath = $optimizedPaths['medium'];
-        $mediumUrl  = Storage::disk('public')->url($mediumPath);
+        $mediumUrl = Storage::disk('public')->url($mediumPath);
 
         $uploadedAttachments[] = [
-          'path'            => $optimizedPaths['original'],
-          'medium_path'     => $mediumPath,
-          'url'             => $mediumUrl,
-          'index'           => $index,
+          'path' => $optimizedPaths['original'],
+          'medium_path' => $mediumPath,
+          'url' => $mediumUrl,
+          'index' => $index,
           'optimized_paths' => $optimizedPaths
         ];
 
@@ -1419,11 +1420,11 @@ class PaymentController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => $validator->errors()
+        'errors' => $validator->errors()
       ], 422);
     }
 
-    $filepath    = $request->input('filepath');
+    $filepath = $request->input('filepath');
     $attachments = $payment->attachments ?? [];
 
     $size = ['small', 'medium', 'large', 'original'];
