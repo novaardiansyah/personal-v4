@@ -64,64 +64,50 @@ class ViewPayment extends ViewRecord
                   ->label('Date')
                   ->date('M d, Y')
                   ->icon('heroicon-o-calendar'),
+                TextEntry::make('payment_account.name')
+                  ->label('From Account')
+                  ->icon('heroicon-o-wallet')
+                  ->placeholder('N/A'),
+                TextEntry::make('payment_account_to.name')
+                  ->label('To Account')
+                  ->icon('heroicon-o-arrow-right-circle')
+                  ->placeholder('N/A')
+                  ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
                 TextEntry::make('name')
                   ->label('Notes')
-                  ->columnSpanFull()
-                  ->placeholder('No notes available'),
+                  ->placeholder('No notes available')
+                  ->columns(2),
               ])
               ->columns(4)
               ->columnSpan(2),
-
-              Section::make('')
-                ->description('Payment Account')
-                ->schema([
-                  TextEntry::make('payment_account.name')
-                    ->label('From Account')
-                    ->icon('heroicon-o-wallet')
-                    ->placeholder('N/A'),
-                  TextEntry::make('payment_account_to.name')
-                    ->label('To Account')
-                    ->icon('heroicon-o-arrow-right-circle')
-                    ->placeholder('N/A')
-                    ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
-                ]),
           ]),
 
         Grid::make(1)
           ->schema([
             Section::make('')
-              ->description('Status')
+              ->description('Status Information')
               ->schema([
-                Grid::make(3)
-                  ->schema([
-                    IconEntry::make('is_scheduled')
-                      ->label('Scheduled')
-                      ->boolean(),
-                    IconEntry::make('has_items')
-                      ->label('Has Items')
-                      ->boolean(),
-                    IconEntry::make('is_draft')
-                      ->label('Draft')
-                      ->boolean(),
-                  ]),
-              ]),
-            Section::make('')
-              ->description('Record Information')
-              ->schema([
-                Grid::make(3)
-                  ->schema([
-                    TextEntry::make('created_at')
-                      ->label('Created')
-                      ->dateTime(),
-                    TextEntry::make('updated_at')
-                      ->label('Last Updated')
-                      ->dateTime()
-                      ->sinceTooltip(),
-                    TextEntry::make('deleted_at')
-                      ->label('Deleted')
-                      ->dateTime(),
-                  ]),
-              ]),
+                IconEntry::make('is_scheduled')
+                  ->label('Scheduled')
+                  ->boolean(),
+                IconEntry::make('has_items')
+                  ->label('Has Items')
+                  ->boolean(),
+                IconEntry::make('is_draft')
+                  ->label('Draft')
+                  ->boolean(),
+                TextEntry::make('created_at')
+                  ->label('Created')
+                  ->dateTime(),
+                TextEntry::make('updated_at')
+                  ->label('Last Updated')
+                  ->dateTime()
+                  ->sinceTooltip(),
+                TextEntry::make('deleted_at')
+                  ->label('Deleted')
+                  ->dateTime(),
+              ])
+              ->columns(3),
           ]),
       ])
       ->columns(2);
