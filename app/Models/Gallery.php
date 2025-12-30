@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GallerySize;
 use App\Observers\GalleryObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -14,12 +15,13 @@ class Gallery extends Model
   use SoftDeletes;
   protected $table = 'galleries';
 
-  protected $fillable = ['user_id', 'subject_id', 'subject_type', 'file_path', 'file_name', 'file_size', 'is_private', 'has_optimized', 'description'];
+  protected $fillable = ['user_id', 'subject_id', 'subject_type', 'file_path', 'file_name', 'file_size', 'is_private', 'has_optimized', 'description', 'size'];
 
   protected $casts = [
     'is_private'    => 'boolean',
     'file_size'     => 'integer',
     'has_optimized' => 'boolean',
+    'size'          => GallerySize::class,
   ];
 
   public function user()

@@ -33,7 +33,8 @@ class ManageGalleries extends ManageRecords
             ->required()
             ->maxSize(10240)
             ->imageEditor()
-            ->columnSpanFull(),
+            ->columnSpanFull()
+            ->multiple(),
           Textarea::make('description')
             ->default(null)
             ->rows(3)
@@ -44,17 +45,21 @@ class ManageGalleries extends ManageRecords
                 ->default(false),
             ]),
         ])
-        ->action(function (CreateAction $action, array $data) {
+        ->action(function (array $data) {
           $filePath = $data['file_path'];
 
-          UploadGalleryJob::dispatch(
-            $filePath,
-            $data['description'] ?? null,
-            (bool) ($data['is_private'] ?? false)
-          );
-
-          self::_backgroundNotification();
-          $action->cancel();
+          foreach ($filePath as $path) {
+            UploadGalleryJob::dispatch(
+              $path,
+              $data['description'] ?? null,
+              (bool) ($data['is_private'] ?? false)
+            );
+          }
+        })
+        ->successNotification(function (Notification $notification) {
+          $notification->title('Background Process')
+            ->body('You will see the result in the next page refresh')
+            ->success();
         })
     ];
   }
