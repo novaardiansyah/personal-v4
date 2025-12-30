@@ -2,16 +2,16 @@
 
 namespace App\Filament\Resources\Galleries;
 
+use BackedEnum;
+use UnitEnum;
 use App\Filament\Resources\Galleries\Pages\ManageGalleries;
 use App\Models\Gallery;
-use BackedEnum;
+use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
-use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
@@ -20,13 +20,9 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
-use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\ImageEntry;
-use Filament\Infolists\Components\TextEntry;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
-use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
@@ -39,7 +35,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
 class GalleryResource extends Resource
@@ -94,7 +89,7 @@ class GalleryResource extends Resource
         ImageColumn::make('file_path')
           ->label('Preview')
           ->circular()
-          ->state(fn ($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
+          ->state(fn($record): string => config('services.self.cdn_url') . '/' . $record->file_path),
         TextColumn::make('file_name')
           ->searchable()
           ->wrap()
@@ -149,11 +144,7 @@ class GalleryResource extends Resource
 
           DeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              $cdnUrl = config('services.self.cdn_api_url') . '/galleries/' . $record->id;
-              $cdnKey = config('services.self.cdn_api_key');
-
-              $response = Http::withToken($cdnKey)
-                ->delete($cdnUrl);
+              $response = app(CdnService::class)->delete($record->id);
 
               if ($response->successful()) {
                 $action->success();
@@ -166,11 +157,7 @@ class GalleryResource extends Resource
 
           ForceDeleteAction::make()
             ->action(function (Gallery $record, Action $action) {
-              $cdnUrl = config('services.self.cdn_api_url') . '/galleries/' . $record->id . '/force';
-              $cdnKey = config('services.self.cdn_api_key');
-
-              $response = Http::withToken($cdnKey)
-                ->delete($cdnUrl);
+              $response = app(CdnService::class)->forceDelete($record->id);
 
               if ($response->successful()) {
                 $action->success();
@@ -188,11 +175,10 @@ class GalleryResource extends Resource
         BulkActionGroup::make([
           DeleteBulkAction::make()
             ->action(function (Collection $records) {
-              $cdnKey = config('services.self.cdn_api_key');
-              $cdnBaseUrl = config('services.self.cdn_api_url') . '/galleries/';
+              $cdnService = app(CdnService::class);
 
               foreach ($records as $record) {
-                Http::withToken($cdnKey)->delete($cdnBaseUrl . $record->id);
+                $cdnService->delete($record->id);
               }
 
               Notification::make()
@@ -203,11 +189,10 @@ class GalleryResource extends Resource
 
           ForceDeleteBulkAction::make()
             ->action(function (Collection $records) {
-              $cdnKey = config('services.self.cdn_api_key');
-              $cdnBaseUrl = config('services.self.cdn_api_url') . '/galleries/';
+              $cdnService = app(CdnService::class);
 
               foreach ($records as $record) {
-                Http::withToken($cdnKey)->delete($cdnBaseUrl . $record->id . '/force');
+                $cdnService->forceDelete($record->id);
               }
 
               Notification::make()
@@ -215,7 +200,7 @@ class GalleryResource extends Resource
                 ->success()
                 ->send();
             }),
-            
+
           RestoreBulkAction::make(),
         ]),
       ]);

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Galleries\Pages;
 
 use App\Filament\Resources\Galleries\GalleryResource;
+use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
@@ -10,7 +11,6 @@ use Filament\Forms\Components\Toggle;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class ManageGalleries extends ManageRecords
@@ -45,24 +45,15 @@ class ManageGalleries extends ManageRecords
             ]),
         ])
         ->action(function (Action $action, array $data) {
-          $cdnUrl   = config('services.self.cdn_api_url') . '/galleries/upload';
-          $cdnKey   = config('services.self.cdn_api_key');
-
           $filePath = $data['file_path'];
-          $disk     = Storage::disk('public');
 
-          $fileContent = $disk->get($filePath);
-          $mimeType    = $disk->mimeType($filePath);
-          $fileName    = basename($filePath);
+          $response = app(CdnService::class)->upload(
+            $filePath,
+            $data['description'] ?? null,
+            (bool) ($data['is_private'] ?? false)
+          );
 
-          $response = Http::withToken($cdnKey)
-            ->attach('file', $fileContent, $fileName, ['Content-Type' => $mimeType])
-            ->post($cdnUrl, [
-              'description' => $data['description'] ?? '',
-              'is_private'  => $data['is_private'] ? 'true' : 'false',
-            ]);
-
-          $disk->delete($filePath);
+          Storage::disk('public')->delete($filePath);
 
           if ($response->successful()) {
             $action->success();
