@@ -38,6 +38,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Storage;
 
 class GalleriesRelationManager extends RelationManager
 {
@@ -125,6 +126,7 @@ class GalleriesRelationManager extends RelationManager
               ->directory('images/gallery')
               ->required()
               ->maxSize(10240)
+              ->maxFiles(15)
               ->imageEditor()
               ->columnSpanFull()
               ->multiple(),
@@ -138,25 +140,43 @@ class GalleriesRelationManager extends RelationManager
                   ->default(false),
               ]),
           ]))
-          ->action(function (array $data, RelationManager $livewire) {
+          ->action(function (CreateAction $action, array $data, RelationManager $livewire) {
             $filePath = $data['file_path'];
             $ownerRecord = $livewire->getOwnerRecord();
+            $isQueued = count($filePath) > 3;
 
             foreach ($filePath as $path) {
-              UploadGalleryJob::dispatch(
-                $path,
-                $data['description'] ?? null,
-                (bool) ($data['is_private'] ?? false),
-                get_class($ownerRecord),
-                $ownerRecord->id,
-                'payment',
-              );
+              if ($isQueued) {
+                UploadGalleryJob::dispatch(
+                  $path,
+                  $data['description'] ?? null,
+                  (bool) ($data['is_private'] ?? false),
+                  get_class($ownerRecord),
+                  $ownerRecord->id,
+                  'payment',
+                );
+              } else {
+                app(CdnService::class)->upload(
+                  $path,
+                  $data['description'] ?? null,
+                  (bool) ($data['is_private'] ?? false),
+                  get_class($ownerRecord),
+                  $ownerRecord->id,
+                  'payment',
+                );
+
+                Storage::disk('public')->delete($path);
+              }
             }
-          })
-          ->successNotification(function (Notification $notification) {
-            $notification->title('Background Process')
-              ->body('You will see the result in the next page refresh')
-              ->success();
+
+            if ($isQueued) {
+              $action->successNotificationTitle('Background Process');
+              $action->successNotification(function (Notification $notification) {
+                $notification->body('You will see the result in the next page refresh');
+              });
+            } else {
+              $action->successNotificationTitle('Images uploaded successfully');
+            }
           }),
       ])
       ->recordActions([

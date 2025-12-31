@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Galleries\Pages;
 
 use App\Filament\Resources\Galleries\GalleryResource;
 use App\Jobs\GalleryResource\UploadGalleryJob;
+use App\Services\GalleryResource\CdnService;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
@@ -12,6 +13,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
+use Illuminate\Support\Facades\Storage;
 
 class ManageGalleries extends ManageRecords
 {
@@ -32,6 +34,7 @@ class ManageGalleries extends ManageRecords
             ->directory('images/gallery')
             ->required()
             ->maxSize(10240)
+            ->maxFiles(15)
             ->imageEditor()
             ->columnSpanFull()
             ->multiple(),
@@ -45,21 +48,36 @@ class ManageGalleries extends ManageRecords
                 ->default(false),
             ]),
         ])
-        ->action(function (array $data) {
+        ->action(function (CreateAction $action, array $data) {
           $filePath = $data['file_path'];
+          $isQueued = count($filePath) > 3;
 
           foreach ($filePath as $path) {
-            UploadGalleryJob::dispatch(
-              $path,
-              $data['description'] ?? null,
-              (bool) ($data['is_private'] ?? false)
-            );
+            if ($isQueued) {
+              UploadGalleryJob::dispatch(
+                $path,
+                $data['description'] ?? null,
+                (bool) ($data['is_private'] ?? false)
+              );
+            } else {
+              app(CdnService::class)->upload(
+                $path,
+                $data['description'] ?? null,
+                (bool) ($data['is_private'] ?? false)
+              );
+
+              Storage::disk('public')->delete($path);
+            }
           }
-        })
-        ->successNotification(function (Notification $notification) {
-          $notification->title('Background Process')
-            ->body('You will see the result in the next page refresh')
-            ->success();
+
+          if ($isQueued) {
+            $action->successNotificationTitle('Background Process');
+            $action->successNotification(function (Notification $notification) {
+              $notification->body('You will see the result in the next page refresh');
+            });
+          } else {
+            $action->successNotificationTitle('Images uploaded successfully');
+          }
         })
     ];
   }
