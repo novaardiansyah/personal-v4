@@ -106,6 +106,7 @@ class GalleriesRelationManager extends RelationManager
       ->filters([
         SelectFilter::make('size')
           ->options(GallerySize::class)
+          ->default(GallerySize::Original->value)
           ->native(false),
         TrashedFilter::make()
           ->native(false),
