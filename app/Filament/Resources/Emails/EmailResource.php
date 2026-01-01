@@ -6,6 +6,7 @@ use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
 use App\Models\Email;
 use BackedEnum;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -13,6 +14,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
@@ -147,8 +149,7 @@ class EmailResource extends Resource
       ])
       ->filters([
         TrashedFilter::make()
-          ->native(false)
-          ->default(true),
+          ->native(false),
       ])
       ->recordActions([
         ActionGroup::make([
@@ -156,6 +157,42 @@ class EmailResource extends Resource
             ->slideOver(),
 
           EditAction::make(),
+
+          Action::make('send')
+            ->action(function (Email $record, Action $action) {
+              $record->update([
+                'status' => EmailStatus::Sent,
+              ]);
+
+              $action->success();
+              $action->successNotificationTitle('Email sent successfully');
+            })
+            ->label('Send')
+            ->icon('heroicon-s-paper-airplane')
+            ->color('success')
+            ->requiresConfirmation()
+            ->modalHeading('Send Email')
+            ->modalDescription('Are you sure you want to send this email?')
+            ->visible(fn(Email $record): bool => $record->status === EmailStatus::Draft),
+
+          ReplicateAction::make()
+            ->label('Replicate')
+            ->icon('heroicon-s-document-duplicate')
+            ->color('warning')
+            ->action(function (Email $record, Action $action) {
+              $newRecord = $record->replicate();
+              $newRecord->status = EmailStatus::Draft;
+              $newRecord->subject = $record->subject . ' (Copy)';
+              
+              $newRecord->save();
+
+              $action->success();
+              $action->successNotificationTitle('Email replicated successfully');
+            })
+            ->requiresConfirmation()
+            ->modalHeading('Replicate Email')
+            ->modalDescription('Are you sure you want to replicate this email?'),
+
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
