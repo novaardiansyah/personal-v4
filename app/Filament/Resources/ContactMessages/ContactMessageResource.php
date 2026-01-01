@@ -7,6 +7,7 @@ use UnitEnum;
 
 use App\Filament\Resources\ContactMessages\Pages\ManageContactMessages;
 use App\Models\ContactMessage;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -45,6 +46,15 @@ class ContactMessageResource extends Resource
   protected static ?string $recordTitleAttribute = 'subject';
 
   protected static ?int $navigationSort = 40;
+
+  protected static ?string $modelLabel = 'Contact Form';
+
+  protected static ?string $pluralModelLabel = 'Contact Forms';
+
+  public static function getNavigationBadge(): ?string
+  {
+    return static::getModel()::where('is_read', false)->count();
+  }
 
   public static function form(Schema $schema): Schema
   {
@@ -157,7 +167,7 @@ class ContactMessageResource extends Resource
           ->limit(100),
         TextColumn::make('message')
           ->searchable()
-          ->toggleable()
+          ->toggleable(isToggledHiddenByDefault: true)
           ->wrap()
           ->limit(200),
         IconColumn::make('is_read')
@@ -195,7 +205,7 @@ class ContactMessageResource extends Resource
           ->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: false),
       ])
-      ->defaultSort('created_at', 'desc')
+      ->defaultSort('updated_at', 'desc')
       ->filters([
         TrashedFilter::make()
           ->native(false),
@@ -205,6 +215,23 @@ class ContactMessageResource extends Resource
           ViewAction::make()
             ->modalHeading('View Message')
             ->modalWidth(Width::FiveExtraLarge),
+
+          Action::make('read')
+            ->action(function (ContactMessage $record, Action $action) {
+              $record->update([
+                'is_read' => true,
+              ]);
+
+              $action->success();
+              $action->successNotificationTitle('Message marked as read');
+            })
+            ->label('Mark as Read')
+            ->icon('heroicon-s-check-circle')
+            ->color('success')
+            ->requiresConfirmation()
+            ->modalHeading('Mark as Read')
+            ->modalDescription('Are you sure you want to mark this message as read?')
+            ->visible(fn(ContactMessage $record): bool => $record->is_read === false),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),
