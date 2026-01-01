@@ -9,6 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Mail\Mailables\Address;
+use Illuminate\Mail\Mailables\Attachment;
 
 class DefaultMail extends Mailable implements ShouldQueue
 {
@@ -53,6 +54,8 @@ class DefaultMail extends Mailable implements ShouldQueue
    */
   public function attachments(): array
   {
-    return $this->data['attachments'] ?? [];
+    return collect($this->data['attachments'] ?? [])
+      ->map(fn($path) => Attachment::fromStorageDisk('public', $path))
+      ->all();
   }
 }

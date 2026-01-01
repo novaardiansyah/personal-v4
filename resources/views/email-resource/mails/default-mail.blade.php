@@ -9,5 +9,5 @@
 @endsection
 
 @section('content')
-  {!! $data['message'] !!}
+  {!! str($data['message'])->sanitizeHtml() !!}
 @endsection

@@ -66,12 +66,24 @@ class EmailResource extends Resource
           ->required()
           ->native(false),
         RichEditor::make('message')
+          ->toolbarButtons([
+            ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
+            ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
+            ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+          ])
+          ->floatingToolbars([
+            'paragraph' => [
+              'bold', 'italic', 'underline', 'strike', 'subscript', 'superscript',
+            ],
+          ])
           ->columnSpanFull()
           ->required(),
         FileUpload::make('attachments')
           ->multiple()
           ->disk('public')
           ->directory('attachments')
+          ->maxFiles(10)
+          ->maxSize(1024 * 5)
           ->columnSpanFull(),
       ]);
   }
@@ -171,17 +183,11 @@ class EmailResource extends Resource
 
           Action::make('send')
             ->action(function (Email $record, Action $action) {
-              $attachments = [];
-              
-              foreach ($record->attachments as $attachment) {
-                $attachments[] = Storage::disk('public')->path($attachment);
-              }
-
               $data = [
                 'name'        => $record->name ?? explode('@', $record->email)[0],
                 'subject'     => $record->subject,
                 'message'     => $record->message,
-                'attachments' => $attachments,
+                'attachments' => $record->attachments,
               ];
 
               Mail::to($record->email)->queue(new DefaultMail($data));
