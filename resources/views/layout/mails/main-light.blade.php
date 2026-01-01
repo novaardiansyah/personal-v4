@@ -29,9 +29,9 @@
     .header {
       text-align: center;
       color: #3366FF;
-      font-size: 18px;
+      font-size: 16px;
       font-weight: bold;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .content, .content p {
@@ -114,9 +114,9 @@
     <div class="content">
       @yield('content')
 
-      <p style="margin-bottom: 26px">Terima kasih atas perhatian Anda.</p>
+      <p style="margin-top: 30px;">Terima kasih atas perhatian Anda.</p>
 
-      <p>Salam Hangat,</p>
+      <p style="margin-bottom: 20px">Salam hangat,</p>
       <p>{{ explode(' ', $author_name)[0] }}</p>
     </div>
 

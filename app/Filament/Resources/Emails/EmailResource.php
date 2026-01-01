@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Emails;
 
 use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
+use App\Mail\EmailResource\DefaultMail;
 use App\Models\Email;
 use BackedEnum;
 use Filament\Actions\Action;
@@ -32,6 +33,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Mail;
 use UnitEnum;
 
 class EmailResource extends Resource
@@ -151,6 +153,7 @@ class EmailResource extends Resource
         TrashedFilter::make()
           ->native(false),
       ])
+      ->defaultSort('updated_at', 'desc')
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
@@ -160,12 +163,18 @@ class EmailResource extends Resource
 
           Action::make('send')
             ->action(function (Email $record, Action $action) {
+              if (!$record->name) {
+                $record->name = explode('@', $record->email)[0];
+              }
+
+              Mail::to($record->email)->queue(new DefaultMail($record->toArray()));
+
               $record->update([
                 'status' => EmailStatus::Sent,
               ]);
 
               $action->success();
-              $action->successNotificationTitle('Email sent successfully');
+              $action->successNotificationTitle('Email will be sent in the background');
             })
             ->label('Send')
             ->icon('heroicon-s-paper-airplane')
@@ -175,7 +184,7 @@ class EmailResource extends Resource
             ->modalDescription('Are you sure you want to send this email?')
             ->visible(fn(Email $record): bool => $record->status === EmailStatus::Draft),
 
-          ReplicateAction::make()
+          ReplicateAction::make('replicate')
             ->label('Replicate')
             ->icon('heroicon-s-document-duplicate')
             ->color('warning')
@@ -183,7 +192,7 @@ class EmailResource extends Resource
               $newRecord = $record->replicate();
               $newRecord->status = EmailStatus::Draft;
               $newRecord->subject = $record->subject . ' (Copy)';
-              
+
               $newRecord->save();
 
               $action->success();
