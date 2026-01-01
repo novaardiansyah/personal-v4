@@ -44,7 +44,7 @@ class ContactMessageResource extends Resource
 
   protected static ?string $recordTitleAttribute = 'subject';
 
-  protected static ?int $navigationSort = 20;
+  protected static ?int $navigationSort = 40;
 
   public static function form(Schema $schema): Schema
   {
