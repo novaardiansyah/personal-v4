@@ -16,6 +16,7 @@ use App\Jobs\GalleryResource\RestoreGalleryJob;
 use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -79,10 +80,15 @@ class GalleryResource extends Resource
               return Str::of($state)->afterLast('\\')->headline() . ' # ' . $record->subject_id;
             }),
 
+          TextEntry::make('group_code')
+            ->label('Group')
+            ->badge()
+            ->copyable(),
+
           TextEntry::make('description')
             ->markdown()
             ->prose()
-            ->columnSpanFull(),
+            ->columns(3),
         ])
           ->description('File information')
           ->collapsible()
@@ -150,6 +156,13 @@ class GalleryResource extends Resource
           ->wrap()
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('group_code')
+          ->label('Group')
+          ->toggleable()
+          ->searchable()
+          ->badge()
+          ->sortable()
+          ->copyable(),
         TextColumn::make('size')
           ->label('Size')
           ->toggleable(isToggledHiddenByDefault: false)
@@ -196,7 +209,8 @@ class GalleryResource extends Resource
           ->default(GallerySize::Original->value)
           ->native(false),
         TrashedFilter::make()
-          ->native(false),
+          ->native(false)
+          ->default(true),
       ])
       ->defaultSort('updated_at', 'desc')
       ->recordActions([
@@ -248,6 +262,26 @@ class GalleryResource extends Resource
       ])
       ->toolbarActions([
         BulkActionGroup::make([
+          BulkAction::make('grouping')
+            ->action(function (Collection $records, Action $action) {
+              $groupCode = getCode('gallery_group');
+
+              foreach ($records as $record) {
+                $record->update([
+                  'group_code' => $groupCode,
+                ]);
+              }
+
+              $action->success();
+              $action->successNotificationTitle('Images grouped successfully');
+            })
+            ->label('Grouping')
+            ->icon('heroicon-s-document-duplicate')
+            ->color('info')
+            ->requiresConfirmation()
+            ->modalHeading('Grouping')
+            ->modalDescription('Are you sure you want to group these images?'),
+
           DeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
               $isQueued = $records->count() >= self::$numBulkQueue;

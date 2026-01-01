@@ -15,7 +15,7 @@ class Gallery extends Model
   use SoftDeletes;
   protected $table = 'galleries';
 
-  protected $fillable = ['user_id', 'subject_id', 'subject_type', 'file_path', 'file_name', 'file_size', 'is_private', 'has_optimized', 'description', 'size'];
+  protected $fillable = ['user_id', 'subject_id', 'subject_type', 'file_path', 'file_name', 'file_size', 'is_private', 'has_optimized', 'description', 'size', 'group_code'];
 
   protected $casts = [
     'is_private'    => 'boolean',

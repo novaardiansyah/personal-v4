@@ -13,6 +13,7 @@ use App\Models\Gallery;
 use App\Services\GalleryResource\CdnService;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -73,6 +74,13 @@ class GalleriesRelationManager extends RelationManager
           ->wrap()
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('group_code')
+          ->label('Group')
+          ->toggleable()
+          ->searchable()
+          ->badge()
+          ->sortable()
+          ->copyable(),
         TextColumn::make('size')
           ->label('Size')
           ->toggleable(isToggledHiddenByDefault: false)
@@ -110,7 +118,8 @@ class GalleriesRelationManager extends RelationManager
           ->default(GallerySize::Original->value)
           ->native(false),
         TrashedFilter::make()
-          ->native(false),
+          ->native(false)
+          ->default(true),
       ])
       ->defaultSort('updated_at', 'desc')
       ->headerActions([
@@ -229,6 +238,26 @@ class GalleriesRelationManager extends RelationManager
       ])
       ->toolbarActions([
         BulkActionGroup::make([
+          BulkAction::make('grouping')
+            ->action(function (Collection $records, Action $action) {
+              $groupCode = getCode('gallery_group');
+
+              foreach ($records as $record) {
+                $record->update([
+                  'group_code' => $groupCode,
+                ]);
+              }
+
+              $action->success();
+              $action->successNotificationTitle('Images grouped successfully');
+            })
+            ->label('Grouping')
+            ->icon('heroicon-s-document-duplicate')
+            ->color('info')
+            ->requiresConfirmation()
+            ->modalHeading('Grouping')
+            ->modalDescription('Are you sure you want to group these images?'),
+
           DeleteBulkAction::make()
             ->action(function (Collection $records, Action $action) {
               $isQueued = $records->count() >= self::$numBulkQueue;
