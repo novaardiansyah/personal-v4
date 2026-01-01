@@ -13,6 +13,7 @@
       margin: 0;
       padding: 0;
     }
+
     .container {
       max-width: 600px;
       margin: auto;
@@ -20,18 +21,21 @@
       border: 1px solid #e0e0e0;
       background-color: #ffffff;
     }
+
     .text-primary {
       color: #3366FF;
     }
+
     .header {
       text-align: center;
       color: #3366FF;
-      font-size: 24px;
+      font-size: 18px;
       font-weight: bold;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
-    .content {
-      font-size: 16px;
+
+    .content, .content p {
+      font-size: 14px;
       color: #333333;
       line-height: 1.6;
     }
@@ -42,8 +46,9 @@
       padding: 15px;
       color: #232323;
       box-shadow: 0 1px 4px rgba(60, 60, 60, 0.06);
-      font-size: 14px;
+      font-size: 12px;
     }
+
     .card h4, .card h5 {
       margin-top: 0;
       color: #3366FF;
@@ -82,7 +87,7 @@
 
     .footer, .footer a {
       text-align: center;
-      font-size: 13px;
+      font-size: 12px;
       color: #999;
       margin-top: 40px;
       text-decoration: none;
@@ -116,7 +121,7 @@
     </div>
 
     <div class="footer">
-      &copy; {{ date('Y') }} <a href="https://novaardiansyah.my.id">{{ $author_name }}</a>. All rights reserved.
+      &copy; {{ date('Y') }} <a href="https://novaardiansyah.id">{{ $author_name }}</a>. All rights reserved.
     </div>
   </div>
 </body>
