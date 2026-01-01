@@ -8,7 +8,6 @@ use App\Models\PaymentType;
 use App\Models\Setting;
 use Filament\Actions\EditAction;
 use Filament\Infolists\Components\IconEntry;
-use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Schemas\Components\Grid;
@@ -76,9 +75,9 @@ class ViewPayment extends ViewRecord
                 TextEntry::make('name')
                   ->label('Notes')
                   ->placeholder('No notes available')
-                  ->columns(2),
+                  ->columnSpanFull(),
               ])
-              ->columns(4)
+              ->columns(['xl' => 3, '2xl' => 4])
               ->columnSpan(2),
           ]),
 
