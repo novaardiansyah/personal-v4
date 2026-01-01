@@ -53,6 +53,6 @@ class DefaultMail extends Mailable implements ShouldQueue
    */
   public function attachments(): array
   {
-    return [];
+    return $this->data['attachments'] ?? [];
   }
 }

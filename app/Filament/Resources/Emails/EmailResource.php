@@ -19,6 +19,7 @@ use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -34,6 +35,8 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 use UnitEnum;
 
 class EmailResource extends Resource
@@ -65,6 +68,11 @@ class EmailResource extends Resource
         RichEditor::make('message')
           ->columnSpanFull()
           ->required(),
+        FileUpload::make('attachments')
+          ->multiple()
+          ->disk('public')
+          ->directory('attachments')
+          ->columnSpanFull(),
       ]);
   }
 
@@ -163,11 +171,20 @@ class EmailResource extends Resource
 
           Action::make('send')
             ->action(function (Email $record, Action $action) {
-              if (!$record->name) {
-                $record->name = explode('@', $record->email)[0];
+              $attachments = [];
+              
+              foreach ($record->attachments as $attachment) {
+                $attachments[] = Storage::disk('public')->path($attachment);
               }
 
-              Mail::to($record->email)->queue(new DefaultMail($record->toArray()));
+              $data = [
+                'name'        => $record->name ?? explode('@', $record->email)[0],
+                'subject'     => $record->subject,
+                'message'     => $record->message,
+                'attachments' => $attachments,
+              ];
+
+              Mail::to($record->email)->queue(new DefaultMail($data));
 
               $record->update([
                 'status' => EmailStatus::Sent,
