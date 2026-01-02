@@ -72,7 +72,8 @@ class EmailResource extends Resource
           ->options(EmailStatus::class)
           ->default('draft')
           ->required()
-          ->native(false),
+          ->native(false)
+          ->disabledOn('edit'),
         RichEditor::make('message')
           ->toolbarButtons([
             ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
@@ -107,8 +108,7 @@ class EmailResource extends Resource
             TextEntry::make('status')
               ->badge()
               ->color(fn(Email $record): string => $record->status->color())
-              ->state(fn(Email $record): string => $record->status->label())
-              ->disabledOn('edit'),
+              ->state(fn(Email $record): string => $record->status->label()),
             TextEntry::make('subject'),
             TextEntry::make('message')
               ->label('Message')
