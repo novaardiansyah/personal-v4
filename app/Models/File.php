@@ -6,6 +6,7 @@ use App\Observers\FileObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
 
@@ -38,5 +39,10 @@ class File extends Model
     $this->update([
       'has_been_deleted' => true
     ]);
+  }
+
+  public function subject(): MorphTo
+  {
+    return $this->morphTo();
   }
 }
