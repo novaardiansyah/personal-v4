@@ -161,6 +161,13 @@ class EmailResource extends Resource
           ->state(fn(Email $record): string => $record->status->label())
           ->toggleable()
           ->sortable(),
+        TextColumn::make('files_count')
+          ->label('Attachments')
+          ->counts('files')
+          ->toggleable()
+          ->sortable()
+          ->badge()
+          ->color(fn(Email $record): string => $record->files_count > 0 ? 'info' : 'danger'),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
