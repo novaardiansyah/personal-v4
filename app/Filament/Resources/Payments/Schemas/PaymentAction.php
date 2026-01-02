@@ -168,8 +168,19 @@ class PaymentAction
       ->columns(2);
   }
 
-  public static function itemMutateFormDataUsing(array $data): array
+  public static function itemMutateFormDataUsing(array $data, CreateAction $action): array
   {
+    $item = Item::where('name', $data['name'])->first();
+
+    if ($item) {
+      Notification::make()
+        ->title('Product or Service already exists!')
+        ->danger()
+        ->send();
+      
+      $action->halt();
+    }
+
     $data['code'] = getCode('item');
     $data['item_code'] = getCode('payment_item');
     $data['price'] = $data['amount'];

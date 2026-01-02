@@ -88,7 +88,7 @@ class ItemsRelationManager extends RelationManager
         CreateAction::make()
           ->modalWidth(Width::FourExtraLarge)
           ->form(fn (Schema $form, CreateAction $action): Schema => PaymentAction::itemCreateForm($form, $action))
-          ->mutateFormDataUsing(fn (array $data): array => PaymentAction::itemMutateFormDataUsing($data))
+          ->mutateFormDataUsing(fn(array $data, CreateAction $action): array => PaymentAction::itemMutateFormDataUsing($data, $action))
           ->after(fn (array $data, Model $record, RelationManager $livewire, CreateAction $action) => PaymentAction::itemCreateAfter($data, $record, $livewire, $action)),
         
         AttachAction::make()
