@@ -103,7 +103,7 @@ class FilesRelationManager extends RelationManager
               ->required()
               ->multiple()
               ->maxFiles(10)
-              ->maxSize(1024 * 5)
+              ->maxSize(1024 * 50)
               ->disk('public')
               ->directory('attachments'),
           ])
