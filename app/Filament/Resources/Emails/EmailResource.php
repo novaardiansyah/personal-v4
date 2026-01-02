@@ -47,6 +47,13 @@ class EmailResource extends Resource
   protected static string|UnitEnum|null $navigationGroup = 'Productivity';
   protected static ?int $navigationSort = 39;
 
+  public static function getRelations(): array
+  {
+    return [
+      RelationManagers\FilesRelationManager::class,
+    ];
+  }
+
   public static function form(Schema $schema): Schema
   {
     return $schema
@@ -73,7 +80,12 @@ class EmailResource extends Resource
           ])
           ->floatingToolbars([
             'paragraph' => [
-              'bold', 'italic', 'underline', 'strike', 'subscript', 'superscript',
+              'bold',
+              'italic',
+              'underline',
+              'strike',
+              'subscript',
+              'superscript',
             ],
           ])
           ->columnSpanFull()
@@ -184,9 +196,9 @@ class EmailResource extends Resource
           Action::make('send')
             ->action(function (Email $record, Action $action) {
               $data = [
-                'name'        => $record->name ?? explode('@', $record->email)[0],
-                'subject'     => $record->subject,
-                'message'     => $record->message,
+                'name' => $record->name ?? explode('@', $record->email)[0],
+                'subject' => $record->subject,
+                'message' => $record->message,
                 'attachments' => $record->attachments,
               ];
 
@@ -243,6 +255,8 @@ class EmailResource extends Resource
   {
     return [
       'index' => ManageEmails::route('/'),
+      'view' => Pages\ViewEmail::route('/{record}'),
+      'edit' => Pages\EditEmail::route('/{record}/edit'),
     ];
   }
 
