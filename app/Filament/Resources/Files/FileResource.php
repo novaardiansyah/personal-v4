@@ -7,6 +7,7 @@ use UnitEnum;
 use Filament\Actions\ActionGroup;
 use App\Filament\Resources\Files\Pages\ManageFiles;
 use App\Models\File;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -36,7 +37,6 @@ class FileResource extends Resource
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
   protected static string|UnitEnum|null $navigationGroup = 'Settings';
   protected static ?int $navigationSort = 29;
-
   protected static ?string $recordTitleAttribute = 'file_name';
 
   public static function form(Schema $schema): Schema
@@ -121,8 +121,7 @@ class FileResource extends Resource
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File')
-          ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : 'Download File')
-          ->url(fn(File $record): string|null => !$record->has_been_deleted ? $record->download_url : null, fn(File $record): bool => !$record->has_been_deleted)
+          ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : '')
           ->searchable()
           ->toggleable(),
         TextColumn::make('subject_id')
@@ -135,9 +134,11 @@ class FileResource extends Resource
           ->toggleable()
           ->searchable(),
         IconColumn::make('has_been_deleted')
+          ->label('File Deleted')
           ->boolean()
           ->toggleable(),
         TextColumn::make('scheduled_deletion_time')
+          ->label('Scheduled Deletion')
           ->dateTime()
           ->sortable()
           ->toggleable(),
@@ -165,6 +166,14 @@ class FileResource extends Resource
           ViewAction::make()
             ->modalHeading('View file details')
             ->slideOver(),
+
+          Action::make('download')
+            ->label('Download')
+            ->icon('heroicon-s-arrow-down-tray')
+            ->color('success')
+            ->url(fn(File $record): string => $record->download_url)
+            ->openUrlInNewTab()
+            ->visible(fn(File $record): bool => !$record->has_been_deleted),
 
           DeleteAction::make(),
           RestoreAction::make(),

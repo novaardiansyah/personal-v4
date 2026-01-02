@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Emails\RelationManagers;
 use App\Filament\Resources\Files\FileResource;
 use App\Models\Email;
 use App\Models\File;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
@@ -61,14 +62,15 @@ class FilesRelationManager extends RelationManager
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File')
-          ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : 'Download File')
-          ->url(fn(File $record): string|null => !$record->has_been_deleted ? $record->download_url : null, fn(File $record): bool => !$record->has_been_deleted)
+          ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : '')
           ->searchable()
           ->toggleable(),
         IconColumn::make('has_been_deleted')
+          ->label('File Deleted')
           ->boolean()
           ->toggleable(),
         TextColumn::make('scheduled_deletion_time')
+          ->label('Scheduled Deletion')
           ->dateTime()
           ->sortable()
           ->toggleable(),
@@ -146,6 +148,14 @@ class FilesRelationManager extends RelationManager
             ->modalWidth(Width::FourExtraLarge)
             ->slideOver()
             ->infolist(fn(Schema $infolist) => FileResource::infolist($infolist)),
+
+          Action::make('download')
+            ->label('Download')
+            ->icon('heroicon-s-arrow-down-tray')
+            ->color('success')
+            ->url(fn(File $record): string => $record->download_url)
+            ->openUrlInNewTab()
+            ->visible(fn(File $record): bool => !$record->has_been_deleted),
 
           DeleteAction::make(),
           RestoreAction::make(),
