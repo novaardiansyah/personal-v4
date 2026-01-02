@@ -20,7 +20,7 @@ jobs:
           key: ${{ secrets.PRODUCTION_SSH_KEY }}
           port: ${{ secrets.PRODUCTION_PORT }}
           script: |
-            echo "[GITHUB ACTION] Start to execute..."
+            echo "[Github Path-1] Start to execute..."
             cd ${{ secrets.PRODUCTION_PATH }}
             
             echo "--> Git sync..."
@@ -31,5 +31,18 @@ jobs:
             chmod +x ./setup.sh
             sed -i 's/\r$//' setup.sh && bash setup.sh
 
-            echo "[GITHUB ACTION] All task has been executed successfully..."
+            echo "[Github Path-1] All task has been executed successfully..."
+
+            echo "[Github Path-2] Start to execute..."
+            cd ${{ secrets.PRODUCTION_PATH_2 }}
+            
+            echo "--> Git sync..."
+            git fetch origin
+            git checkout production
+            git pull origin production
+            
+            chmod +x ./setup.sh
+            sed -i 's/\r$//' setup.sh && bash setup.sh
+
+            echo "[Github Path-2] All task has been executed successfully..."
             
