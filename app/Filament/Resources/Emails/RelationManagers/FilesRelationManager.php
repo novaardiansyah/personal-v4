@@ -3,16 +3,21 @@
 namespace App\Filament\Resources\Emails\RelationManagers;
 
 use App\Filament\Resources\Files\FileResource;
+use App\Models\Email;
 use App\Models\File;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\DetachAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Forms\Components\FileUpload;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
@@ -21,6 +26,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\URL;
 
 class FilesRelationManager extends RelationManager
 {
@@ -76,6 +82,54 @@ class FilesRelationManager extends RelationManager
           ->native(false),
       ])
       ->defaultSort('updated_at', 'desc')
+      ->headerActions([
+        CreateAction::make()
+          ->label('Upload file')
+          ->modalHeading('Upload New File')
+          ->modalWidth(Width::TwoExtraLarge)
+          ->schema([
+            FileUpload::make('files')
+              ->required()
+              ->multiple()
+              ->maxFiles(10)
+              ->maxSize(1024 * 5)
+              ->disk('public')
+              ->directory('attachments'),
+          ])
+          ->action(function (array $data, CreateAction $action, RelationManager $livewire) {
+            $ownerRecord = $livewire->getOwnerRecord();
+            $user        = getUser();
+            $files       = $data['files'];
+
+            foreach ($files as $file) {
+              $filename = pathinfo($file, PATHINFO_BASENAME);
+              $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
+              $extension = pathinfo($filename, PATHINFO_EXTENSION);
+
+              $expiration = now()->addDay();
+              $fileUrl = URL::temporarySignedRoute(
+                'download',
+                $expiration,
+                ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+              );
+
+              File::create([
+                'user_id'                 => $user->id,
+                'file_name'               => $filename,
+                'file_path'               => $file,
+                'download_url'            => $fileUrl,
+                'scheduled_deletion_time' => $expiration,
+                'subject_type'            => Email::class,
+                'subject_id'              => $ownerRecord->id,
+              ]);
+            }
+
+            $action->successNotification(function (Notification $notification) {
+              $notification
+                ->body('Files have been uploaded.');
+            });
+          }),
+      ])
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
@@ -84,16 +138,12 @@ class FilesRelationManager extends RelationManager
             ->slideOver()
             ->infolist(fn(Schema $infolist) => FileResource::infolist($infolist)),
 
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
-          RestoreAction::make(),
+          DeleteAction::make()
         ]),
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
-          RestoreBulkAction::make(),
+          //
         ]),
       ]);
   }

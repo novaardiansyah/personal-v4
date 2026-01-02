@@ -10,33 +10,6 @@ class EmailObserver
 {
   public function created(Email $email): void
   {
-    $user = getUser();
-
-    if (!empty($email->attachments)) {
-      foreach ($email->attachments as $attachment) {
-        $filename                 = pathinfo($attachment, PATHINFO_BASENAME);
-        $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
-        $extension                = pathinfo($filename, PATHINFO_EXTENSION);
-        
-        $expiration = now()->addDay();
-        $fileUrl = URL::temporarySignedRoute(
-          'download',
-          $expiration,
-          ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
-        );
-
-        File::create([
-          'user_id'                 => $user->id,
-          'file_name'               => $filename,
-          'file_path'               => $attachment,
-          'download_url'            => $fileUrl,
-          'scheduled_deletion_time' => $expiration,
-          'subject_type'            => Email::class,
-          'subject_id'              => $email->id,
-        ]);
-      }
-    }
-
     $this->_log('Created', $email);
   }
 

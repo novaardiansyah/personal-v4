@@ -27,6 +27,7 @@ class FileObserver
    */
   public function deleted(File $file): void
   {
+    $file->removeFile();
     $this->_log('Deleted', $file);
   }
 
@@ -43,6 +44,7 @@ class FileObserver
    */
   public function forceDeleted(File $file): void
   {
+    $file->removeFile();
     $this->_log('Force Deleted', $file);
   }
 

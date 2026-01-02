@@ -14,10 +14,9 @@ class Email extends Model
 {
   use SoftDeletes;
   protected $table = 'emails';
-  protected $fillable = ['name', 'email', 'subject', 'message', 'status', 'attachments'];
+  protected $fillable = ['name', 'email', 'subject', 'message', 'status'];
   protected $casts = [
     'status' => EmailStatus::class,
-    'attachments' => 'array',
   ];
 
   public function files(): MorphMany

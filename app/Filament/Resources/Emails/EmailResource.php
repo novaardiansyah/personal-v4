@@ -90,13 +90,6 @@ class EmailResource extends Resource
           ])
           ->columnSpanFull()
           ->required(),
-        FileUpload::make('attachments')
-          ->multiple()
-          ->disk('public')
-          ->directory('attachments')
-          ->maxFiles(10)
-          ->maxSize(1024 * 5)
-          ->columnSpanFull(),
       ]);
   }
 
@@ -118,7 +111,7 @@ class EmailResource extends Resource
             TextEntry::make('message')
               ->label('Message')
               ->html()
-              ->columnSpanFull(),
+              ->columnSpan(2),
           ])
           ->columns(3),
 
@@ -188,8 +181,7 @@ class EmailResource extends Resource
       ->defaultSort('updated_at', 'desc')
       ->recordActions([
         ActionGroup::make([
-          ViewAction::make()
-            ->slideOver(),
+          ViewAction::make(),
 
           EditAction::make(),
 
@@ -255,8 +247,8 @@ class EmailResource extends Resource
   {
     return [
       'index' => ManageEmails::route('/'),
-      'view' => Pages\ViewEmail::route('/{record}'),
-      'edit' => Pages\EditEmail::route('/{record}/edit'),
+      'view'  => Pages\ViewEmail::route('/{record}'),
+      'edit'  => Pages\EditEmail::route('/{record}/edit'),
     ];
   }
 
