@@ -3,11 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\ActivityLog;
-use Illuminate\Http\Request;
 
 class ActivityLogController extends Controller
 {
-  public function preview_email(Request $request, ActivityLog $activityLog)
+  public function preview_email(ActivityLog $activityLog)
   {
     if ($activityLog->event !== 'Mail Notification') {
       abort(404);
@@ -19,6 +18,8 @@ class ActivityLogController extends Controller
       abort(404);
     }
 
-    echo $html;
+    $html = '<div style="margin-top: 30px; margin-bottom: 30px;">' . $html . '</div>';
+
+    return response($html)->header('Content-Type', 'text/html');
   }
 }

@@ -13,6 +13,9 @@ class ViewEmail extends ViewRecord
   protected function getHeaderActions(): array
   {
     return [
+      ActionEmail::send()
+        ->color('primary'),
+      ActionEmail::preview(),
       EditAction::make(),
     ];
   }

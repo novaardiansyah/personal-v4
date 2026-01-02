@@ -204,7 +204,7 @@ class EmailResource extends Resource
             ->icon('heroicon-s-document-duplicate')
             ->color('warning')
             ->action(function (Email $record, Action $action) {
-              $newRecord = $record->replicate();
+              $newRecord = $record->replicate(['files_count']);
               $newRecord->status = EmailStatus::Draft;
               $newRecord->subject = $record->subject . ' (Copy)';
 

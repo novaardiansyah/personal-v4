@@ -16,15 +16,32 @@ class ActionEmail
     return Action::make('send')
       ->action(function (Email $record, Action $action) {
         $data = [
-          'name' => $record->name ?? explode('@', $record->email)[0],
+          'name'    => $record->name ?? explode('@', $record->email)[0],
           'subject' => $record->subject,
           'message' => $record->message,
+          'email'   => $record->email,
           'attachments' => $record->files()->get()->map(function (File $file) {
             return $file->file_path;
           })->toArray(),
         ];
 
-        Mail::to($record->email)->queue(new DefaultMail($data));
+        Mail::to($data['email'])->queue(new DefaultMail($data));
+
+        $html = (new DefaultMail($data))->render();
+
+        saveActivityLog([
+          'log_name'     => 'Notification',
+          'description'  => 'Email Sent to ' . $data['email'],
+          'event'        => 'Mail Notification',
+          'subject_id'   => $record->id,
+          'subject_type' => Email::class,
+          'properties' => [
+            'email'       => $data['email'],
+            'subject'     => $data['subject'],
+            'attachments' => $data['attachments'],
+            'html'        => $html,
+          ],
+        ], $record);
 
         $record->update([
           'status' => EmailStatus::Sent,

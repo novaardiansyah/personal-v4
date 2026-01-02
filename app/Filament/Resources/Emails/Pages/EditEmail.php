@@ -13,7 +13,6 @@ class EditEmail extends EditRecord
   protected function getHeaderActions(): array
   {
     return [
-      ActionEmail::send(),
       DeleteAction::make(),
     ];
   }
