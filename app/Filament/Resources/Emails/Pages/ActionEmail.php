@@ -41,4 +41,14 @@ class ActionEmail
       ->modalDescription('Are you sure you want to send this email?')
       ->visible(fn(Email $record): bool => $record->status === EmailStatus::Draft);
   }
+
+  public static function preview(): Action
+  {
+    return Action::make('preview')
+      ->label('Preview')
+      ->icon('heroicon-s-eye')
+      ->color('primary')
+      ->url(fn(Email $record): string => route('admin.emails.preview', $record))
+      ->openUrlInNewTab();
+  }
 }

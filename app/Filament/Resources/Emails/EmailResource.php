@@ -197,6 +197,8 @@ class EmailResource extends Resource
 
           ActionEmail::send(),
 
+          ActionEmail::preview(),
+
           ReplicateAction::make('replicate')
             ->label('Replicate')
             ->icon('heroicon-s-document-duplicate')
