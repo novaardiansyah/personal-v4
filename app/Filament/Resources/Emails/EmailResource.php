@@ -6,6 +6,7 @@ use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
 use App\Mail\EmailResource\DefaultMail;
 use App\Models\Email;
+use App\Models\File;
 use BackedEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -106,7 +107,8 @@ class EmailResource extends Resource
             TextEntry::make('status')
               ->badge()
               ->color(fn(Email $record): string => $record->status->color())
-              ->state(fn(Email $record): string => $record->status->label()),
+              ->state(fn(Email $record): string => $record->status->label())
+              ->disabledOn('edit'),
             TextEntry::make('subject'),
             TextEntry::make('message')
               ->label('Message')
@@ -188,10 +190,12 @@ class EmailResource extends Resource
           Action::make('send')
             ->action(function (Email $record, Action $action) {
               $data = [
-                'name' => $record->name ?? explode('@', $record->email)[0],
-                'subject' => $record->subject,
-                'message' => $record->message,
-                'attachments' => $record->attachments,
+                'name'        => $record->name ?? explode('@', $record->email)[0],
+                'subject'     => $record->subject,
+                'message'     => $record->message,
+                'attachments' => $record->files()->get()->map(function (File $file) {
+                  return $file->file_path;
+                })->toArray(),
               ];
 
               Mail::to($record->email)->queue(new DefaultMail($data));
