@@ -8,6 +8,12 @@ use Filament\Actions\ActionGroup;
 use App\Filament\Resources\Files\Pages\ManageFiles;
 use App\Models\File;
 use Filament\Actions\BulkActionGroup;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\RestoreAction;
+use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
@@ -27,7 +33,6 @@ use Illuminate\Support\Str;
 class FileResource extends Resource
 {
   protected static ?string $model = File::class;
-
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
   protected static string|UnitEnum|null $navigationGroup = 'Settings';
   protected static ?int $navigationSort = 29;
@@ -56,7 +61,20 @@ class FileResource extends Resource
             TextEntry::make('download_url')
               ->label('Download URL')
               ->url(fn(File $record): ?string => !$record->has_been_deleted ? $record->download_url : null)
-              ->openUrlInNewTab(),
+              ->openUrlInNewTab()
+              ->columnSpanFull(),
+          ])
+          ->columns(2),
+        Section::make('')
+          ->description('Subject Information')
+          ->components([
+            TextEntry::make('subject_id')
+              ->label('Subject')
+              ->formatStateUsing(function ($state, Model $record) {
+                if (!$state)
+                  return;
+                return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
+              }),
             IconEntry::make('has_been_deleted')
               ->label('Deleted')
               ->boolean(),
@@ -64,17 +82,7 @@ class FileResource extends Resource
               ->label('Scheduled Deletion')
               ->dateTime(),
           ])
-          ->columns(2),
-        Section::make('')
-          ->description('Subject Information')
-          ->components([
-            TextEntry::make('subject_type')
-              ->label('Subject Type')
-              ->formatStateUsing(fn(?string $state): string => $state ? Str::of($state)->afterLast('\\')->headline() : '-'),
-            TextEntry::make('subject_id')
-              ->label('Subject ID'),
-          ])
-          ->columns(2),
+          ->columns(3),
         Section::make('')
           ->description('Timestamp Information')
           ->components([
@@ -101,9 +109,16 @@ class FileResource extends Resource
         TextColumn::make('index')
           ->label('#')
           ->rowIndex(),
+        TextColumn::make('code')
+          ->label('File ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('user.name')
           ->label('User')
-          ->searchable(),
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File')
           ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : 'Download File')
@@ -149,12 +164,18 @@ class FileResource extends Resource
         ActionGroup::make([
           ViewAction::make()
             ->modalHeading('View file details')
-            ->slideOver()
+            ->slideOver(),
+
+          DeleteAction::make(),
+          RestoreAction::make(),
+          ForceDeleteAction::make(),
         ])
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-
+          DeleteBulkAction::make(),
+          RestoreBulkAction::make(),
+          ForceDeleteBulkAction::make(),
         ]),
       ]);
   }

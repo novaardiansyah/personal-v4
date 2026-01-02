@@ -10,7 +10,6 @@ use Filament\Actions\BulkActionGroup;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\DetachAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
@@ -48,8 +47,18 @@ class FilesRelationManager extends RelationManager
       ->recordTitleAttribute('file_name')
       ->columns([
         TextColumn::make('index')
-          ->rowIndex()
-          ->label('#'),
+          ->label('#')
+          ->rowIndex(),
+        TextColumn::make('code')
+          ->label('File ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
+        TextColumn::make('user.name')
+          ->label('User')
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File')
           ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : 'Download File')
@@ -75,7 +84,7 @@ class FilesRelationManager extends RelationManager
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
         TrashedFilter::make()
@@ -138,12 +147,16 @@ class FilesRelationManager extends RelationManager
             ->slideOver()
             ->infolist(fn(Schema $infolist) => FileResource::infolist($infolist)),
 
-          DeleteAction::make()
+          DeleteAction::make(),
+          RestoreAction::make(),
+          ForceDeleteAction::make(),
         ]),
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-          //
+          DeleteBulkAction::make(),
+          RestoreBulkAction::make(),
+          ForceDeleteBulkAction::make(),
         ]),
       ]);
   }

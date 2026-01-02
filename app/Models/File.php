@@ -15,10 +15,13 @@ class File extends Model
 {
   use SoftDeletes;
 
-  protected $guarded = ['id'];  
   protected $table = 'files';
+
+  protected $fillable = ['code', 'user_id', 'file_name', 'file_path', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id'];
+
   protected $casts = [
-    'has_been_deleted' => 'boolean',
+    'scheduled_deletion_time' => 'datetime',
+    'has_been_deleted'        => 'boolean',
   ];
 
   public function user(): BelongsTo

@@ -6,6 +6,11 @@ use App\Models\File;
 
 class FileObserver
 {
+  public function creating(File $file): void
+  {
+    $file->code = getCode('file');
+  }
+
   /**
    * Handle the File "created" event.
    */
@@ -27,7 +32,6 @@ class FileObserver
    */
   public function deleted(File $file): void
   {
-    $file->removeFile();
     $this->_log('Deleted', $file);
   }
 
