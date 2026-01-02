@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Emails;
 
 use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
+use App\Filament\Resources\Emails\Pages\ActionEmail;
 use App\Mail\EmailResource\DefaultMail;
 use App\Models\Email;
 use App\Models\File;
@@ -187,33 +188,7 @@ class EmailResource extends Resource
 
           EditAction::make(),
 
-          Action::make('send')
-            ->action(function (Email $record, Action $action) {
-              $data = [
-                'name'        => $record->name ?? explode('@', $record->email)[0],
-                'subject'     => $record->subject,
-                'message'     => $record->message,
-                'attachments' => $record->files()->get()->map(function (File $file) {
-                  return $file->file_path;
-                })->toArray(),
-              ];
-
-              Mail::to($record->email)->queue(new DefaultMail($data));
-
-              $record->update([
-                'status' => EmailStatus::Sent,
-              ]);
-
-              $action->success();
-              $action->successNotificationTitle('Email will be sent in the background');
-            })
-            ->label('Send')
-            ->icon('heroicon-s-paper-airplane')
-            ->color('success')
-            ->requiresConfirmation()
-            ->modalHeading('Send Email')
-            ->modalDescription('Are you sure you want to send this email?')
-            ->visible(fn(Email $record): bool => $record->status === EmailStatus::Draft),
+          ActionEmail::send(),
 
           ReplicateAction::make('replicate')
             ->label('Replicate')
@@ -251,8 +226,8 @@ class EmailResource extends Resource
   {
     return [
       'index' => ManageEmails::route('/'),
-      'view'  => Pages\ViewEmail::route('/{record}'),
-      'edit'  => Pages\EditEmail::route('/{record}/edit'),
+      'view' => Pages\ViewEmail::route('/{record}'),
+      'edit' => Pages\EditEmail::route('/{record}/edit'),
     ];
   }
 
