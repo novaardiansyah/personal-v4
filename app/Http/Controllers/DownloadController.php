@@ -15,8 +15,7 @@ class DownloadController extends Controller
       abort(404, 'File not found.');
     }
 
-    $fileName = basename($filePath);
-    $fileName = trim(substr($fileName, 37));
+    $fileName = trim(basename($filePath));
 
     return response()->download($filePath, $fileName);
   }
