@@ -14,16 +14,21 @@ This repository is the public evolution of my previous public admin panel projec
 - [MySQL](https://www.mysql.com/) - Database Management
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 
-## Sneak Peek 🌟
+## Demo Version 🎮
+You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
 
-Check out the live version of this site at: [https://personal-v4.novadev.my.id](https://personal-v4.novadev.my.id)
+**Credentials:**
+- **Email:** `admin@novadev.my.id`
+- **Password:** `zWZcWqm$Q8aP45ak`
 
-### 🤖 AI Automation Integration
+> Note: Some features are limited in the demo version and may not function as they would in production. If you encounter any bugs or issues, please feel free to [open an issue](https://github.com/novaardiansyah/personal-v4/issues).
+
+## AI Automation Integration 🤖
 This project features **AI-powered transaction recording** integrated with Telegram! Simply send a photo of your receipt or bill to the Telegram bot, and the AI will automatically extract transaction data, categorize it, and match payment accounts.
 
 <img src="public/markdown/preview-1.png" width="600" alt="Preview 1" />
 
-### 📚 API Documentation
+## API Documentation 📚
 This project includes **integrated API documentation** powered by [L5-Swagger](https://github.com/DarkaOnLine/L5-Swagger). Access it at: [https://personal-v4.novadev.my.id/api/documentation](https://personal-v4.novadev.my.id/api/documentation)
 
 <img src="public/markdown/preview-4.png" width="600" alt="API Documentation Preview" />
