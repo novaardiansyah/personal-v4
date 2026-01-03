@@ -19,8 +19,11 @@ class EmailService
     }
 
     if ($data['size_attachments'] > (9 * 1024 * 1024)) {
-      $data['attachments'] = [];
       $data['is_url_attachment'] = true;
+    }
+
+    if ($data['is_url_attachment']) {
+      $data['attachments'] = [];
     }
     
     $html = (new DefaultMail($data))->render();

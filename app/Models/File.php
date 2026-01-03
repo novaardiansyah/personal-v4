@@ -17,11 +17,11 @@ class File extends Model
 
   protected $table = 'files';
 
-  protected $fillable = ['code', 'user_id', 'file_name', 'file_path', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id'];
+  protected $fillable = ['code', 'user_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id'];
 
   protected $casts = [
     'scheduled_deletion_time' => 'datetime',
-    'has_been_deleted'        => 'boolean',
+    'has_been_deleted' => 'boolean',
   ];
 
   public function user(): BelongsTo
@@ -31,7 +31,8 @@ class File extends Model
 
   public function removeFile(): void
   {
-    if (empty($this->file_path)) return;
+    if (empty($this->file_path))
+      return;
 
     foreach (['app', 'local', 'public'] as $disk) {
       if (Storage::disk($disk)->exists($this->file_path)) {
