@@ -67,10 +67,14 @@ class FilesRelationManager extends RelationManager
           ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : '')
           ->searchable()
           ->toggleable(),
+        TextColumn::make('file_size')
+          ->label('File Size')
+          ->formatStateUsing(fn(string $state): string => sizeFormat(floatval($state ?? 0)))
+          ->toggleable(),
         IconColumn::make('has_been_deleted')
           ->label('File Deleted')
           ->boolean()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('scheduled_deletion_time')
           ->label('Scheduled Deletion')
           ->dateTime()
@@ -89,7 +93,7 @@ class FilesRelationManager extends RelationManager
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
         TrashedFilter::make()

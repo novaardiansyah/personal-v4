@@ -3,12 +3,21 @@
 namespace App\Observers;
 
 use App\Models\File;
+use Illuminate\Support\Facades\Storage;
 
 class FileObserver
 {
   public function creating(File $file): void
   {
     $file->code = getCode('file');
+    $file->file_size = 0;
+    
+    foreach (['public', 'local', 'app'] as $disk) {
+      if (Storage::disk($disk)->exists($file->file_path)) {
+        $file->file_size = Storage::disk($disk)->size($file->file_path);
+        break;
+      }
+    }
   }
 
   /**
