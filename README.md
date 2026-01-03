@@ -4,7 +4,7 @@ Hi Future Developer,
 
 Welcome to the **Personal Filament v4 Admin Panel**! This project is an open-source admin panel built with the latest Laravel 12 and Filament PHP 4, designed for personal utility management and more.
 
-This repository is the public evolution of my previous public admin panel project (originally developed with Laravel 12 and Filament PHP 3). Here, I’ve upgraded to Filament 4 and made the core features available for the community—ideal for learning, collaboration, or as a starting point for your own admin panel. To support public usage, user roles and permissions have been carefully separated and managed.
+This repository is the public evolution of my previous public admin panel project (originally developed with Laravel 12 and Filament PHP 3). Here, I’ve upgraded to Filament 4 and made the core features available for the community ideal for learning, collaboration, or as a starting point for your own admin panel. To support public usage, user roles and permissions have been carefully separated and managed.
 
 ## Dazzling Tech Stack! ⚡
 
