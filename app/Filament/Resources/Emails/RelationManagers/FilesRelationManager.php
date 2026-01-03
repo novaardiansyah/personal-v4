@@ -111,18 +111,10 @@ class FilesRelationManager extends RelationManager
               ->multiple()
               ->moveFiles()
               ->maxFiles(10)
-              ->maxSize(1024 * 10)
+              ->maxSize(1024 * 20)
               ->disk('public')
               ->directory('attachments')
               ->imageEditor()
-              ->acceptedFileTypes([
-                'application/pdf',
-                'application/zip',
-                'application/vnd.rar',
-                'image/jpeg',
-                'image/png',
-                'image/webp',
-              ])
               ->getUploadedFileNameForStorageUsing(
                 fn(TemporaryUploadedFile $file): string => Str::orderedUuid()->toString() . '.' . $file->getClientOriginalExtension()
               )

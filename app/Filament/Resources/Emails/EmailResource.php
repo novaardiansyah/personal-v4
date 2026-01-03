@@ -5,10 +5,9 @@ namespace App\Filament\Resources\Emails;
 use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
 use App\Filament\Resources\Emails\Pages\ActionEmail;
-use App\Mail\EmailResource\DefaultMail;
 use App\Models\Email;
-use App\Models\File;
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -25,7 +24,6 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
@@ -39,10 +37,7 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\URL;
-use UnitEnum;
+
 
 class EmailResource extends Resource
 {

@@ -114,7 +114,7 @@
     <div class="content">
       @yield('content')
 
-      <p style="margin-top: 30px;">Terima kasih atas perhatian Anda.</p>
+      <p style="margin-top: 30px; margin-bottom: 20px">Terima kasih atas perhatian Anda.</p>
 
       <p style="margin-bottom: 20px">Salam hangat,</p>
       <p>{{ explode(' ', $author_name)[0] }}</p>
