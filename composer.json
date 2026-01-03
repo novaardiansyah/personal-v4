@@ -63,7 +63,7 @@
         ],
         "serve": [
           "Composer\\Config::disableProcessTimeout",
-          "@php artisan serve --port=8000 --host=0.0.0.0"
+          "@php artisan serve --port=8000 --host=100.108.9.46"
         ],
         "queue": [
           "Composer\\Config::disableProcessTimeout",

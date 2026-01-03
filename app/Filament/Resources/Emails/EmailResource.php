@@ -26,9 +26,12 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -93,6 +96,25 @@ class EmailResource extends Resource
           ])
           ->columnSpanFull()
           ->required(),
+
+
+        Grid::make(4)
+          ->Schema([
+            Toggle::make('is_url_attachment')
+              ->label('Has Attachment URL')
+              ->default(false)
+              ->required()
+              ->inline(false)
+              ->live(onBlur: true),
+    
+            TextInput::make('url_attachment')
+              ->label('Attachment URL')
+              ->default(null)
+              ->disabled()
+              ->columnSpan(2)
+              ->visible(fn(Get $get): bool => $get('is_url_attachment')),
+          ])
+          ->columnSpanFull()
       ]);
   }
 
@@ -154,6 +176,8 @@ class EmailResource extends Resource
           ->toggleable(),
         TextColumn::make('subject')
           ->searchable()
+          ->wrap()
+          ->limit(120)
           ->toggleable(),
         TextColumn::make('status')
           ->badge()
@@ -168,6 +192,11 @@ class EmailResource extends Resource
           ->sortable()
           ->badge()
           ->color(fn(Email $record): string => $record->files_count > 0 ? 'info' : 'danger'),
+        TextColumn::make('url_attachment')
+          ->label('URL Attachment')
+          ->copyable()
+          ->tooltip('Copy URL Attachment')
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
@@ -235,6 +264,7 @@ class EmailResource extends Resource
   {
     return [
       'index' => ManageEmails::route('/'),
+      'create' => Pages\CreateEmail::route('/create'),
       'view' => Pages\ViewEmail::route('/{record}'),
       'edit' => Pages\EditEmail::route('/{record}/edit'),
     ];
