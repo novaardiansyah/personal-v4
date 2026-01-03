@@ -141,6 +141,7 @@ class FileResource extends Resource
           ->label('Scheduled Deletion')
           ->dateTime()
           ->sortable()
+          ->sinceTooltip()
           ->toggleable(),
         TextColumn::make('deleted_at')
           ->dateTime()
@@ -154,7 +155,7 @@ class FileResource extends Resource
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
       ])
       ->filters([
         TrashedFilter::make()

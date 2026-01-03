@@ -27,6 +27,8 @@ use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class FilesRelationManager extends RelationManager
 {
@@ -73,6 +75,7 @@ class FilesRelationManager extends RelationManager
           ->label('Scheduled Deletion')
           ->dateTime()
           ->sortable()
+          ->sinceTooltip()
           ->toggleable(),
         TextColumn::make('deleted_at')
           ->dateTime()
@@ -86,7 +89,7 @@ class FilesRelationManager extends RelationManager
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
       ])
       ->filters([
         TrashedFilter::make()
@@ -102,22 +105,36 @@ class FilesRelationManager extends RelationManager
             FileUpload::make('files')
               ->required()
               ->multiple()
+              ->moveFiles()
               ->maxFiles(10)
-              ->maxSize(1024 * 50)
+              ->maxSize(1024 * 10)
               ->disk('public')
-              ->directory('attachments'),
+              ->directory('attachments')
+              ->imageEditor()
+              ->acceptedFileTypes([
+                'application/pdf',
+                'application/zip',
+                'application/vnd.rar',
+                'image/jpeg',
+                'image/png',
+                'image/webp',
+              ])
+              ->getUploadedFileNameForStorageUsing(
+                fn(TemporaryUploadedFile $file): string => Str::orderedUuid()->toString() . '.' . $file->getClientOriginalExtension()
+              )
           ])
           ->action(function (array $data, CreateAction $action, RelationManager $livewire) {
             $ownerRecord = $livewire->getOwnerRecord();
-            $user        = getUser();
-            $files       = $data['files'];
+            $user = getUser();
+            $files = $data['files'];
 
             foreach ($files as $file) {
               $filename = pathinfo($file, PATHINFO_BASENAME);
               $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
               $extension = pathinfo($filename, PATHINFO_EXTENSION);
 
-              $expiration = now()->addDay();
+              $expiration = now()->addMonth();
+
               $fileUrl = URL::temporarySignedRoute(
                 'download',
                 $expiration,
@@ -125,13 +142,13 @@ class FilesRelationManager extends RelationManager
               );
 
               File::create([
-                'user_id'                 => $user->id,
-                'file_name'               => $filename,
-                'file_path'               => $file,
-                'download_url'            => $fileUrl,
+                'user_id' => $user->id,
+                'file_name' => $filename,
+                'file_path' => $file,
+                'download_url' => $fileUrl,
                 'scheduled_deletion_time' => $expiration,
-                'subject_type'            => Email::class,
-                'subject_id'              => $ownerRecord->id,
+                'subject_type' => Email::class,
+                'subject_id' => $ownerRecord->id,
               ]);
             }
 

@@ -3,11 +3,15 @@
 namespace App\Observers;
 
 use App\Models\Email;
-use App\Models\File;
-use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 
 class EmailObserver
 {
+  public function creating(Email $email): void
+  {
+    $email->uid = Str::orderedUuid()->toString();
+  }
+
   public function created(Email $email): void
   {
     $this->_log('Created', $email);

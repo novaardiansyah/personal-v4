@@ -14,7 +14,7 @@ class Email extends Model
 {
   use SoftDeletes;
   protected $table = 'emails';
-  protected $fillable = ['name', 'email', 'subject', 'message', 'status'];
+  protected $fillable = ['uid', 'name', 'email', 'subject', 'message', 'status'];
   protected $casts = [
     'status' => EmailStatus::class,
   ];
