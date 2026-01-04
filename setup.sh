@@ -40,13 +40,13 @@ echo "--> Securing credentials files..."
 sudo chmod 600 .env .env.local .env.production .well-known .git artisan Makefile setup.sh 2>/dev/null
 
 echo "--> Supervisor setup..."
-cp ./deploy/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
-cp ./deploy/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-schedule.conf
+cp ./deploy/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novaardiansyah_id-queue.conf
+cp ./deploy/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novaardiansyah_id-schedule.conf
 
 echo "--> Supervisor restart..."
 sudo supervisorctl reread
 sudo supervisorctl update
-sudo supervisorctl restart personal_v4_novadev_myid-queue
-sudo supervisorctl restart personal_v4_novadev_myid-schedule
+sudo supervisorctl restart personal_v4_novaardiansyah_id-queue
+sudo supervisorctl restart personal_v4_novaardiansyah_id-schedule
 
 echo "[setup.sh] Script has been executed successfully..."
