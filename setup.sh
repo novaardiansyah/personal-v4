@@ -40,8 +40,8 @@ echo "--> Securing credentials files..."
 sudo chmod 600 .env .env.local .env.production .well-known .git artisan Makefile setup.sh 2>/dev/null
 
 echo "--> Supervisor setup..."
-cp ./docker/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
-cp ./docker/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-schedule.conf
+cp ./deploy/supervisor/queue.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-queue.conf
+cp ./deploy/supervisor/schedule.conf /etc/supervisor/conf.d/personal_v4_novadev_myid-schedule.conf
 
 echo "--> Supervisor restart..."
 sudo supervisorctl reread
