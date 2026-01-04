@@ -35,8 +35,8 @@ class FileResource extends Resource
 {
   protected static ?string $model = File::class;
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
-  protected static string|UnitEnum|null $navigationGroup = 'Settings';
-  protected static ?int $navigationSort = 29;
+  protected static string|UnitEnum|null $navigationGroup = 'File Manager';
+  protected static ?int $navigationSort = 20;
   protected static ?string $recordTitleAttribute = 'file_name';
 
   public static function form(Schema $schema): Schema

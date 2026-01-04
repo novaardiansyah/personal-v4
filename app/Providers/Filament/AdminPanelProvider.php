@@ -68,6 +68,7 @@ class AdminPanelProvider extends PanelProvider
         'Payments',
         'Productivity',
         'Items',
+        'File Manager',
         'Blog',
         'Settings',
         'Logs',
