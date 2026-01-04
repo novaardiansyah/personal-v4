@@ -350,9 +350,10 @@ class PaymentAction
   public static function printPdfAction(Action $action, array $data): void
   {
     $user = getUser();
+    $send_to_email = $data['send_to_email'] ?? false;
 
     $sendTo = [
-      'send_to_email' => $data['send_to_email'],
+      'send_to_email' => $send_to_email,
       'user' => $user,
       'notification' => true,
     ];
@@ -370,11 +371,16 @@ class PaymentAction
       'daily' => 'Daily report will be sent to your email.',
       'monthly' => 'Monthly report will be sent to your email.',
       'date_range' => 'Custom report will be sent to your email.',
+      'default' => 'You will receive a notification when the report is ready.',
     ];
+
+    if (!$send_to_email) {
+      $data['report_type'] = 'default';
+    }
 
     Notification::make()
       ->title('Report in process')
-      ->body($messages[$data['report_type']] ?? 'Report is being processed.')
+      ->body($messages[$data['report_type']])
       ->success()
       ->send();
   }
