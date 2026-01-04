@@ -6,6 +6,7 @@ use App\Filament\Resources\FileDownloads\Pages\CreateFileDownload;
 use App\Filament\Resources\FileDownloads\Pages\EditFileDownload;
 use App\Filament\Resources\FileDownloads\Pages\ListFileDownloads;
 use App\Filament\Resources\FileDownloads\Pages\ViewFileDownload;
+use App\Filament\Resources\FileDownloads\RelationManagers\FilesRelationManager;
 use App\Filament\Resources\FileDownloads\Schemas\FileDownloadForm;
 use App\Filament\Resources\FileDownloads\Schemas\FileDownloadInfolist;
 use App\Filament\Resources\FileDownloads\Tables\FileDownloadsTable;
@@ -45,7 +46,7 @@ class FileDownloadResource extends Resource
   public static function getRelations(): array
   {
     return [
-      //
+      FilesRelationManager::class,
     ];
   }
 

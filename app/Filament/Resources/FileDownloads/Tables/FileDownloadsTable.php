@@ -61,6 +61,12 @@ class FileDownloadsTable
           ->sortable()
           ->badge()
           ->toggleable(),
+        TextColumn::make('files_count')
+          ->label('Files')
+          ->counts('files')
+          ->sortable()
+          ->badge()
+          ->toggleable(),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()

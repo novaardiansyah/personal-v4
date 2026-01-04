@@ -49,4 +49,9 @@ class File extends Model
   {
     return $this->morphTo();
   }
+
+  public function fileDownload(): BelongsTo
+  {
+    return $this->belongsTo(FileDownload::class, 'file_download_id', 'id');
+  }
 }
