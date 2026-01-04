@@ -90,7 +90,7 @@ class PaymentReportPdf implements ShouldQueue
         'periode'          => $periode,
         'created_at'       => $now,
         'attachments' => [
-          storage_path('app/' . $pdf['filepath']),
+          $pdf['fullpath'],
         ],
       ];
   

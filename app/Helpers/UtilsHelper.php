@@ -20,6 +20,7 @@ use Illuminate\Support\Str;
 use \Illuminate\Http\UploadedFile;
 use Spatie\Image\Image;
 use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
+use \Mpdf\Mpdf;
 
 function getSetting(string $key, $default = null)
 {
@@ -51,15 +52,16 @@ function toIndonesianCurrency(float $number = 0, int $precision = 0, string $cur
   return $replace;
 }
 
-function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview = false, $notification = true, $auto_close_tbody = true): array
+function makePdf(Mpdf $mpdf, ?Model $user = null, $preview = false, $notification = true, $auto_close_tbody = true): array
 {
   $user ??= getUser();
 
   $extension                = 'pdf';
-  $directory                = 'filament-pdf';
-  $filenameWithoutExtension = Uuid::uuid4() . "-{$name}";
+  $directory                = 'public/attachments';
+  $filenameWithoutExtension = Str::orderedUuid()->toString();
   $filename                 = "{$filenameWithoutExtension}.{$extension}";
   $filepath                 = "{$directory}/{$filename}";
+  $fullpath                 = storage_path("app/{$filepath}");
 
   $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
 
@@ -80,9 +82,9 @@ function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview =
     ];
   }
 
-  $mpdf->Output(storage_path("app/{$filepath}"), 'F');
+  $mpdf->Output($fullpath, 'F');
 
-  $expiration = now()->addHours(24);
+  $expiration = now()->addMonth();
 
   $fileUrl = URL::temporarySignedRoute(
     'download',
@@ -119,6 +121,7 @@ function makePdf(\Mpdf\Mpdf $mpdf, string $name, ?Model $user = null, $preview =
     'filename'   => $filename,
     'filepath'   => $filepath,
     'signed_url' => $fileUrl,
+    'fullpath'   => $fullpath,
   ];
 
   return $properties;

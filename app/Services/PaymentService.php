@@ -177,7 +177,7 @@ class PaymentService
       </tfoot>
     ');
 
-    $result = makePdf($mpdf, $data['filename'] ?? 'payment-report', $user, notification: $notification, auto_close_tbody: $auto_close_tbody);
+    $result = makePdf($mpdf, $user, notification: $notification, auto_close_tbody: $auto_close_tbody);
 
     Log::info('4236 --> PaymentService::make_pdf(): Finished.');
 

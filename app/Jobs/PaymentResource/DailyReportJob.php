@@ -75,7 +75,7 @@ class DailyReportJob implements ShouldQueue
         'date'             => $date,
         'created_at'       => $now,
         'attachments' => [
-          storage_path('app/' . $pdf['filepath']),
+          $pdf['fullpath'],
         ],
       ];
 

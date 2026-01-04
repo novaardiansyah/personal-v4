@@ -9,6 +9,7 @@ use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ScheduledPaymentJob implements ShouldQueue
@@ -28,12 +29,12 @@ class ScheduledPaymentJob implements ShouldQueue
    */
   public function handle(): void
   {
-    \Log::info('3256 --> ScheduledPaymentJob: Started.');
+    Log::info('3256 --> ScheduledPaymentJob: Started.');
 
     $result = Payment::scheduledPayment();
 
     if (!$result['status']) {
-      \Log::info('3258 --> ScheduledPaymentJob: ' . $result['message']);
+      Log::info('3258 --> ScheduledPaymentJob: ' . $result['message']);
       return;
     }
 
@@ -71,7 +72,7 @@ class ScheduledPaymentJob implements ShouldQueue
       'date'             => carbonTranslatedFormat($now, 'd F Y'),
       'created_at'       => $now,
       'attachments' => [
-        storage_path('app/' . $pdf['filepath']),
+        $pdf['fullpath'],
       ],
     ];
 
@@ -90,6 +91,6 @@ class ScheduledPaymentJob implements ShouldQueue
       ],
     ]);
 
-    \Log::info('3257 --> ScheduledPaymentJob: Finished.');
+    Log::info('3257 --> ScheduledPaymentJob: Finished.');
   }
 }
