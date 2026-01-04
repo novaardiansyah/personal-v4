@@ -107,7 +107,7 @@ class PaymentAction
 
     PaymentService::beforeItemDetach($owner, $record, [
       'quantity' => $record->quantity,
-      'total'    => $record->pivot_total,
+      'total' => $record->pivot_total,
     ]);
 
     $action->getLivewire()->dispatch('refreshForm');
@@ -177,7 +177,7 @@ class PaymentAction
         ->title('Product or Service already exists!')
         ->danger()
         ->send();
-      
+
       $action->halt();
     }
 
@@ -199,9 +199,9 @@ class PaymentAction
     $owner = $livewire->getOwnerRecord();
 
     PaymentService::afterItemAttach($owner, $record, [
-      'quantity'   => $data['quantity'],
-      'price'      => $data['amount'],
-      'total'      => $data['total'],
+      'quantity' => $data['quantity'],
+      'price' => $data['amount'],
+      'total' => $data['total'],
     ]);
 
     $action->getLivewire()->dispatch('refreshForm');
@@ -304,9 +304,9 @@ class PaymentAction
         Select::make('report_type')
           ->label('Report Type')
           ->options([
-            'date_range' => 'Custom Date Range (PDF)',
-            'daily' => 'Daily Report (Email)',
-            'monthly' => 'Monthly Report (Email)',
+            'date_range' => 'Custom Date Range',
+            'daily' => 'Daily Report',
+            'monthly' => 'Monthly Report',
           ])
           ->default('monthly')
           ->required()
@@ -328,10 +328,12 @@ class PaymentAction
           ->label('Periode (Month)')
           ->options(function () {
             $options = [];
-            $year = Carbon::now()->year;
-            for ($month = 1; $month <= 12; $month++) {
-              $date = Carbon::createFromDate($year, $month, 1);
-              $options[$date->format('Y-m')] = $date->translatedFormat('F Y');
+            $now = Carbon::now();
+            $start = $now->copy()->subMonths(12);
+            $end = $now->copy()->addMonths(12);
+            while ($start->lte($end)) {
+              $options[$start->format('Y-m')] = $start->translatedFormat('F Y');
+              $start->addMonth();
             }
             return $options;
           })
@@ -339,6 +341,9 @@ class PaymentAction
           ->native(false)
           ->default(Carbon::now()->format('Y-m'))
           ->visible(fn($get) => $get('report_type') === 'monthly'),
+        Toggle::make('send_to_email')
+          ->label('Send to Email')
+          ->default(true),
       ]);
   }
 
@@ -346,17 +351,19 @@ class PaymentAction
   {
     $user = getUser();
 
+    $sendTo = [
+      'send_to_email' => $data['send_to_email'],
+      'user' => $user,
+      'notification' => true,
+    ];
+
     match ($data['report_type']) {
-      'daily' => DailyReportJob::dispatch(),
-      'monthly' => MonthlyReportJob::dispatch([
-        'periode' => $data['periode'],
-        'user' => $user,
-      ]),
-      default => PaymentReportPdf::dispatch([
+      'daily' => DailyReportJob::dispatch($sendTo),
+      'monthly' => MonthlyReportJob::dispatch(array_merge($sendTo, ['periode' => $data['periode']])),
+      default => PaymentReportPdf::dispatch(array_merge($sendTo, [
         'start_date' => $data['start_date'],
         'end_date' => $data['end_date'],
-        'user' => $user,
-      ]),
+      ])),
     };
 
     $messages = [

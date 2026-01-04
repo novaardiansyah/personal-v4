@@ -12,6 +12,7 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Schemas\Schema;
@@ -80,6 +81,24 @@ class SettingsTable
             ->form(fn (Schema $form) => SettingAction::formChangeValue($form))
             ->fillForm(fn (Setting $record): array => SettingAction::fillFormChangeValue($record))
             ->action(fn (Action $action, Setting $record, array $data) => SettingAction::actionChangeValue($action, $record, $data)),
+
+          ReplicateAction::make('replicate')
+            ->label('Replicate')
+            ->icon('heroicon-s-document-duplicate')
+            ->color('warning')
+            ->action(function (Setting $record, Action $action) {
+              $newRecord = $record->replicate();
+              $newRecord->key .=  '_copy';
+              $newRecord->name .=  ' (Copy)';
+
+              $newRecord->save();
+
+              $action->success();
+              $action->successNotificationTitle('Setting replicated successfully');
+            })
+            ->requiresConfirmation()
+            ->modalHeading('Replicate Setting')
+            ->modalDescription('Are you sure you want to replicate this setting?'),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),

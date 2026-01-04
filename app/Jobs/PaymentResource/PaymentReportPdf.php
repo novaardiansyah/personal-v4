@@ -37,11 +37,13 @@ class PaymentReportPdf implements ShouldQueue
     $causer    = $this->data['user'] ?? getUser();
 
     $send = array_merge([
-      'filename'   => 'custom-payment-report',
-      'title'      => 'Laporan keuangan',
-      'start_date' => $startDate,
-      'end_date'   => $endDate,
-      'now'        => $now,
+      'filename'     => 'custom-payment-report',
+      'title'        => 'Laporan keuangan',
+      'start_date'   => $startDate,
+      'end_date'     => $endDate,
+      'now'          => $now,
+      'user'         => $causer,
+      'notification' => $this->data['notification'] ?? false,
     ], $this->data);
 
     $pdf = PaymentService::make_pdf($send);
@@ -75,34 +77,38 @@ class PaymentReportPdf implements ShouldQueue
       $periode     = $carbonStartDate->translatedFormat($startFormat) . ' - ' . $carbonEndDate->translatedFormat('d F Y');
     }
 
-    $data = [
-      'log_name'         => 'custom_payment_notification',
-      'email'            => $causer->email ?? getSetting('daily_payment_email'),
-      'author_name'      => getSetting('author_name'),
-      'subject'          => 'Notifikasi: Laporan Keuangan (' . $periode . ')',
-      'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
-      'payment'          => $payment->toArray(),
-      'periode'          => $periode,
-      'created_at'       => $now,
-      'attachments' => [
-        storage_path('app/' . $pdf['filepath']),
-      ],
-    ];
+    $send_to_email = $this->data['send_to_email'] ?? false;
 
-    Mail::to($data['email'])->queue(new CustomReportMail($data));
-    $html = (new CustomReportMail($data))->render();
-
-    saveActivityLog([
-      'log_name'    => 'Notification',
-      'description' => 'Custom Payment Report by ' . $causer->name,
-      'event'       => 'Mail Notification',
-      'properties' => [
-        'email'       => $data['email'],
-        'subject'     => $data['subject'],
-        'attachments' => $data['attachments'],
-        'html'        => $html,
-      ],
-    ]);
+    if ($send_to_email) {
+      $data = [
+        'log_name'         => 'custom_payment_notification',
+        'email'            => getSetting('custom_payment_email'),
+        'author_name'      => getSetting('author_name'),
+        'subject'          => 'Notifikasi: Laporan Keuangan (' . $periode . ')',
+        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment'          => $payment->toArray(),
+        'periode'          => $periode,
+        'created_at'       => $now,
+        'attachments' => [
+          storage_path('app/' . $pdf['filepath']),
+        ],
+      ];
+  
+      Mail::to($data['email'])->queue(new CustomReportMail($data));
+      $html = (new CustomReportMail($data))->render();
+  
+      saveActivityLog([
+        'log_name'    => 'Notification',
+        'description' => 'Custom Payment Report by ' . $causer->name,
+        'event'       => 'Mail Notification',
+        'properties' => [
+          'email'       => $data['email'],
+          'subject'     => $data['subject'],
+          'attachments' => $data['attachments'],
+          'html'        => $html,
+        ],
+      ]);
+    }
 
     Log::info('3247 --> PaymentReportPdf: Finished.');
   }

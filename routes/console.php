@@ -19,7 +19,7 @@ Schedule::job(new ScheduledPaymentJob())
   ->dailyAt('00:05');
 
 // ! Daily Payment Report
-Schedule::job(new DailyReportJob())
+Schedule::job(new DailyReportJob(['notification' => false]))
   ->dailyAt('23:59');
 
 // ! Scheduled File Deletion

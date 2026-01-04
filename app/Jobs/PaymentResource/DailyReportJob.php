@@ -19,7 +19,7 @@ class DailyReportJob implements ShouldQueue
   /**
    * Create a new job instance.
    */
-  public function __construct()
+  public function __construct(public array $data)
   {
     //
   }
@@ -35,14 +35,16 @@ class DailyReportJob implements ShouldQueue
     $endDate   = Carbon::now()->endOfWeek();
     $now       = Carbon::now()->toDateTimeString();
     $today     = Carbon::now()->toDateString();
-    $causer    = getUser();
-
+    $causer    = $this->data['user'] ?? getUser();
+    
     $send = [
-      'filename'   => 'daily-payment-report',
-      'title'      => 'Laporan keuangan harian',
-      'start_date' => $startDate,
-      'end_date'   => $endDate,
-      'now'        => $now,
+      'filename'     => 'daily-payment-report',
+      'title'        => 'Laporan keuangan harian',
+      'start_date'   => $startDate,
+      'end_date'     => $endDate,
+      'now'          => $now,
+      'user'         => $causer,
+      'notification' => $this->data['notification'] ?? false,
     ];
 
     $pdf = PaymentService::make_pdf($send);
@@ -60,35 +62,38 @@ class DailyReportJob implements ShouldQueue
     ])->first();
 
     $date = carbonTranslatedFormat($now, 'd F Y');
+    $send_to_email = $this->data['send_to_email'] ?? false;
 
-    $data = [
-      'log_name'         => 'daily_payment_notification',
-      'email'            => getSetting('daily_payment_email'),
-      'author_name'      => getSetting('author_name'),
-      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Harian (' . $date . ')',
-      'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
-      'payment'          => $payment->toArray(),
-      'date'             => $date,
-      'created_at'       => $now,
-      'attachments' => [
-        storage_path('app/' . $pdf['filepath']),
-      ],
-    ];
+    if ($send_to_email) {
+      $data = [
+        'log_name'         => 'daily_payment_notification',
+        'email'            => getSetting('daily_payment_email'),
+        'author_name'      => getSetting('author_name'),
+        'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Harian (' . $date . ')',
+        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment'          => $payment->toArray(),
+        'date'             => $date,
+        'created_at'       => $now,
+        'attachments' => [
+          storage_path('app/' . $pdf['filepath']),
+        ],
+      ];
 
-    Mail::to($data['email'])->queue(new DailyReportMail($data));
-    $html = (new DailyReportMail($data))->render();
+      Mail::to($data['email'])->queue(new DailyReportMail($data));
+      $html = (new DailyReportMail($data))->render();
 
-    saveActivityLog([
-      'log_name'    => 'Notification',
-      'description' => 'Daily Payment Report by ' . $causer->name,
-      'event'       => 'Mail Notification',
-      'properties'  => [
-        'email'       => $data['email'],
-        'subject'     => $data['subject'],
-        'attachments' => $data['attachments'],
-        'html'        => $html,
-      ],
-    ]);
+      saveActivityLog([
+        'log_name'    => 'Notification',
+        'description' => 'Daily Payment Report by ' . $causer->name,
+        'event'       => 'Mail Notification',
+        'properties'  => [
+          'email'       => $data['email'],
+          'subject'     => $data['subject'],
+          'attachments' => $data['attachments'],
+          'html'        => $html,
+        ],
+      ]);
+    }
 
     Log::info('4256 --> DailyReportJob: Finished.');
   }

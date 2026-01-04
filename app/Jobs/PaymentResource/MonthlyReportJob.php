@@ -38,14 +38,16 @@ class MonthlyReportJob implements ShouldQueue
     $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
     $endDate   = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
     $now       = Carbon::now()->toDateTimeString();
-    $causer    = getUser();
+    $causer    = $this->data['user'] ?? getUser();
 
     $send = array_merge($this->data, [
-      'filename'   => 'monthly-payment-report',
-      'title'      => 'Laporan keuangan bulanan',
-      'start_date' => $startDate,
-      'end_date'   => $endDate,
-      'now'        => $now,
+      'filename'     => 'monthly-payment-report',
+      'title'        => 'Laporan keuangan bulanan',
+      'start_date'   => $startDate,
+      'end_date'     => $endDate,
+      'now'          => $now,
+      'user'         => $causer,
+      'notification' => $this->data['notification'] ?? false,
     ]);
 
     $pdf = PaymentService::make_pdf($send);
@@ -79,33 +81,37 @@ class MonthlyReportJob implements ShouldQueue
       $periode = $startDate->translatedFormat($startFormat) . ' - ' . $endDate->translatedFormat('d F Y');
     }
 
-    $data = [
-      'log_name'         => 'monthly_payment_notification',
-      'email'            => $this->data['user']->email ?? '',
-      'author_name'      => getSetting('author_name'),
-      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Bulanan (' . $periode . ')',
-      'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
-      'payment'          => $payment->toArray(),
-      'periode'          => $periode,
-      'created_at'       => $now,
-      'attachments' => [
-        storage_path('app/' . $pdf['filepath']),
-      ],
-    ];
-    Mail::to($data['email'])->queue(new MonthlyReportMail($data));
-    $html = (new MonthlyReportMail($data))->render();
+    $send_to_email = $this->data['send_to_email'] ?? false;
 
-    saveActivityLog([
-      'log_name'    => 'Notification',
-      'description' => 'Monthly Payment Report by ' . $causer->name,
-      'event'       => 'Mail Notification',
-      'properties'  => [
-        'email'       => $data['email'],
-        'subject'     => $data['subject'],
-        'attachments' => $data['attachments'],
-        'html'        => $html,
-      ],
-    ]);
+    if ($send_to_email) {
+      $data = [
+        'log_name'         => 'monthly_payment_notification',
+        'email'            => getSetting('monthly_payment_email'),
+        'author_name'      => getSetting('author_name'),
+        'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Bulanan (' . $periode . ')',
+        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment'          => $payment->toArray(),
+        'periode'          => $periode,
+        'created_at'       => $now,
+        'attachments' => [
+          storage_path('app/' . $pdf['filepath']),
+        ],
+      ];
+      Mail::to($data['email'])->queue(new MonthlyReportMail($data));
+      $html = (new MonthlyReportMail($data))->render();
+  
+      saveActivityLog([
+        'log_name'    => 'Notification',
+        'description' => 'Monthly Payment Report by ' . $causer->name,
+        'event'       => 'Mail Notification',
+        'properties'  => [
+          'email'       => $data['email'],
+          'subject'     => $data['subject'],
+          'attachments' => $data['attachments'],
+          'html'        => $html,
+        ],
+      ]);
+    }
 
     Log::info('6754 --> MonthlyReportJob: Finished.');
   }

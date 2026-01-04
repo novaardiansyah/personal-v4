@@ -165,7 +165,7 @@ class FileResource extends Resource
         TrashedFilter::make()
           ->native(false),
       ])
-      ->defaultSort('scheduled_deletion_time', 'desc')
+      ->defaultSort('updated_at', 'desc')
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
