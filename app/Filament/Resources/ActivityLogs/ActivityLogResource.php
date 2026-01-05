@@ -4,7 +4,6 @@ namespace App\Filament\Resources\ActivityLogs;
 
 use BackedEnum;
 use Filament\Actions\Action;
-use Str;
 use UnitEnum;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Schemas\Components\Section;
@@ -23,6 +22,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Str;
 
 class ActivityLogResource extends Resource
 {

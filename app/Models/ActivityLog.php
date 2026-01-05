@@ -32,12 +32,14 @@ class ActivityLog extends Model
   public static function getEventColor(string $event): string
   {
     $colors = [
-      'Updated'       => 'info',
-      'Created'       => 'success',
-      'Deleted'       => 'danger',
-      'Force Deleted' => 'danger',
-      'Restored'      => 'warning',
-      'Login'         => 'danger',
+      'Updated'           => 'info',
+      'Created'           => 'success',
+      'Deleted'           => 'danger',
+      'Force Deleted'     => 'danger',
+      'Restored'          => 'warning',
+      'Login'             => 'danger',
+      'Mail Notification' => 'success',
+      'Scheduled' => 'warning',
     ];
 
     return $colors[$event] ?? 'primary';
@@ -48,6 +50,7 @@ class ActivityLog extends Model
     $colors = [
       'Resource'     => 'primary',
       'Notification' => 'success',
+      'Console'      => 'warning',
     ];
 
     return $colors[$event] ?? 'primary';

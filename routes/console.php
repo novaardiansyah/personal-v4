@@ -16,7 +16,7 @@ Artisan::command('inspire', function () {
 
 // ! Scheduled Payment
 Schedule::job(new ScheduledPaymentJob())
-  ->dailyAt('00:05');
+  ->dailyAt('23:59');
 
 // ! Daily Payment Report
 Schedule::job(new DailyReportJob(['notification' => false]))

@@ -3,8 +3,10 @@
 namespace App\Jobs\PaymentResource;
 
 use App\Mail\PaymentResource\ScheduledPaymentMail;
+use App\Models\ActivityLog;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
+use App\Models\User;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,19 +31,41 @@ class ScheduledPaymentJob implements ShouldQueue
    */
   public function handle(): void
   {
-    Log::info('3256 --> ScheduledPaymentJob: Started.');
-
-    $result = Payment::scheduledPayment();
-
-    if (!$result['status']) {
-      Log::info('3258 --> ScheduledPaymentJob: ' . $result['message']);
-      return;
-    }
-
     $now      = now()->toDateTimeString();
     $today    = Carbon::now()->format('Y-m-d');
     $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
     $causer   = getUser();
+
+    $defaultLog = [
+      'log_name'    => 'Console',
+      'event'       => 'Scheduled',
+      'description' => 'ScheduledPaymentJob() Executed by ' . $causer->name,
+      'causer_type' => User::class,
+      'causer_id'   => $causer->id,
+      'properties'  => [
+        'now'      => $now,
+        'today'    => $today,
+        'tomorrow' => $tomorrow,
+      ],
+    ];
+
+    $startLog = saveActivityLog($defaultLog);
+    $result = Payment::scheduledPayment();
+
+    if (!$result['status']) {
+      $defaultLog = array_merge($defaultLog, [
+        'description'  => 'ScheduledPaymentJob() Execution Stopped by ' . $causer->name,
+        'subject_type' => ActivityLog::class,
+        'subject_id'   => $startLog->id,
+        'properties' => array_merge($defaultLog['properties'], [
+          'message' => $result['message'],
+        ]),
+      ]);
+
+      saveActivityLog($defaultLog);
+
+      return;
+    }
 
     $send = [
       'filename'   => 'scheduled-payment-report',
@@ -91,6 +115,12 @@ class ScheduledPaymentJob implements ShouldQueue
       ],
     ]);
 
-    Log::info('3257 --> ScheduledPaymentJob: Finished.');
+    $defaultLog = array_merge($defaultLog, [
+      'description'  => 'ScheduledPaymentJob() Was Successfully Executed by ' . $causer->name,
+      'subject_type' => ActivityLog::class,
+      'subject_id'   => $startLog->id,
+    ]);
+
+    saveActivityLog($defaultLog);
   }
 }

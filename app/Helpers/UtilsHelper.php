@@ -225,7 +225,7 @@ function textLower($text)
 //   }
 // }
 
-function saveActivityLog(array $data = [], $modelMorp = null)
+function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
 {
   $causer = getUser();
   
@@ -245,7 +245,7 @@ function saveActivityLog(array $data = [], $modelMorp = null)
     $changes  = $changes->toArray();
   }
 
-  ActivityLog::create(array_merge([
+  return ActivityLog::create(array_merge([
     'log_name'        => 'Resource',
     'description'     => "{$model} {$event} by {$causer->name}",
     'event'           => $event,
