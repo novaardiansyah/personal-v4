@@ -14,10 +14,11 @@ use Illuminate\Support\Str;
 class ShortUrl extends Model
 {
   use SoftDeletes;
-  protected $guarded = ['id'];
   protected $table = 'short_urls';
+  protected $fillable = ['file_download_id', 'user_id', 'code', 'qrcode', 'note', 'note', 'long_url', 'short_code', 'tiny_url', 'is_active', 'clicks'];
   protected $casts = [
-    'is_active' => 'boolean'
+    'is_active' => 'boolean',
+    'clicks' => 'integer',
   ];
 
 
@@ -118,5 +119,10 @@ class ShortUrl extends Model
     }
 
     return $shortUrl;
+  }
+
+  public function FileDownload(): BelongsTo
+  {
+    return $this->belongsTo(FileDownload::class, 'file_download_id', 'id');
   }
 }

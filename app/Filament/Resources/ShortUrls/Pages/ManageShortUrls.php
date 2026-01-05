@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ShortUrls\Pages;
 
 use App\Filament\Resources\ShortUrls\ShortUrlResource;
+use App\Models\FileDownload;
 use App\Models\ShortUrl;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
@@ -17,7 +18,7 @@ class ManageShortUrls extends ManageRecords
   {
     return [
       CreateAction::make()
-        ->modalWidth(Width::Medium)
+        ->modalWidth(Width::TwoExtraLarge)
         ->mutateFormDataUsing(function (array $data) {
           $uniqueCode = ShortUrl::generateUniqueShortCode();
 
@@ -31,9 +32,9 @@ class ManageShortUrls extends ManageRecords
             $this->halt();
           }
 
-          $data['code']       = getCode('short_url');
+          $data['code'] = getCode('short_url');
           $data['short_code'] = $uniqueCode;
-          $data['str_code']   = $uniqueCode;
+          $data['str_code'] = $uniqueCode;
 
           return $data;
         })

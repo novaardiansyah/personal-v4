@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[ObservedBy([FileDownloadObserver::class])]
 class FileDownload extends Model
@@ -35,5 +36,10 @@ class FileDownload extends Model
     return Attribute::make(
       get: fn (): string => $url . '/files/d/' . $this->uid,
     );
+  }
+
+  public function shortUrl(): BelongsTo
+  {
+    return $this->belongsTo(ShortUrl::class, 'file_download_id', 'id');
   }
 }
