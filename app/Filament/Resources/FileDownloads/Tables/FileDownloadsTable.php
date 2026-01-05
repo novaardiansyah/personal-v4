@@ -40,7 +40,6 @@ class FileDownloadsTable
           ->toggleable(),
         TextColumn::make('download_url')
           ->label('Download URL')
-          ->searchable()
           ->copyable()
           ->wrap()
           ->toggleable(isToggledHiddenByDefault: true),
