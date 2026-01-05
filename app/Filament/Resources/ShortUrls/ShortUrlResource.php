@@ -66,7 +66,11 @@ class ShortUrlResource extends Resource
               ->required()
               ->default(false)
               ->columnSpan(2)
-              ->live(onBlur: true),
+              ->live(onBlur: true)
+              ->afterStateUpdated(function (Set $set) {
+                $set('file_download_id', null);
+                $set('long_url', null);
+              }),
           ]),
 
         Select::make('file_download_id')
@@ -223,9 +227,16 @@ class ShortUrlResource extends Resource
           ViewAction::make(),
 
           EditAction::make()
-            ->modalWidth(Width::Medium)
+            ->modalWidth(Width::TwoExtraLarge)
             ->mutateRecordDataUsing(function (ShortUrl $record, array $data): array {
               $data['str_code'] = $record->getCleanShortCode();
+              $data['from_file_download'] = !is_null($record->file_download_id);
+              return $data;
+            })
+            ->mutateFormDataUsing(function (array $data): array {
+              if (!$data['from_file_download']) {
+                $data['file_download_id'] = null;
+              }
               return $data;
             }),
 
