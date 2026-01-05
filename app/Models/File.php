@@ -43,6 +43,8 @@ class File extends Model
     $this->update([
       'has_been_deleted' => true
     ]);
+
+    $this->delete();
   }
 
   public function subject(): MorphTo
