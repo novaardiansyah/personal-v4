@@ -46,8 +46,8 @@ use Illuminate\Support\Str;
 class ShortUrlResource extends Resource
 {
   protected static ?string $model = ShortUrl::class;
-  protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedLink;
-  protected static string | UnitEnum | null $navigationGroup = 'Productivity';
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedLink;
+  protected static string|UnitEnum|null $navigationGroup = 'Productivity';
   protected static ?int $navigationSort = 10;
   protected static ?string $recordTitleAttribute = 'note';
 
@@ -76,14 +76,23 @@ class ShortUrlResource extends Resource
           ->relationship(
             name: 'fileDownload',
             titleAttribute: 'uid',
-            modifyQueryUsing: fn ($query) => $query->select('id', 'uid', 'code'),
+            modifyQueryUsing: fn($query, $record) => $query
+              ->select('id', 'uid', 'code')
+              ->whereNotIn(
+                'id',
+                ShortUrl::query()
+                  ->whereNotNull('file_download_id')
+                  ->when($record, fn($q) => $q->where('id', '!=', $record->id))
+                  ->pluck('file_download_id')
+              ),
           )
-          ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->code} ({$record->uid})")
+          ->getOptionLabelFromRecordUsing(fn($record) => "{$record->code} ({$record->uid})")
           ->required(fn(Get $get) => $get('from_file_download'))
           ->visible(fn(Get $get) => $get('from_file_download'))
           ->live(onBlur: true)
           ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
-            if (!$state) return;
+            if (!$state)
+              return;
             $find = FileDownload::find($state)->first();
             if ($find) {
               $set('long_url', $find->download_url);
@@ -148,7 +157,7 @@ class ShortUrlResource extends Resource
               ->dateTime(),
           ]),
       ])
-        ->columns(3);
+      ->columns(3);
   }
 
   public static function table(Table $table): Table
