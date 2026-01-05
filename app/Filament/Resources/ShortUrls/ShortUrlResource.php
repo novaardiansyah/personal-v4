@@ -94,10 +94,10 @@ class ShortUrlResource extends Resource
           ->required(fn(Get $get) => $get('from_file_download'))
           ->visible(fn(Get $get) => $get('from_file_download'))
           ->live(onBlur: true)
-          ->afterStateUpdated(function (?string $state, Get $get, Set $set) {
+          ->afterStateUpdated(function (?string $state, Set $set) {
             if (!$state)
               return;
-            $find = FileDownload::find($state)->first();
+            $find = FileDownload::find($state);
             if ($find) {
               $set('long_url', $find->download_url);
             }
