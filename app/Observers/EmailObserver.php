@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\EmailStatus;
 use App\Models\Email;
 use Illuminate\Support\Str;
 
@@ -10,6 +11,9 @@ class EmailObserver
   public function creating(Email $email): void
   {
     $email->uid = Str::orderedUuid()->toString();
+    if (!$email->status) {
+      $email->status = EmailStatus::Draft;
+    }
   }
 
   public function created(Email $email): void

@@ -14,6 +14,7 @@ class ManageEmails extends ManageRecords
   {
     return [
       CreateAction::make(),
+      ActionEmail::createWithTemplate(),
     ];
   }
 }
