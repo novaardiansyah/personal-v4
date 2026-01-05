@@ -67,6 +67,7 @@ class AdminPanelProvider extends PanelProvider
       ->navigationGroups([
         'Payments',
         'Productivity',
+        'Emails',
         'Items',
         'File Manager',
         'Blog',

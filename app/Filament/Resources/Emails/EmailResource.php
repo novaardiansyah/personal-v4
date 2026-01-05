@@ -41,8 +41,8 @@ class EmailResource extends Resource
   protected static ?string $model = Email::class;
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedEnvelope;
   protected static ?string $recordTitleAttribute = 'subject';
-  protected static string|UnitEnum|null $navigationGroup = 'Productivity';
-  protected static ?int $navigationSort = 39;
+  protected static string|UnitEnum|null $navigationGroup = 'Emails';
+  protected static ?int $navigationSort = 20;
 
   public static function form(Schema $schema): Schema
   {
