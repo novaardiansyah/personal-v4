@@ -54,8 +54,6 @@ class DefaultMail extends Mailable implements ShouldQueue
    */
   public function attachments(): array
   {
-    return collect($this->data['attachments'] ?? [])
-      ->map(fn($path) => Attachment::fromStorageDisk('public', $path))
-      ->all();
+    return [];
   }
 }

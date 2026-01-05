@@ -3,13 +3,10 @@
 namespace App\Filament\Resources\Emails\Pages;
 
 use App\Enums\EmailStatus;
-use App\Mail\EmailResource\DefaultMail;
 use App\Models\Email;
-use App\Models\File;
 use App\Services\EmailResource\EmailService;
 use Filament\Actions\Action;
 use Filament\Actions\ReplicateAction;
-use Illuminate\Support\Facades\Mail;
 
 class ActionEmail
 {

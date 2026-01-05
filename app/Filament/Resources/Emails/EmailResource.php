@@ -2,13 +2,12 @@
 
 namespace App\Filament\Resources\Emails;
 
+use BackedEnum;
+use UnitEnum;
 use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
 use App\Filament\Resources\Emails\Pages\ActionEmail;
 use App\Models\Email;
-use BackedEnum;
-use UnitEnum;
-use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -16,11 +15,9 @@ use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\ReplicateAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -85,24 +82,10 @@ class EmailResource extends Resource
           ->columnSpanFull()
           ->required(),
 
-
-        Grid::make(4)
-          ->Schema([
-            Toggle::make('is_url_attachment')
-              ->label('Has Attachment URL')
-              ->default(false)
-              ->required()
-              ->inline(false)
-              ->live(onBlur: true),
-    
-            TextInput::make('url_attachment')
-              ->label('Attachment URL')
-              ->default(null)
-              ->disabled()
-              ->columnSpan(2)
-              ->visible(fn(Get $get): bool => $get('is_url_attachment')),
-          ])
-          ->columnSpanFull()
+        TextInput::make('url_attachment')
+          ->label('Attachment URL')
+          ->default(null)
+          ->columnSpan(1),
       ]);
   }
 

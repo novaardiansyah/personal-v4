@@ -18,14 +18,6 @@ class EmailService
       $data['name'] = explode('@', $data['email'])[0];
     }
 
-    if ($data['size_attachments'] > (9 * 1024 * 1024)) {
-      $data['is_url_attachment'] = true;
-    }
-
-    if ($data['is_url_attachment']) {
-      $data['attachments'] = [];
-    }
-    
     $html = (new DefaultMail($data))->render();
     
     if ($preview) {
@@ -44,14 +36,13 @@ class EmailService
       'properties' => [
         'email'       => $data['email'],
         'subject'     => $data['subject'],
-        'attachments' => $data['attachments'],
+        'attachments' => [],
         'html'        => $html,
       ],
     ], $email);
 
     $email->update([
-      'status'            => EmailStatus::Sent,
-      'is_url_attachment' => $data['is_url_attachment']
+      'status' => EmailStatus::Sent,
     ]);
 
     return true;

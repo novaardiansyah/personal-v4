@@ -11,7 +11,7 @@
 @section('content')
   {!! str($data['message'])->sanitizeHtml() !!}
 
-  @if ($data['is_url_attachment'])
+  @if ($data['url_attachment'])
     <p>Unduh lampiran: <a href="{{ $data['url_attachment'] }}">{{ $data['url_attachment'] }}</a></p>
   @endif
 @endsection
