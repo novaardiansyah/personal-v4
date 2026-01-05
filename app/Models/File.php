@@ -17,7 +17,7 @@ class File extends Model
 
   protected $table = 'files';
 
-  protected $fillable = ['code', 'user_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id'];
+  protected $fillable = ['code', 'user_id', 'file_download_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id'];
 
   protected $casts = [
     'scheduled_deletion_time' => 'datetime',

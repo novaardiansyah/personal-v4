@@ -115,6 +115,12 @@ class FileResource extends Resource
           ->badge()
           ->copyable()
           ->toggleable(),
+        TextColumn::make('fileDownload.code')
+          ->label('File Download ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('user.name')
           ->label('User')
           ->searchable()
