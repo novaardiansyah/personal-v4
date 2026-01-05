@@ -47,13 +47,6 @@ class EmailResource extends Resource
   protected static string|UnitEnum|null $navigationGroup = 'Productivity';
   protected static ?int $navigationSort = 39;
 
-  public static function getRelations(): array
-  {
-    return [
-      RelationManagers\FilesRelationManager::class,
-    ];
-  }
-
   public static function form(Schema $schema): Schema
   {
     return $schema
@@ -180,13 +173,6 @@ class EmailResource extends Resource
           ->state(fn(Email $record): string => $record->status->label())
           ->toggleable()
           ->sortable(),
-        TextColumn::make('files_count')
-          ->label('Attachments')
-          ->counts('files')
-          ->toggleable()
-          ->sortable()
-          ->badge()
-          ->color(fn(Email $record): string => $record->files_count > 0 ? 'info' : 'danger'),
         TextColumn::make('url_attachment')
           ->label('URL Attachment')
           ->copyable()
@@ -216,30 +202,11 @@ class EmailResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-
           EditAction::make(),
 
           ActionEmail::send(),
-
           ActionEmail::preview(),
-
-          ReplicateAction::make('replicate')
-            ->label('Replicate')
-            ->icon('heroicon-s-document-duplicate')
-            ->color('warning')
-            ->action(function (Email $record, Action $action) {
-              $newRecord = $record->replicate(['files_count']);
-              $newRecord->status = EmailStatus::Draft;
-              $newRecord->subject = $record->subject . ' (Copy)';
-
-              $newRecord->save();
-
-              $action->success();
-              $action->successNotificationTitle('Email replicated successfully');
-            })
-            ->requiresConfirmation()
-            ->modalHeading('Replicate Email')
-            ->modalDescription('Are you sure you want to replicate this email?'),
+          ActionEmail::replicate(),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),

@@ -8,6 +8,7 @@ use App\Models\Email;
 use App\Models\File;
 use App\Services\EmailResource\EmailService;
 use Filament\Actions\Action;
+use Filament\Actions\ReplicateAction;
 use Illuminate\Support\Facades\Mail;
 
 class ActionEmail
@@ -38,5 +39,26 @@ class ActionEmail
       ->color('primary')
       ->url(fn(Email $record): string => route('admin.emails.preview', $record))
       ->openUrlInNewTab();
+  }
+
+  public static function replicate(): Action 
+  {
+    return ReplicateAction::make('replicate')
+      ->label('Replicate')
+      ->icon('heroicon-s-document-duplicate')
+      ->color('warning')
+      ->action(function (Email $record, Action $action) {
+        $newRecord = $record->replicate(['files_count']);
+        $newRecord->status = EmailStatus::Draft;
+        $newRecord->subject = $record->subject . ' (Copy)';
+
+        $newRecord->save();
+
+        $action->success();
+        $action->successNotificationTitle('Email replicated successfully');
+      })
+      ->requiresConfirmation()
+      ->modalHeading('Replicate Email')
+      ->modalDescription('Are you sure you want to replicate this email?');
   }
 }
