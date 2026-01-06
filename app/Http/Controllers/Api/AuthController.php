@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
+use OpenApi\Annotations as OA;
 
 class AuthController extends Controller
 {

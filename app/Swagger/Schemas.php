@@ -2,6 +2,8 @@
 
 namespace App\Swagger;
 
+use OpenApi\Annotations as OA;
+
 /**
  * Common Response Schemas
  *

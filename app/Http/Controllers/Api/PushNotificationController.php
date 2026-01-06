@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Annotations as OA;
 
 class PushNotificationController extends Controller
 {
@@ -85,14 +86,14 @@ class PushNotificationController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'title' => 'required|string|max:255',
-      'body'  => 'required|string',
-      'data'  => 'nullable|array',
+      'body' => 'required|string',
+      'data' => 'nullable|array',
     ]);
 
     $validator->setAttributeNames([
       'user_id' => 'user id',
-      'title'   => 'notification title',
-      'body'    => 'message body',
+      'title' => 'notification title',
+      'body' => 'message body',
     ]);
 
     if ($validator->fails()) {
@@ -119,16 +120,16 @@ class PushNotificationController extends Controller
 
     $pushNotification = PushNotification::create([
       'user_id' => $data['user_id'],
-      'token'   => $user->notification_token,
-      'title'   => $data['title'],
-      'body'    => $data['body'],
-      'data'    => $additionalData,
+      'token' => $user->notification_token,
+      'title' => $data['title'],
+      'body' => $data['body'],
+      'data' => $additionalData,
     ]);
 
     return response()->json([
       'success' => true,
       'message' => 'Push notification created successfully',
-      'data'    => $pushNotification
+      'data' => $pushNotification
     ], 201);
   }
 }
