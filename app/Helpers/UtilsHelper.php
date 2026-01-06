@@ -52,7 +52,7 @@ function toIndonesianCurrency(float $number = 0, int $precision = 0, string $cur
   return $replace;
 }
 
-function makePdf(Mpdf $mpdf, ?Model $user = null, $preview = false, $notification = true, $auto_close_tbody = true): array
+function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $notification = true, bool $auto_close_tbody = true): array
 {
   $user ??= getUser();
 

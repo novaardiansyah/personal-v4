@@ -3,8 +3,10 @@
 namespace App\Jobs\PaymentResource;
 
 use App\Mail\PaymentResource\DailyReportMail;
+use App\Models\ActivityLog;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
+use App\Models\User;
 use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,16 +31,14 @@ class DailyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
-    Log::info('4256 --> DailyReportJob: Started.');
-
-    $startDate = Carbon::now()->startOfWeek();
-    $endDate   = Carbon::now()->endOfWeek();
-    $now       = Carbon::now()->toDateTimeString();
-    $today     = Carbon::now()->toDateString();
-    $causer    = $this->data['user'] ?? getUser();
+    $startDate     = Carbon::now()->startOfWeek();
+    $endDate       = Carbon::now()->endOfWeek();
+    $now           = Carbon::now()->toDateTimeString();
+    $today         = Carbon::now()->toDateString();
+    $send_to_email = $this->data['send_to_email'] ?? false;
+    $causer        = $this->data['user'] ?? getUser();
     
     $send = [
-      'filename'     => 'daily-payment-report',
       'title'        => 'Laporan keuangan harian',
       'start_date'   => $startDate,
       'end_date'     => $endDate,
@@ -47,7 +47,23 @@ class DailyReportJob implements ShouldQueue
       'notification' => $this->data['notification'] ?? false,
     ];
 
-    $pdf = PaymentService::make_pdf($send);
+    $defaultLog = [
+      'log_name'    => 'Console',
+      'event'       => 'Scheduled',
+      'description' => 'DailyReportJob() Executed by ' . $causer->name,
+      'causer_type' => User::class,
+      'causer_id'   => $causer->id,
+      'properties'  => array_merge($this->data, $send, [
+        'notification' => intval($this->data['notification'] ?? false),
+        'user' => [
+          'id'   => $causer->id,
+          'name' => $causer->name,
+        ]
+      ]),
+    ];
+
+    $startLog = saveActivityLog($defaultLog);
+    $pdf      = PaymentService::make_pdf($send);
 
     $payment = Payment::selectRaw('
       SUM(CASE WHEN type_id = 1 AND date = ? THEN amount ELSE 0 END) AS daily_expense,
@@ -62,7 +78,6 @@ class DailyReportJob implements ShouldQueue
     ])->first();
 
     $date = carbonTranslatedFormat($now, 'd F Y');
-    $send_to_email = $this->data['send_to_email'] ?? false;
 
     if ($send_to_email) {
       $data = [
@@ -95,6 +110,12 @@ class DailyReportJob implements ShouldQueue
       ]);
     }
 
-    Log::info('4256 --> DailyReportJob: Finished.');
+    $defaultLog = array_merge($defaultLog, [
+      'description'  => 'DailyReportJob() Successfully Executed by ' . $causer->name,
+      'subject_type' => ActivityLog::class,
+      'subject_id'   => $startLog->id,
+    ]);
+
+    saveActivityLog($defaultLog);
   }
 }

@@ -98,7 +98,7 @@ class PaymentService
     return ['status' => true, 'message' => 'Draft has been approved and balance has been mutated.'];
   }
 
-  public static function make_pdf(array $data)
+  public static function make_pdf(array $data): array
   {
     Log::info('4236 --> PaymentService::make_pdf(): Started.');
 

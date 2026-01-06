@@ -11,7 +11,6 @@ use App\Services\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ScheduledPaymentJob implements ShouldQueue
@@ -116,7 +115,7 @@ class ScheduledPaymentJob implements ShouldQueue
     ]);
 
     $defaultLog = array_merge($defaultLog, [
-      'description'  => 'ScheduledPaymentJob() Was Successfully Executed by ' . $causer->name,
+      'description'  => 'ScheduledPaymentJob() Successfully Executed by ' . $causer->name,
       'subject_type' => ActivityLog::class,
       'subject_id'   => $startLog->id,
     ]);
