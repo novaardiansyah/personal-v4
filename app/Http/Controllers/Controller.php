@@ -2,7 +2,22 @@
 
 namespace App\Http\Controllers;
 
+/**
+ * @OA\Info(
+ *     version="1.0.0",
+ *     title="Personal V4 API Documentation",
+ *     description="API documentation for Personal V4 application",
+ *     @OA\Contact(
+ *         email="admin@novaardiansyah.id"
+ *     )
+ * )
+ * @OA\SecurityScheme(
+ *     securityScheme="bearerAuth",
+ *     type="http",
+ *     scheme="bearer",
+ *     bearerFormat="JWT"
+ * )
+ */
 abstract class Controller
 {
-  //
 }
