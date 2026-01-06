@@ -11,6 +11,10 @@ namespace App\Http\Controllers;
  *         email="admin@novaardiansyah.id"
  *     )
  * )
+ * @OA\Server(
+ *     url="/",
+ *     description="API Server"
+ * )
  * @OA\SecurityScheme(
  *     securityScheme="bearerAuth",
  *     type="http",
