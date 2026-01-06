@@ -3,8 +3,10 @@
 namespace App\Jobs\FileResource;
 
 use App\Enums\EmailStatus;
+use App\Models\ActivityLog;
 use App\Models\Email;
 use App\Models\File;
+use App\Models\User;
 use App\Services\EmailResource\EmailService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -29,11 +31,24 @@ class RemoveFileJob implements ShouldQueue
    */
   public function handle(): void
   {
-    Log::info('3556 --> RemoveFileJob: Started.');
+    $now    = Carbon::now()->toDateTimeString();
+    $causer = getUser();
+    $count  = 0;
 
-    $now = Carbon::now()->toDateTimeString();
-    $count = 0;
+    $defaultLog = [
+      'log_name'    => 'Console',
+      'event'       => 'Scheduled',
+      'description' => 'RemoveFileJob() Executed by ' . $causer->name,
+      'causer_type' => User::class,
+      'causer_id'   => $causer->id,
+      'properties'  => [
+        'now'   => $now,
+        'count' => $count,
+      ],
+    ];
 
+    $startLog = saveActivityLog($defaultLog);
+    
     File::where('scheduled_deletion_time', '<=', $now)->chunk(10, function (Collection $records) use (&$count) {
       foreach ($records as $record) {
         Log::info("3556 --> RemoveFileJob: Deleting file ID {$record->id}");
@@ -42,9 +57,12 @@ class RemoveFileJob implements ShouldQueue
       }
     });
 
+    $author_email = getSetting('remove_file_email');
+    $author_name  = getSetting('author_name');
+
     $default = [
-      'name'    => getSetting('author_name'),
-      'email'   => getSetting('remove_file_email'),
+      'name'    => $author_name,
+      'email'   => $author_email,
       'subject' => 'Notifikasi: Pembersihan File Terjadwal Berhasil (' . carbonTranslatedFormat($now, 'd M Y, H.i') . ')',
       'message' => '<p>Kami menginformasikan bahwa sesuai dengan kebijakan retensi data, sistem telah melakukan penghapusan terhadap <strong>' . $count . ' file</strong> yang telah melewati batas waktu penyimpanan.</p><p>Pembersihan ini dilakukan untuk memastikan kepatuhan terhadap kebijakan privasi dan efisiensi infrastruktur kami.</p>',
       'status'  => EmailStatus::Draft,
@@ -58,6 +76,17 @@ class RemoveFileJob implements ShouldQueue
 
     (new EmailService())->sendOrPreview($email);
 
-    Log::info("3557 --> RemoveFileJob: Finished. {$count} files deleted.");
+    $defaultLog = array_merge($defaultLog, [
+      'description'  => 'RemoveFileJob() Successfully Executed by ' . $causer->name,
+      'subject_type' => ActivityLog::class,
+      'subject_id'   => $startLog->id,
+      'properties'   => array_merge($defaultLog['properties'], [
+        'count'        => $count,
+        'author_name'  => $author_name,
+        'author_email' => $author_email,
+      ]),
+    ]);
+
+    saveActivityLog($defaultLog);
   }
 }
