@@ -5,8 +5,8 @@ namespace App\Http\Controllers\Api;
 use App\Jobs\ContactMessageResource\StoreMessageJob;
 use App\Models\ContactMessage;
 use Illuminate\Http\Request;
-use Validator;
-use \Illuminate\Validation\Validator AS validationValidator;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Validator AS validationValidator;
 use Illuminate\Support\Facades\Http;
 use App\Http\Controllers\Controller;
 

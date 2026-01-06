@@ -14,28 +14,34 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use OpenApi\Attributes as OA;
 
 class BlogSubscriberController extends Controller
 {
-  /**
-   * @OA\Post(
-   *     path="/api/blog-subscribers/subscribe",
-   *     summary="Subscribe to newsletter",
-   *     description="Subscribe an email to the blog newsletter. A unique token will be generated for verification and unsubscribe purposes.",
-   *     tags={"Blog Subscribers"},
-   *     security={{"bearerAuth": {}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"email"},
-   *         @OA\Property(property="email", type="string", format="email", description="Email address to subscribe")
-   *     )),
-   *     @OA\Response(response=201, description="Subscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/blog-subscribers/subscribe",
+    summary: "Subscribe to newsletter",
+    description: "Subscribe an email to the blog newsletter. A unique token will be generated for verification and unsubscribe purposes.",
+    tags: ["Blog Subscribers"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["email"],
+        properties: [
+          new OA\Property(property: "email", type: "string", format: "email", description: "Email address to subscribe")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 201, description: "Subscribed successfully"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function subscribe(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'email'         => 'required|email',
+      'email' => 'required|email',
       'captcha_token' => 'required|string',
     ]);
 
@@ -50,7 +56,7 @@ class BlogSubscriberController extends Controller
     $validated = $validator->validated();
 
     $check_captcha = Http::asForm()->post(config('services.cloudflare.turnstile.site_url'), [
-      'secret'   => config('services.cloudflare.turnstile.secret_key'),
+      'secret' => config('services.cloudflare.turnstile.secret_key'),
       'response' => $validated['captcha_token'],
     ])->json();
 
@@ -58,7 +64,7 @@ class BlogSubscriberController extends Controller
       return response()->json([
         'success' => false,
         'message' => 'Validation failed',
-        'errors'  => ['email' => ['You have entered an invalid captcha, please try again!']],
+        'errors' => ['email' => ['You have entered an invalid captcha, please try again!']],
       ], 422);
     }
 
@@ -70,7 +76,7 @@ class BlogSubscriberController extends Controller
         return response()->json([
           'success' => false,
           'message' => 'Validation failed',
-          'errors'  => ['email' => ['The email has already been subscribed.']]
+          'errors' => ['email' => ['The email has already been subscribed.']]
         ], 422);
       }
 
@@ -106,22 +112,27 @@ class BlogSubscriberController extends Controller
     ], 201);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/blog-subscribers/verify",
-   *     summary="Verify subscription",
-   *     description="Verify a subscription using the provided token.",
-   *     tags={"Blog Subscribers"},
-   *     security={{"bearerAuth": {}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"token"},
-   *         @OA\Property(property="token", type="string", description="Unique verification token")
-   *     )),
-   *     @OA\Response(response=200, description="Verified successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/blog-subscribers/verify",
+    summary: "Verify subscription",
+    description: "Verify a subscription using the provided token.",
+    tags: ["Blog Subscribers"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["token"],
+        properties: [
+          new OA\Property(property: "token", type: "string", description: "Unique verification token")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Verified successfully"),
+      new OA\Response(response: 404, description: "Invalid token"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function verify(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -172,22 +183,27 @@ class BlogSubscriberController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/blog-subscribers/unsubscribe",
-   *     summary="Unsubscribe from newsletter",
-   *     description="Unsubscribe from the blog newsletter using the provided token.",
-   *     tags={"Blog Subscribers"},
-   *     security={{"bearerAuth": {}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"token"},
-   *         @OA\Property(property="token", type="string", description="Unique subscription token")
-   *     )),
-   *     @OA\Response(response=200, description="Unsubscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/blog-subscribers/unsubscribe",
+    summary: "Unsubscribe from newsletter",
+    description: "Unsubscribe from the blog newsletter using the provided token.",
+    tags: ["Blog Subscribers"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["token"],
+        properties: [
+          new OA\Property(property: "token", type: "string", description: "Unique subscription token")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Unsubscribed successfully"),
+      new OA\Response(response: 404, description: "Invalid token"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function unsubscribe(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -246,18 +262,20 @@ class BlogSubscriberController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/blog-subscribers/{token}",
-   *     summary="Get subscriber details",
-   *     description="Retrieve subscriber information by token.",
-   *     tags={"Blog Subscribers"},
-   *     security={{"bearerAuth": {}}},
-   *     @OA\Parameter(name="token", in="path", required=true, description="Unique subscription token", @OA\Schema(type="string")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/blog-subscribers/{token}",
+    summary: "Get subscriber details",
+    description: "Retrieve subscriber information by token.",
+    tags: ["Blog Subscribers"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "token", in: "path", required: true, description: "Unique subscription token", schema: new OA\Schema(type: "string"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found")
+    ]
+  )]
   public function show(string $token): JsonResponse
   {
     $subscriber = BlogSubscriber::where('token', $token)->first();
@@ -282,22 +300,27 @@ class BlogSubscriberController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/blog-subscribers/re-subscribe",
-   *     summary="Re-subscribe to newsletter",
-   *     description="Re-subscribe to the blog newsletter using the token from farewell email.",
-   *     tags={"Blog Subscribers"},
-   *     security={{"bearerAuth": {}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"token"},
-   *         @OA\Property(property="token", type="string", description="Unique re-subscription token")
-   *     )),
-   *     @OA\Response(response=200, description="Re-subscribed successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Invalid token", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/blog-subscribers/re-subscribe",
+    summary: "Re-subscribe to newsletter",
+    description: "Re-subscribe to the blog newsletter using the token from farewell email.",
+    tags: ["Blog Subscribers"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["token"],
+        properties: [
+          new OA\Property(property: "token", type: "string", description: "Unique re-subscription token")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Re-subscribed successfully"),
+      new OA\Response(response: 404, description: "Invalid token"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function reSubscribe(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [

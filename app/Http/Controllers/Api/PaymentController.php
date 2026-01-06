@@ -16,7 +16,6 @@ use App\Http\Resources\ItemResource;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
-use App\Models\Gallery;
 use Illuminate\Validation\ValidationException;
 
 use App\Services\PaymentService;
@@ -24,23 +23,26 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
+use OpenApi\Attributes as OA;
+
 
 class PaymentController extends Controller
 {
-  /**
-   * @OA\Get(
-   *     path="/api/payments/summary",
-   *     summary="Get financial summary",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="startDate", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Parameter(name="endDate", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/summary",
+    summary: "Get financial summary",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "startDate", in: "query", schema: new OA\Schema(type: "string", format: "date")),
+      new OA\Parameter(name: "endDate", in: "query", schema: new OA\Schema(type: "string", format: "date"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function summary(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -123,23 +125,26 @@ class PaymentController extends Controller
   }
 
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments",
-   *     summary="Get all payments with pagination",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="page", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="date_from", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Parameter(name="date_to", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Parameter(name="type", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="account_id", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+
+  #[OA\Get(
+    path: "/api/payments",
+    summary: "Get all payments with pagination",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "page", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "limit", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "date_from", in: "query", schema: new OA\Schema(type: "string", format: "date")),
+      new OA\Parameter(name: "date_to", in: "query", schema: new OA\Schema(type: "string", format: "date")),
+      new OA\Parameter(name: "type", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "account_id", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function index(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -220,18 +225,20 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{id}",
-   *     summary="Get specific payment",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{id}",
+    summary: "Get specific payment",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function show(Request $request, $id): JsonResponse
   {
     $payment = Payment::with(['payment_type', 'payment_account', 'payment_account_to', 'items'])
@@ -250,56 +257,24 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{payment:code}",
-   *     summary="Get specific payment by code",
-   *     description="Retrieve payment details using unique payment code. Supports filtering by draft status and optional request view mode.",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(
-   *         name="code",
-   *         in="path",
-   *         required=true,
-   *         description="Unique payment code",
-   *         @OA\Schema(type="string")
-   *     ),
-   *     @OA\Parameter(
-   *         name="request_view",
-   *         in="query",
-   *         required=false,
-   *         description="Flag to indicate request view mode for additional response data",
-   *         @OA\Schema(type="boolean", default=false)
-   *     ),
-   *     @OA\Parameter(
-   *         name="is_draft",
-   *         in="query",
-   *         required=false,
-   *         description="Filter by draft status. If true, only returns draft payments; if false or not provided, returns non-draft payments",
-   *         @OA\Schema(type="boolean", default=false)
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description="Success",
-   *         @OA\JsonContent(ref="#/components/schemas/SuccessResponse")
-   *     ),
-   *     @OA\Response(
-   *         response=404,
-   *         description="Payment not found",
-   *         @OA\JsonContent(ref="#/components/schemas/ErrorResponse")
-   *     ),
-   *     @OA\Response(
-   *         response=422,
-   *         description="Validation error",
-   *         @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")
-   *     ),
-   *     @OA\Response(
-   *         response=401,
-   *         description="Unauthenticated",
-   *         @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")
-   *     )
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{payment:code}",
+    summary: "Get specific payment by code",
+    description: "Retrieve payment details using unique payment code. Supports filtering by draft status and optional request view mode.",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "code", in: "path", required: true, description: "Unique payment code", schema: new OA\Schema(type: "string")),
+      new OA\Parameter(name: "request_view", in: "query", required: false, description: "Flag to indicate request view mode for additional response data", schema: new OA\Schema(type: "boolean", default: false)),
+      new OA\Parameter(name: "is_draft", in: "query", required: false, description: "Filter by draft status. If true, only returns draft payments; if false or not provided, returns non-draft payments", schema: new OA\Schema(type: "boolean", default: false))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Payment not found"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function showByCode(Request $request, $code): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -346,23 +321,30 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Put(
-   *     path="/api/payments/{id}",
-   *     summary="Update existing payment",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         @OA\Property(property="amount", type="number"),
-   *         @OA\Property(property="name", type="string"),
-   *         @OA\Property(property="date", type="string", format="date")
-   *     )),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Put(
+    path: "/api/payments/{id}",
+    summary: "Update existing payment",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        properties: [
+          new OA\Property(property: "amount", type: "number"),
+          new OA\Property(property: "name", type: "string"),
+          new OA\Property(property: "date", type: "string", format: "date")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function update(Request $request, $id): JsonResponse
   {
     $payment = Payment::with(['payment_account', 'payment_account_to'])
@@ -428,18 +410,18 @@ class PaymentController extends Controller
     }
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments",
-   *     summary="Create new payment",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(ref="#/components/schemas/PaymentStoreRequest")),
-   *     @OA\Response(response=201, description="Payment created successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments",
+    summary: "Create new payment",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(required: true, content: new OA\JsonContent(ref: "#/components/schemas/PaymentStoreRequest")),
+    responses: [
+      new OA\Response(response: 201, description: "Payment created successfully"),
+      new OA\Response(response: 401, description: "Unauthenticated"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -501,16 +483,16 @@ class PaymentController extends Controller
     }
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/types",
-   *     summary="Get payment types for dropdown",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Response(response=200, description="Success"),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/types",
+    summary: "Get payment types for dropdown",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getPaymentTypes(): JsonResponse
   {
     $types = PaymentType::select('id', 'name')
@@ -520,25 +502,32 @@ class PaymentController extends Controller
     return response()->json($types);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments/{id}/items/attach",
-   *     summary="Attach existing item to payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"item_id", "quantity"},
-   *         @OA\Property(property="item_id", type="integer"),
-   *         @OA\Property(property="quantity", type="integer"),
-   *         @OA\Property(property="price", type="number")
-   *     )),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments/{id}/items/attach",
+    summary: "Attach existing item to payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["item_id", "quantity"],
+        properties: [
+          new OA\Property(property: "item_id", type: "integer"),
+          new OA\Property(property: "quantity", type: "integer"),
+          new OA\Property(property: "price", type: "number")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function attachItem(Request $request, $paymentId): JsonResponse
   {
     $payment = Payment::find($paymentId);
@@ -613,26 +602,33 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments/{id}/items/create-attach",
-   *     summary="Create new item and attach to payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"name", "type_id", "quantity", "price"},
-   *         @OA\Property(property="name", type="string"),
-   *         @OA\Property(property="type_id", type="integer"),
-   *         @OA\Property(property="quantity", type="integer"),
-   *         @OA\Property(property="price", type="number")
-   *     )),
-   *     @OA\Response(response=201, description="Created", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments/{id}/items/create-attach",
+    summary: "Create new item and attach to payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["name", "type_id", "quantity", "price"],
+        properties: [
+          new OA\Property(property: "name", type: "string"),
+          new OA\Property(property: "type_id", type: "integer"),
+          new OA\Property(property: "quantity", type: "integer"),
+          new OA\Property(property: "price", type: "number")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 201, description: "Created"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function createAndAttachItem(Request $request, $paymentId): JsonResponse
   {
     $payment = Payment::find($paymentId);
@@ -703,23 +699,30 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments/{payment}/items/attach-multiple",
-   *     summary="Attach multiple items to payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="payment", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"items", "totalAmount"},
-   *         @OA\Property(property="items", type="array", @OA\Items(type="object")),
-   *         @OA\Property(property="totalAmount", type="number")
-   *     )),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments/{payment}/items/attach-multiple",
+    summary: "Attach multiple items to payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["items", "totalAmount"],
+        properties: [
+          new OA\Property(property: "items", type: "array", items: new OA\Items(type: "object")),
+          new OA\Property(property: "totalAmount", type: "number")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function attachMultipleItems(Request $request, Payment $payment): JsonResponse
   {
     if (!$payment->has_items) {
@@ -831,25 +834,32 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Put(
-   *     path="/api/payments/{payment}/items/{pivotId}",
-   *     summary="Update item quantity in payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="payment", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="pivotId", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"quantity"},
-   *         @OA\Property(property="quantity", type="integer"),
-   *         @OA\Property(property="price", type="number")
-   *     )),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Put(
+    path: "/api/payments/{payment}/items/{pivotId}",
+    summary: "Update item quantity in payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "pivotId", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["quantity"],
+        properties: [
+          new OA\Property(property: "quantity", type: "integer"),
+          new OA\Property(property: "price", type: "number")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function updateItem(Request $request, Payment $payment, $pivotId): JsonResponse
   {
     $paymentItem = PaymentItem::where('payment_id', $payment->id)
@@ -918,19 +928,21 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Delete(
-   *     path="/api/payments/{payment}/items/{pivotId}",
-   *     summary="Detach item from payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="payment", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="pivotId", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Delete(
+    path: "/api/payments/{payment}/items/{pivotId}",
+    summary: "Detach item from payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "pivotId", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function detachItem(Payment $payment, $pivotId): JsonResponse
   {
     $paymentItem = PaymentItem::where('payment_id', $payment->id)
@@ -965,18 +977,20 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{id}/items/attached",
-   *     summary="Get attached items for payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{id}/items/attached",
+    summary: "Get attached items for payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getAttachedItems(Request $request, $paymentId): JsonResponse
   {
     $payment = Payment::find($paymentId);
@@ -1009,17 +1023,19 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{payment}/items/summary",
-   *     summary="Get payment items summary",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="payment", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{payment}/items/summary",
+    summary: "Get payment items summary",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getPaymentItemsSummary(Request $request, Payment $payment): JsonResponse
   {
     $items = $payment->items()->get();
@@ -1043,20 +1059,22 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{id}/items/not-attached",
-   *     summary="Get items not yet attached to specific payment",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="id", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
-   *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{id}/items/not-attached",
+    summary: "Get items not yet attached to specific payment",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "id", in: "path", required: true, schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string")),
+      new OA\Parameter(name: "limit", in: "query", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getItemsNotAttached(Request $request, $paymentId): JsonResponse
   {
     $payment = Payment::find($paymentId);
@@ -1104,18 +1122,20 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/{id}/items/available",
-   *     summary="Get available items for attach",
-   *     tags={"Payment Items"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
-   *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/{id}/items/available",
+    summary: "Get available items for attach",
+    tags: ["Payment Items"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string")),
+      new OA\Parameter(name: "limit", in: "query", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getAvailableItems(Request $request): JsonResponse
   {
     $query = Item::query();
@@ -1146,16 +1166,16 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/item-types",
-   *     summary="Get item types for dropdown",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Response(response=200, description="Success"),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/item-types",
+    summary: "Get item types for dropdown",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function getItemTypes(): JsonResponse
   {
     $types = ItemType::select('id', 'name')
@@ -1170,18 +1190,20 @@ class PaymentController extends Controller
 
 
 
-  /**
-   * @OA\Delete(
-   *     path="/api/payments/{payment}",
-   *     summary="Delete a payment",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="payment", in="path", required=true, @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Delete(
+    path: "/api/payments/{payment}",
+    summary: "Delete a payment",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function destroy(Request $request, Payment $payment): JsonResponse
   {
     $payment->delete();
@@ -1192,25 +1214,30 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments/generate-report",
-   *     summary="Generate payment report (PDF send to Email)",
-   *     description="Report types: daily (no extra params), monthly (requires periode), date_range (requires start_date & end_date)",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"report_type"},
-   *         @OA\Property(property="report_type", type="string", enum={"daily", "monthly", "date_range"}, example="daily"),
-   *         @OA\Property(property="start_date", type="string", format="date", example="2024-12-01", description="Required only for date_range"),
-   *         @OA\Property(property="end_date", type="string", format="date", example="2024-12-31", description="Required only for date_range"),
-   *         @OA\Property(property="periode", type="string", example="2024-12", description="Required only for monthly (format: Y-m)")
-   *     )),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments/generate-report",
+    summary: "Generate payment report (PDF send to Email)",
+    description: "Report types: daily (no extra params), monthly (requires periode), date_range (requires start_date & end_date)",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["report_type"],
+        properties: [
+          new OA\Property(property: "report_type", type: "string", enum: ["daily", "monthly", "date_range"], example: "daily"),
+          new OA\Property(property: "start_date", type: "string", format: "date", example: "2024-12-01", description: "Required only for date_range"),
+          new OA\Property(property: "end_date", type: "string", format: "date", example: "2024-12-31", description: "Required only for date_range"),
+          new OA\Property(property: "periode", type: "string", example: "2024-12", description: "Required only for monthly (format: Y-m)")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function generateReport(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -1265,22 +1292,24 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/payments/ai-summary",
-   *     summary="Get AI-friendly payment summary with aggregated statistics",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="search", in="query", @OA\Schema(type="string")),
-   *     @OA\Parameter(name="type", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="account_id", in="query", @OA\Schema(type="integer")),
-   *     @OA\Parameter(name="date_from", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Parameter(name="date_to", in="query", @OA\Schema(type="string", format="date")),
-   *     @OA\Parameter(name="limit", in="query", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/payments/ai-summary",
+    summary: "Get AI-friendly payment summary with aggregated statistics",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "search", in: "query", schema: new OA\Schema(type: "string")),
+      new OA\Parameter(name: "type", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "account_id", in: "query", schema: new OA\Schema(type: "integer")),
+      new OA\Parameter(name: "date_from", in: "query", schema: new OA\Schema(type: "string", format: "date")),
+      new OA\Parameter(name: "date_to", in: "query", schema: new OA\Schema(type: "string", format: "date")),
+      new OA\Parameter(name: "limit", in: "query", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function aiSummary(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -1437,42 +1466,31 @@ class PaymentController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/payments/{payment:code}/manage-draft",
-   *     summary="Manage draft payment status (approve or reject)",
-   *     tags={"Payments"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(
-   *         name="payment",
-   *         in="path",
-   *         required=true,
-   *         description="Payment code",
-   *         @OA\Schema(type="string")
-   *     ),
-   *     @OA\RequestBody(
-   *         required=true,
-   *         @OA\JsonContent(
-   *             required={"status"},
-   *             @OA\Property(
-   *                 property="status",
-   *                 type="string",
-   *                 enum={"approve", "reject"},
-   *                 description="approve = mutate balance and set is_draft=false, reject = delete draft transaction"
-   *             ),
-   *             @OA\Property(
-   *                 property="allow_empty",
-   *                 type="boolean",
-   *                 description="If true, response data will be null instead of payment resource"
-   *             )
-   *         )
-   *     ),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/payments/{payment:code}/manage-draft",
+    summary: "Manage draft payment status (approve or reject)",
+    tags: ["Payments"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "payment", in: "path", required: true, description: "Payment code", schema: new OA\Schema(type: "string"))
+    ],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["status"],
+        properties: [
+          new OA\Property(property: "status", type: "string", enum: ["approve", "reject"], description: "approve = mutate balance and set is_draft=false, reject = delete draft transaction"),
+          new OA\Property(property: "allow_empty", type: "boolean", description: "If true, response data will be null instead of payment resource")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 422, description: "Validation error"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function manageDraft(Request $request, string $code): JsonResponse
   {
     $payment = Payment::where('code', $code)

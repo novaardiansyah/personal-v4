@@ -114,14 +114,7 @@ class AuthController extends Controller
     security: [["bearerAuth" => []]],
     requestBody: new OA\RequestBody(
       required: true,
-      content: new OA\JsonContent(
-        required: ["current_password", "new_password", "new_password_confirmation"],
-        properties: [
-          new OA\Property(property: "current_password", type: "string", example: "oldpassword123"),
-          new OA\Property(property: "new_password", type: "string", example: "newpassword123"),
-          new OA\Property(property: "new_password_confirmation", type: "string", example: "newpassword123")
-        ]
-      )
+      content: new OA\JsonContent(ref: "#/components/schemas/ChangePasswordRequest")
     ),
     responses: [
       new OA\Response(response: 200, description: "Password changed successfully"),
@@ -241,14 +234,7 @@ class AuthController extends Controller
     security: [["bearerAuth" => []]],
     requestBody: new OA\RequestBody(
       required: true,
-      content: new OA\JsonContent(
-        required: ["name"],
-        properties: [
-          new OA\Property(property: "name", type: "string", example: "John Doe"),
-          new OA\Property(property: "email", type: "string", format: "email", example: "john@example.com"),
-          new OA\Property(property: "avatar_base64", type: "string", nullable: true)
-        ]
-      )
+      content: new OA\JsonContent(ref: "#/components/schemas/UpdateProfileRequest")
     ),
     responses: [
       new OA\Response(response: 200, description: "Profile updated successfully"),

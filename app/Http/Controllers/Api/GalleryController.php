@@ -10,25 +10,28 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\JsonResponse;
+use OpenApi\Attributes as OA;
 
 class GalleryController extends Controller
 {
-  /**
-   * @OA\Get(
-   *     path="/api/galleries",
-   *     summary="Get all galleries with pagination",
-   *     description="Retrieve a paginated list of galleries for the authenticated user. Supports filtering by search and soft-deleted records.",
-   *     tags={"Galleries"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="page", in="query", description="Page number", @OA\Schema(type="integer", default=1)),
-   *     @OA\Parameter(name="per_page", in="query", description="Items per page (max 100)", @OA\Schema(type="integer", default=15)),
-   *     @OA\Parameter(name="search", in="query", description="Search by file name or description", @OA\Schema(type="string")),
-   *     @OA\Parameter(name="with_trashed", in="query", description="Include soft-deleted records", @OA\Schema(type="boolean", default=false)),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/galleries",
+    summary: "Get all galleries with pagination",
+    description: "Retrieve a paginated list of galleries for the authenticated user. Supports filtering by search and soft-deleted records.",
+    tags: ["Galleries"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "page", in: "query", description: "Page number", schema: new OA\Schema(type: "integer", default: 1)),
+      new OA\Parameter(name: "per_page", in: "query", description: "Items per page (max 100)", schema: new OA\Schema(type: "integer", default: 15)),
+      new OA\Parameter(name: "search", in: "query", description: "Search by file name or description", schema: new OA\Schema(type: "string")),
+      new OA\Parameter(name: "with_trashed", in: "query", description: "Include soft-deleted records", schema: new OA\Schema(type: "boolean", default: false))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 401, description: "Unauthenticated"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function index(Request $request)
   {
     $validator = Validator::make($request->all(), [
@@ -47,7 +50,7 @@ class GalleryController extends Controller
       ], 422);
     }
 
-    $query = Gallery::where('user_id', auth()->user()->id)
+    $query = Gallery::where('user_id', Auth()->id())
       ->latest('updated_at');
 
     if ($request->has('search')) {
@@ -71,24 +74,26 @@ class GalleryController extends Controller
     return response()->json([
       'success' => true,
       'message' => 'Galleries retrieved successfully',
-      'data'    => $result['data'] ?? null,
-      'meta'    => $result['meta'] ?? null,
+      'data' => $result['data'] ?? null,
+      'meta' => $result['meta'] ?? null,
     ]);
   }
 
-  /**
-   * @OA\Get(
-   *     path="/api/galleries/{gallery}",
-   *     summary="Get specific gallery",
-   *     description="Retrieve a specific gallery by ID.",
-   *     tags={"Galleries"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="gallery", in="path", required=true, description="Gallery ID", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Get(
+    path: "/api/galleries/{gallery}",
+    summary: "Get specific gallery",
+    description: "Retrieve a specific gallery by ID.",
+    tags: ["Galleries"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "gallery", in: "path", required: true, description: "Gallery ID", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function show(Request $request, Gallery $gallery)
   {
     return response()->json([
@@ -98,23 +103,29 @@ class GalleryController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/galleries",
-   *     summary="Upload gallery images",
-   *     description="Upload one or more images to the gallery using base64 encoding.",
-   *     tags={"Galleries"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(required=true, @OA\JsonContent(
-   *         required={"base64_array"},
-   *         @OA\Property(property="base64_array", type="array", @OA\Items(type="string"), description="Array of base64 encoded images"),
-   *         @OA\Property(property="is_optimized", type="boolean", default=false, description="If true, skip optimization process")
-   *     )),
-   *     @OA\Response(response=200, description="Images uploaded successfully", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/galleries",
+    summary: "Upload gallery images",
+    description: "Upload one or more images to the gallery using base64 encoding.",
+    tags: ["Galleries"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["base64_array"],
+        properties: [
+          new OA\Property(property: "base64_array", type: "array", items: new OA\Items(type: "string"), description: "Array of base64 encoded images"),
+          new OA\Property(property: "is_optimized", type: "boolean", default: false, description: "If true, skip optimization process")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Images uploaded successfully"),
+      new OA\Response(response: 413, description: "Payload too large"),
+      new OA\Response(response: 401, description: "Unauthenticated"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function store(Request $request)
   {
     $validator = Validator::make($request->all(), [
@@ -157,6 +168,7 @@ class GalleryController extends Controller
         $gallery = Gallery::create([
           'file_path' => $images['original'],
           'has_optimized' => true,
+          'user_id' => Auth()->id(),
         ]);
 
         foreach ($images as $key => $image) {
@@ -214,19 +226,21 @@ class GalleryController extends Controller
     }
   }
 
-  /**
-   * @OA\Delete(
-   *     path="/api/galleries/{gallery}",
-   *     summary="Delete gallery (soft delete)",
-   *     description="Soft delete a specific gallery by ID. The gallery can be restored later.",
-   *     tags={"Galleries"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="gallery", in="path", required=true, description="Gallery ID", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Delete(
+    path: "/api/galleries/{gallery}",
+    summary: "Delete gallery (soft delete)",
+    description: "Soft delete a specific gallery by ID. The gallery can be restored later.",
+    tags: ["Galleries"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "gallery", in: "path", required: true, description: "Gallery ID", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function destroy(Request $request, Gallery $gallery): JsonResponse
   {
     $gallery->delete();
@@ -237,19 +251,21 @@ class GalleryController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Delete(
-   *     path="/api/galleries/{gallery}/force",
-   *     summary="Permanently delete gallery",
-   *     description="Permanently delete a gallery. This action cannot be undone.",
-   *     tags={"Galleries"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Parameter(name="gallery", in="path", required=true, description="Gallery ID", @OA\Schema(type="integer")),
-   *     @OA\Response(response=200, description="Success", @OA\JsonContent(ref="#/components/schemas/SuccessResponse")),
-   *     @OA\Response(response=404, description="Not found", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse"))
-   * )
-   */
+  #[OA\Delete(
+    path: "/api/galleries/{gallery}/force",
+    summary: "Permanently delete gallery",
+    description: "Permanently delete a gallery. This action cannot be undone.",
+    tags: ["Galleries"],
+    security: [["bearerAuth" => []]],
+    parameters: [
+      new OA\Parameter(name: "gallery", in: "path", required: true, description: "Gallery ID", schema: new OA\Schema(type: "integer"))
+    ],
+    responses: [
+      new OA\Response(response: 200, description: "Success"),
+      new OA\Response(response: 404, description: "Not found"),
+      new OA\Response(response: 401, description: "Unauthenticated")
+    ]
+  )]
   public function forceDelete(Request $request, string $id): JsonResponse
   {
     $gallery = Gallery::withTrashed()->findOrFail($id);

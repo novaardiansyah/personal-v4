@@ -8,80 +8,92 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 class PushNotificationController extends Controller
 {
-  /**
-   * @OA\Post(
-   *     path="/api/push-notifications",
-   *     summary="Create new push notification",
-   *     description="Create a new push notification for a specific user. The notification data will automatically include a timestamp.",
-   *     tags={"Push Notifications"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(
-   *         required=true,
-   *         @OA\JsonContent(
-   *             required={"title", "body"},
-   *             @OA\Property(property="title", type="string", maxLength=255, description="Notification title", example="New Message"),
-   *             @OA\Property(property="body", type="string", description="Notification message body", example="You have a new message from admin"),
-   *             @OA\Property(
-   *                 property="data",
-   *                 type="object",
-   *                 description="Additional data to include with the notification (optional)",
-   *                 example={"action": "open_chat", "chat_id": 123}
-   *             )
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=201,
-   *         description="Push notification created successfully",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=true),
-   *             @OA\Property(property="message", type="string", example="Push notification created successfully"),
-   *             @OA\Property(
-   *                 property="data",
-   *                 type="object",
-   *                 @OA\Property(property="id", type="integer", example=1),
-   *                 @OA\Property(property="user_id", type="integer", example=1),
-   *                 @OA\Property(property="token", type="string", example="ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"),
-   *                 @OA\Property(property="title", type="string", example="New Message"),
-   *                 @OA\Property(property="body", type="string", example="You have a new message from admin"),
-   *                 @OA\Property(
-   *                     property="data",
-   *                     type="object",
-   *                     example={"action": "open_chat", "chat_id": 123, "timestamps": "2025-12-18 00:49:00"}
-   *                 ),
-   *                 @OA\Property(property="sent_at", type="string", nullable=true, example=null),
-   *                 @OA\Property(property="error_message", type="string", nullable=true, example=null),
-   *                 @OA\Property(property="created_at", type="string", format="date-time", example="2025-12-18T00:49:00.000000Z"),
-   *                 @OA\Property(property="updated_at", type="string", format="date-time", example="2025-12-18T00:49:00.000000Z")
-   *             )
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=422,
-   *         description="Validation error",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=false),
-   *             @OA\Property(property="message", type="string", example="Validation failed"),
-   *             @OA\Property(
-   *                 property="errors",
-   *                 type="object",
-   *                 @OA\Property(property="title", type="array", @OA\Items(type="string", example="The notification title field is required.")),
-   *                 @OA\Property(property="body", type="array", @OA\Items(type="string", example="The message body field is required."))
-   *             )
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=401,
-   *         description="Unauthenticated",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="message", type="string", example="Unauthenticated.")
-   *         )
-   *     )
-   * )
-   */
+  #[OA\Post(
+    path: "/api/push-notifications",
+    summary: "Create new push notification",
+    description: "Create a new push notification for a specific user. The notification data will automatically include a timestamp.",
+    tags: ["Push Notifications"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["title", "body"],
+        properties: [
+          new OA\Property(property: "title", type: "string", maxLength: 255, description: "Notification title", example: "New Message"),
+          new OA\Property(property: "body", type: "string", description: "Notification message body", example: "You have a new message from admin"),
+          new OA\Property(
+            property: "data",
+            type: "object",
+            description: "Additional data to include with the notification (optional)",
+            example: ["action" => "open_chat", "chat_id" => 123]
+          )
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(
+        response: 201,
+        description: "Push notification created successfully",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: true),
+            new OA\Property(property: "message", type: "string", example: "Push notification created successfully"),
+            new OA\Property(
+              property: "data",
+              type: "object",
+              properties: [
+                new OA\Property(property: "id", type: "integer", example: 1),
+                new OA\Property(property: "user_id", type: "integer", example: 1),
+                new OA\Property(property: "token", type: "string", example: "ExponentPushToken[xxxxxxxxxxxxxxxxxxxxxx]"),
+                new OA\Property(property: "title", type: "string", example: "New Message"),
+                new OA\Property(property: "body", type: "string", example: "You have a new message from admin"),
+                new OA\Property(
+                  property: "data",
+                  type: "object",
+                  example: ["action" => "open_chat", "chat_id" => 123, "timestamps" => "2025-12-18 00:49:00"]
+                ),
+                new OA\Property(property: "sent_at", type: "string", nullable: true, example: null),
+                new OA\Property(property: "error_message", type: "string", nullable: true, example: null),
+                new OA\Property(property: "created_at", type: "string", format: "date-time", example: "2025-12-18T00:49:00.000000Z"),
+                new OA\Property(property: "updated_at", type: "string", format: "date-time", example: "2025-12-18T00:49:00.000000Z")
+              ]
+            )
+          ]
+        )
+      ),
+      new OA\Response(
+        response: 422,
+        description: "Validation error",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: false),
+            new OA\Property(property: "message", type: "string", example: "Validation failed"),
+            new OA\Property(
+              property: "errors",
+              type: "object",
+              properties: [
+                new OA\Property(property: "title", type: "array", items: new OA\Items(type: "string", example: "The notification title field is required.")),
+                new OA\Property(property: "body", type: "array", items: new OA\Items(type: "string", example: "The message body field is required."))
+              ]
+            )
+          ]
+        )
+      ),
+      new OA\Response(
+        response: 401,
+        description: "Unauthenticated",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "message", type: "string", example: "Unauthenticated.")
+          ]
+        )
+      )
+    ]
+  )]
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
@@ -119,7 +131,7 @@ class PushNotificationController extends Controller
     $additionalData['timestamps'] = now()->toDateTimeString();
 
     $pushNotification = PushNotification::create([
-      'user_id' => $data['user_id'],
+      'user_id' => Auth::id(),
       'token' => $user->notification_token,
       'title' => $data['title'],
       'body' => $data['body'],
