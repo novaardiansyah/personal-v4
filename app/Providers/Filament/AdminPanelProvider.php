@@ -64,6 +64,7 @@ class AdminPanelProvider extends PanelProvider
       ->pages([
         Dashboard::class,
       ])
+      ->topbar(false)
       ->navigationGroups([
         'Payments',
         'Productivity',
