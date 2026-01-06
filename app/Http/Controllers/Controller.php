@@ -17,12 +17,6 @@ use OpenApi\Attributes as OA;
   scheme: "bearer",
   bearerFormat: "JWT"
 )]
-#[OA\Get(
-  path: "/api/health",
-  summary: "Health Check",
-  tags: ["Health"],
-  responses: [new OA\Response(response: 200, description: "OK")]
-)]
 abstract class Controller
 {
 }

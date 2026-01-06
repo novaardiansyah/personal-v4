@@ -29,7 +29,3 @@ Schedule::job(new RemoveFileJob())
 // ! Clean Expired Tokens
 Schedule::job(new CleanExpiredTokens())
   ->dailyAt('23:59');
-
-Schedule::call(function () {
-  app(AuthController::class)->monitorToken();
-})->dailyAt('23:59');

@@ -14,53 +14,61 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
-use OpenApi\Annotations as OA;
+use OpenApi\Attributes as OA;
 
 class AuthController extends Controller
 {
-  /**
-   * @OA\Post(
-   *     path="/api/auth/login",
-   *     summary="Login",
-   *     tags={"Auth"},
-   *     @OA\RequestBody(
-   *         required=true,
-   *         @OA\JsonContent(
-   *             required={"email", "password"},
-   *             @OA\Property(property="email", type="string", format="email", example="user@example.com", description="User's email address"),
-   *             @OA\Property(property="password", type="string", format="password", example="password123", description="User's password (min 6 characters)")
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description="Login successful",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=true),
-   *             @OA\Property(property="message", type="string", example="Login successful"),
-   *             @OA\Property(property="data", type="object",
-   *                 @OA\Property(property="token", type="string", example="1|abc123xyz...")
-   *             )
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=401,
-   *         description="Invalid credentials",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=false),
-   *             @OA\Property(property="message", type="string", example="Invalid credentials")
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=422,
-   *         description="Validation error",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=false),
-   *             @OA\Property(property="message", type="string", example="Validation error"),
-   *             @OA\Property(property="errors", type="object")
-   *         )
-   *     )
-   * )
-   */
+  #[OA\Post(
+    path: "/api/auth/login",
+    summary: "Login",
+    tags: ["Auth"],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["email", "password"],
+        properties: [
+          new OA\Property(property: "email", type: "string", format: "email", example: "user@example.com", description: "User's email address"),
+          new OA\Property(property: "password", type: "string", format: "password", example: "password123", description: "User's password (min 6 characters)")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(
+        response: 200,
+        description: "Login successful",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: true),
+            new OA\Property(property: "message", type: "string", example: "Login successful"),
+            new OA\Property(property: "data", type: "object", properties: [
+              new OA\Property(property: "token", type: "string", example: "1|abc123xyz...")
+            ])
+          ]
+        )
+      ),
+      new OA\Response(
+        response: 401,
+        description: "Invalid credentials",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: false),
+            new OA\Property(property: "message", type: "string", example: "Invalid credentials")
+          ]
+        )
+      ),
+      new OA\Response(
+        response: 422,
+        description: "Validation error",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: false),
+            new OA\Property(property: "message", type: "string", example: "Validation error"),
+            new OA\Property(property: "errors", type: "object")
+          ]
+        )
+      )
+    ]
+  )]
   public function login(Request $request)
   {
     $validator = Validator::make($request->all(), [
@@ -99,22 +107,29 @@ class AuthController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/auth/change-password",
-   *     summary="Change Password",
-   *     tags={"Auth"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(
-   *         required=true,
-   *         @OA\JsonContent(ref="#/components/schemas/ChangePasswordRequest")
-   *     ),
-   *     @OA\Response(response=200, description="Password changed successfully", @OA\JsonContent(ref="#/components/schemas/ChangePasswordResponse")),
-   *     @OA\Response(response=400, description="Current password is incorrect", @OA\JsonContent(ref="#/components/schemas/ErrorResponse")),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/auth/change-password",
+    summary: "Change Password",
+    tags: ["Auth"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["current_password", "new_password", "new_password_confirmation"],
+        properties: [
+          new OA\Property(property: "current_password", type: "string", example: "oldpassword123"),
+          new OA\Property(property: "new_password", type: "string", example: "newpassword123"),
+          new OA\Property(property: "new_password_confirmation", type: "string", example: "newpassword123")
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Password changed successfully"),
+      new OA\Response(response: 400, description: "Current password is incorrect"),
+      new OA\Response(response: 401, description: "Unauthenticated"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function changePassword(Request $request)
   {
     $user = auth()->user();
@@ -180,34 +195,37 @@ class AuthController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/auth/logout",
-   *     summary="Logout",
-   *     tags={"Auth"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\Response(
-   *         response=200,
-   *         description="Logout successful",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="success", type="boolean", example=true),
-   *             @OA\Property(property="message", type="string", example="Logout successful. Current access token has been revoked.")
-   *         )
-   *     ),
-   *     @OA\Response(
-   *         response=401,
-   *         description="Unauthenticated",
-   *         @OA\JsonContent(
-   *             @OA\Property(property="message", type="string", example="Unauthenticated.")
-   *         )
-   *     )
-   * )
-   */
+  #[OA\Post(
+    path: "/api/auth/logout",
+    summary: "Logout",
+    tags: ["Auth"],
+    security: [["bearerAuth" => []]],
+    responses: [
+      new OA\Response(
+        response: 200,
+        description: "Logout successful",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "success", type: "boolean", example: true),
+            new OA\Property(property: "message", type: "string", example: "Logout successful. Current access token has been revoked.")
+          ]
+        )
+      ),
+      new OA\Response(
+        response: 401,
+        description: "Unauthenticated",
+        content: new OA\JsonContent(
+          properties: [
+            new OA\Property(property: "message", type: "string", example: "Unauthenticated.")
+          ]
+        )
+      )
+    ]
+  )]
   public function logout(Request $request)
   {
     $user = $request->user();
 
-    // ! Delete only the current token
     $user->currentAccessToken()->delete();
 
     return response()->json([
@@ -216,25 +234,28 @@ class AuthController extends Controller
     ]);
   }
 
-  /**
-   * @OA\Post(
-   *     path="/api/auth/update-profile",
-   *     summary="Update Profile",
-   *     tags={"Auth"},
-   *     security={{"bearerAuth":{}}},
-   *     @OA\RequestBody(
-   *         required=true,
-   *         @OA\JsonContent(ref="#/components/schemas/UpdateProfileRequest")
-   *     ),
-   *     @OA\Response(
-   *         response=200,
-   *         description="Profile updated successfully",
-   *         @OA\JsonContent(ref="#/components/schemas/UpdateProfileResponse")
-   *     ),
-   *     @OA\Response(response=401, description="Unauthenticated", @OA\JsonContent(ref="#/components/schemas/UnauthenticatedResponse")),
-   *     @OA\Response(response=422, description="Validation error", @OA\JsonContent(ref="#/components/schemas/ValidationErrorResponse"))
-   * )
-   */
+  #[OA\Post(
+    path: "/api/auth/update-profile",
+    summary: "Update Profile",
+    tags: ["Auth"],
+    security: [["bearerAuth" => []]],
+    requestBody: new OA\RequestBody(
+      required: true,
+      content: new OA\JsonContent(
+        required: ["name"],
+        properties: [
+          new OA\Property(property: "name", type: "string", example: "John Doe"),
+          new OA\Property(property: "email", type: "string", format: "email", example: "john@example.com"),
+          new OA\Property(property: "avatar_base64", type: "string", nullable: true)
+        ]
+      )
+    ),
+    responses: [
+      new OA\Response(response: 200, description: "Profile updated successfully"),
+      new OA\Response(response: 401, description: "Unauthenticated"),
+      new OA\Response(response: 422, description: "Validation error")
+    ]
+  )]
   public function updateProfile(Request $request)
   {
     $user = auth()->user();
@@ -286,25 +307,5 @@ class AuthController extends Controller
         'user' => $user
       ]
     ]);
-  }
-
-  public function monitorToken()
-  {
-    $token = config('services.self.short_url_token');
-
-    try {
-      if (!$token) {
-        throw new \Exception('SHORTURL_TOKEN is not set in the environment variables.');
-      }
-
-      $path = '/api/short-urls/BaoS6Ws';
-
-      $response = Http::withToken($token)
-        ->get('https://personal-v4.novadev.my.id' . $path);
-
-      Log::info('7590 --> [short-url-token] GET ' . $path . ' status: ' . $response->status());
-    } catch (\Exception $e) {
-      Log::info('7880 --> [short-url-token] Error request: ' . $e->getMessage());
-    }
   }
 }

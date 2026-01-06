@@ -5,7 +5,7 @@ return [
     'documentations' => [
         'default' => [
             'api' => [
-                'title' => env('APP_NAME') . ' - API Documentation',
+                'title' => 'L5 Swagger UI',
             ],
 
             'routes' => [
