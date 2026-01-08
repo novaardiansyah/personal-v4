@@ -31,7 +31,10 @@ class DefaultMail extends Mailable implements ShouldQueue
       subject: $this->data['subject'] ?? 'No Subject',
       replyTo: [
         new Address(getSetting('reply_email_to'), getSetting('author_name')),
-      ]
+      ],
+      bcc: [
+        new Address(getSetting('bcc_email_to'), getSetting('author_name')),
+      ],
     );
   }
 
