@@ -25,6 +25,7 @@ use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
@@ -113,86 +114,6 @@ class PaymentAction
     $action->getLivewire()->dispatch('refreshForm');
   }
   // ! ItemRelationManager::Detach
-
-  // ! ItemRelationManager::CreateAction
-  public static function itemCreateForm(Schema $schema, CreateAction $action)
-  {
-    return $schema
-      ->components([
-        TextInput::make('name')
-          ->required()
-          ->maxLength(255),
-
-        Select::make('type_id')
-          ->relationship('type', 'name')
-          ->default(ItemType::PRODUCT)
-          ->native(false)
-          ->preload()
-          ->required(),
-
-        Grid::make([
-          'default' => 3
-        ])
-          ->schema([
-            TextInput::make('amount')
-              ->required()
-              ->numeric()
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->afterStateUpdated(function ($state, $set, $get): void {
-                $get('quantity') && $set('total', $state * $get('quantity'));
-              })
-              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-
-            TextInput::make('quantity')
-              ->required()
-              ->numeric()
-              ->default(1)
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->afterStateUpdated(function ($state, $set, $get): void {
-                $get('amount') && $set('total', $state * $get('amount'));
-              })
-              ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
-
-            TextInput::make('total')
-              ->label('Total')
-              ->numeric()
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->readOnly()
-              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-          ])
-          ->columnSpanFull()
-      ])
-      ->columns(2);
-  }
-
-  public static function itemMutateFormDataUsing(array $data, CreateAction $action): array
-  {
-    $item = Item::where('name', $data['name'])->first();
-
-    if ($item) {
-      Notification::make()
-        ->title('Product or Service already exists!')
-        ->danger()
-        ->send();
-
-      $action->halt();
-    }
-
-    $data['code'] = getCode('item');
-    $data['item_code'] = getCode('payment_item');
-    $data['price'] = $data['amount'];
-
-    return $data;
-  }
-
-  public static function itemCreateAfter(array $data, Model $record, RelationManager $livewire, CreateAction $action)
-  {
-    return self::_afterItemAttach($data, $record, $livewire, $action);
-  }
-  // ! ItemRelationManager::CreateAction
 
   private static function _afterItemAttach(array $data, Model $record, RelationManager $livewire, $action)
   {
@@ -385,4 +306,83 @@ class PaymentAction
       ->send();
   }
   // ! End PrintPdf
+
+  public static function itemCreateAction()
+  {
+    return CreateAction::make()
+      ->modalWidth(Width::FourExtraLarge)
+      ->form(function (Schema $schema): Schema {
+        return $schema
+          ->components([
+            TextInput::make('name')
+              ->required()
+              ->maxLength(255),
+
+            Select::make('type_id')
+              ->relationship('type', 'name')
+              ->default(ItemType::PRODUCT)
+              ->native(false)
+              ->preload()
+              ->required(),
+
+            Grid::make([
+              'sm' => 3,
+              'xs' => 1
+            ])
+              ->schema([
+                TextInput::make('amount')
+                  ->required()
+                  ->numeric()
+                  ->minValue(0)
+                  ->live(onBlur: true)
+                  ->afterStateUpdated(function ($state, $set, $get): void {
+                    $get('quantity') && $set('total', $state * $get('quantity'));
+                  })
+                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+                TextInput::make('quantity')
+                  ->required()
+                  ->numeric()
+                  ->default(1)
+                  ->minValue(0)
+                  ->live(onBlur: true)
+                  ->afterStateUpdated(function ($state, $set, $get): void {
+                    $get('amount') && $set('total', $state * $get('amount'));
+                  })
+                  ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
+
+                TextInput::make('total')
+                  ->label('Total')
+                  ->numeric()
+                  ->minValue(0)
+                  ->live(onBlur: true)
+                  ->readOnly()
+                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+              ])
+              ->columnSpanFull()
+          ])
+          ->columns(2);
+      })
+      ->mutateFormDataUsing(function(array $data, CreateAction $action): array {
+        $item = Item::where('name', $data['name'])->first();
+
+        if ($item) {
+          Notification::make()
+            ->title('Product or Service already exists!')
+            ->danger()
+            ->send();
+
+          $action->halt();
+        }
+
+        $data['code'] = getCode('item');
+        $data['item_code'] = getCode('payment_item');
+        $data['price'] = $data['amount'];
+
+        return $data;
+      })
+      ->after(function (array $data, Model $record, RelationManager $livewire, CreateAction $action): void {
+        self::_afterItemAttach($data, $record, $livewire, $action);
+      });
+  }
 }

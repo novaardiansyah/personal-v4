@@ -28,7 +28,8 @@ class PaymentForm
       ->components([
         Section::make([
           Grid::make([
-            'default' => 3
+            'sm' => 3,
+            'xs' => 1
           ])
             ->columnSpanFull()
             ->schema([

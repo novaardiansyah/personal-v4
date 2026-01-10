@@ -9,7 +9,6 @@ use App\Models\ItemType;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\AttachAction;
-use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -85,11 +84,7 @@ class ItemsRelationManager extends RelationManager
       ])
       ->defaultSort('pivot_updated_at', 'desc')
       ->headerActions([
-        CreateAction::make()
-          ->modalWidth(Width::FourExtraLarge)
-          ->form(fn (Schema $form, CreateAction $action): Schema => PaymentAction::itemCreateForm($form, $action))
-          ->mutateFormDataUsing(fn(array $data, CreateAction $action): array => PaymentAction::itemMutateFormDataUsing($data, $action))
-          ->after(fn (array $data, Model $record, RelationManager $livewire, CreateAction $action) => PaymentAction::itemCreateAfter($data, $record, $livewire, $action)),
+        PaymentAction::itemCreateAction(),
         
         AttachAction::make()
           ->modalWidth(Width::ThreeExtraLarge)
