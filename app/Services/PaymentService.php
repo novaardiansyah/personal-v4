@@ -16,15 +16,15 @@ class PaymentService
     $item->update(['amount' => $data['price']]);
 
     $expense = $payment->amount + (int) $data['total'];
-    $note    = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
+    $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 
     $payment->update(['amount' => $expense, 'name' => $note]);
 
     return [
-      'success'          => true,
-      'amount'           => $payment->amount,
+      'success' => true,
+      'amount' => $payment->amount,
       'formatted_amount' => toIndonesianCurrency($payment->amount),
-      'note'             => $note,
+      'note' => $note,
     ];
   }
 
@@ -33,17 +33,53 @@ class PaymentService
     $expense = $payment->amount - (int) $data['total'];
 
     $itemName = $item->name . ' (x' . $data['quantity'] . ')';
-    $note     = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
+    $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
     $payment->update(['amount' => $expense, 'name' => $note]);
 
     return [
-      'success'          => true,
-      'amount'           => $payment->amount,
+      'success' => true,
+      'amount' => $payment->amount,
       'formatted_amount' => toIndonesianCurrency($payment->amount),
-      'note'             => $note,
+      'note' => $note,
     ];
   }
+
+  public static function updateItemPivot(Payment $payment, Item $item, array $data): array
+  {
+    $oldQuantity = (int) $item->pivot->quantity;
+    $oldTotal = (int) $item->pivot->total;
+    $oldPrice = (int) $item->pivot->price;
+
+    $newQuantity = (int) $data['quantity'];
+    $newPrice = (int) $data['amount'];
+    $newTotal = $newQuantity * $newPrice;
+
+    $totalDiff = $newTotal - $oldTotal;
+    $newPaymentAmount = $payment->amount + $totalDiff;
+
+    $oldItemName = $item->name . ' (x' . $oldQuantity . ')';
+    $newItemName = $item->name . ' (x' . $newQuantity . ')';
+    $note = str_replace($oldItemName, $newItemName, $payment->name ?? '');
+
+    $payment->update(['amount' => $newPaymentAmount, 'name' => $note]);
+
+    $item->update(['amount' => $newPrice]);
+
+    $payment->items()->updateExistingPivot($item->id, [
+      'quantity' => $newQuantity,
+      'price' => $newPrice,
+      'total' => $newTotal,
+    ]);
+
+    return [
+      'success' => true,
+      'amount' => $payment->amount,
+      'formatted_amount' => toIndonesianCurrency($payment->amount),
+      'note' => $note,
+    ];
+  }
+
 
   public static function manageDraft(Payment $record, bool $is_draft): array
   {

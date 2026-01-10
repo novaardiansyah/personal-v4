@@ -16,6 +16,7 @@ use Filament\Actions\Action;
 use Filament\Actions\AttachAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -363,7 +364,7 @@ class PaymentAction
           ])
           ->columns(2);
       })
-      ->mutateFormDataUsing(function(array $data, CreateAction $action): array {
+      ->mutateFormDataUsing(function (array $data, CreateAction $action): array {
         $item = Item::where('name', $data['name'])->first();
 
         if ($item) {
@@ -383,6 +384,65 @@ class PaymentAction
       })
       ->after(function (array $data, Model $record, RelationManager $livewire, CreateAction $action): void {
         self::_afterItemAttach($data, $record, $livewire, $action);
+      });
+  }
+
+  public static function itemEditAction()
+  {
+    return EditAction::make()
+      ->modalWidth(Width::ThreeExtraLarge)
+      ->form(function (Schema $schema, Model $record): Schema {
+        return $schema
+          ->components([
+            TextInput::make('name')
+              ->default($record->name)
+              ->disabled(),
+
+            Grid::make([
+              'sm' => 3,
+              'xs' => 1
+            ])
+              ->schema([
+                TextInput::make('amount')
+                  ->label('Price')
+                  ->required()
+                  ->numeric()
+                  ->minValue(0)
+                  ->default($record->pivot->price)
+                  ->live(onBlur: true)
+                  ->afterStateUpdated(function ($state, $set, $get): void {
+                    $get('quantity') && $set('total', $state * $get('quantity'));
+                  })
+                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+                TextInput::make('quantity')
+                  ->label('Qty')
+                  ->required()
+                  ->numeric()
+                  ->minValue(1)
+                  ->default($record->pivot->quantity)
+                  ->live(onBlur: true)
+                  ->afterStateUpdated(function ($state, $set, $get): void {
+                    $get('amount') && $set('total', $state * $get('amount'));
+                  })
+                  ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
+
+                TextInput::make('total')
+                  ->label('Total')
+                  ->numeric()
+                  ->minValue(0)
+                  ->default($record->pivot->total)
+                  ->live(onBlur: true)
+                  ->readOnly()
+                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+              ])
+              ->columnSpanFull()
+          ])
+          ->columns(1);
+      })
+      ->action(function (array $data, Model $record, RelationManager $livewire, EditAction $action): void {
+        PaymentService::updateItemPivot($livewire->getOwnerRecord(), $record, $data);
+        $action->getLivewire()->dispatch('refreshForm');
       });
   }
 }

@@ -10,6 +10,7 @@ use App\Models\Setting;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\AttachAction;
 use Filament\Actions\DetachAction;
+use Filament\Actions\EditAction;
 use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
@@ -49,19 +50,19 @@ class ItemsRelationManager extends RelationManager
           ->label('Type')
           ->toggleable()
           ->badge()
-          ->color(fn (string $state): string => match ((int) $state) {
-              ItemType::PRODUCT => 'primary',
-              ItemType::SERVICE => 'info',
-              default => 'primary'
+          ->color(fn(string $state): string => match ((int) $state) {
+            ItemType::PRODUCT => 'primary',
+            ItemType::SERVICE => 'info',
+            default => 'primary'
           })
-          ->formatStateUsing(fn (Item $record) => $record->type->name ?? 'Unknown'),
+          ->formatStateUsing(fn(Item $record) => $record->type->name ?? 'Unknown'),
         TextColumn::make('name')
           ->searchable()
           ->toggleable(),
         TextColumn::make('price')
           ->numeric()
           ->toggleable()
-          ->formatStateUsing(fn (string $state) => toIndonesianCurrency((int) $state ?? 0, showCurrency: Setting::showPaymentCurrency())),
+          ->formatStateUsing(fn(string $state) => toIndonesianCurrency((int) $state ?? 0, showCurrency: Setting::showPaymentCurrency())),
         TextColumn::make('quantity')
           ->label('Qty')
           ->formatStateUsing(fn($state) => number_format($state ?? 0, 0, ',', '.'))
@@ -85,20 +86,22 @@ class ItemsRelationManager extends RelationManager
       ->defaultSort('pivot_updated_at', 'desc')
       ->headerActions([
         PaymentAction::itemCreateAction(),
-        
+
         AttachAction::make()
           ->modalWidth(Width::ThreeExtraLarge)
           ->recordSelectSearchColumns(['name', 'code'])
-          ->recordSelect(fn (Select $select): Select => PaymentAction::ItemAttachRecordSelect($select))
-          ->form(fn (Schema $form, AttachAction $action): Schema => PaymentAction::itemAttachForm($form, $action))
-          ->mutateFormDataUsing(fn (array $data): array => PaymentAction::itemAttachMutateFormDataUsing($data))
-          ->after(fn (array $data, Model $record, RelationManager $livewire, AttachAction $action) => PaymentAction::itemAttachAfter($data, $record, $livewire, $action)),
+          ->recordSelect(fn(Select $select): Select => PaymentAction::ItemAttachRecordSelect($select))
+          ->form(fn(Schema $form, AttachAction $action): Schema => PaymentAction::itemAttachForm($form, $action))
+          ->mutateFormDataUsing(fn(array $data): array => PaymentAction::itemAttachMutateFormDataUsing($data))
+          ->after(fn(array $data, Model $record, RelationManager $livewire, AttachAction $action) => PaymentAction::itemAttachAfter($data, $record, $livewire, $action)),
       ])
       ->actions([
         ActionGroup::make([
+          PaymentAction::itemEditAction(),
+          
           DetachAction::make()
             ->color('danger')
-            ->before(fn (Model $record, RelationManager $livewire, DetachAction $action) => PaymentAction::itemDetachBefore($record, $livewire, $action))
+            ->before(fn(Model $record, RelationManager $livewire, DetachAction $action) => PaymentAction::itemDetachBefore($record, $livewire, $action))
         ])
       ])
       ->bulkActions([]);
