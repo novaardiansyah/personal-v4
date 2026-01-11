@@ -8,7 +8,7 @@
     "require": {
         "php": "^8.2",
         "amirezaeb/heroqr": "^1.1",
-        "darkaonline/l5-swagger": "^9.0",
+        "dedoc/scramble": "^0.13.10",
         "filament/filament": "^4.0",
         "guzzlehttp/guzzle": "^7.10",
         "laravel/framework": "^12.0",

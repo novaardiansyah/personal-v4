@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use Dedoc\Scramble\Scramble;
+use Dedoc\Scramble\Support\Generator\OpenApi;
+use Dedoc\Scramble\Support\Generator\SecurityScheme;
 use Illuminate\Support\ServiceProvider;
-use L5Swagger\L5SwaggerServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
    */
   public function register(): void
   {
-    $this->app->register(L5SwaggerServiceProvider::class);
+    
   }
 
   /**
@@ -20,6 +22,11 @@ class AppServiceProvider extends ServiceProvider
    */
   public function boot(): void
   {
-    //
+    Scramble::configure()
+      ->withDocumentTransformers(function (OpenApi $openApi) {
+        $openApi->secure(
+          SecurityScheme::http('bearer')
+        );
+      });
   }
 }

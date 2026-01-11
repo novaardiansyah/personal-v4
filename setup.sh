@@ -18,10 +18,6 @@ php artisan storage:link
 echo "--> Artisan migrate..."
 php artisan migrate --force
 
-echo "--> Artisan generate api docs..."
-php artisan vendor:publish --provider "L5Swagger\L5SwaggerServiceProvider" --force
-php artisan l5-swagger:generate
-
 echo "--> Artisan optimize cache..."
 php artisan filament:optimize
 php artisan config:cache
