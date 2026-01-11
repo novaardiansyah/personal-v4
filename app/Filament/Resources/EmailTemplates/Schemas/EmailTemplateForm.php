@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EmailTemplates\Schemas;
 
+use Carbon\Carbon;
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
@@ -55,6 +56,9 @@ class EmailTemplateForm
             KeyValue::make('placeholders')
               ->columnSpanFull()
               ->required()
+              ->default([
+                'created_at' => Carbon::now()->toDateTimeString(),
+              ])
           ])
       ])
       ->columns(3);

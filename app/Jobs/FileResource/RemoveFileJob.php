@@ -5,6 +5,7 @@ namespace App\Jobs\FileResource;
 use App\Enums\EmailStatus;
 use App\Models\ActivityLog;
 use App\Models\Email;
+use App\Models\EmailTemplate;
 use App\Models\File;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
@@ -57,24 +58,40 @@ class RemoveFileJob implements ShouldQueue
       }
     });
 
-    $author_email = getSetting('remove_file_email');
-    $author_name  = getSetting('author_name');
-
-    $default = [
-      'name'    => $author_name,
-      'email'   => $author_email,
-      'subject' => 'Notifikasi: Pembersihan File Terjadwal Berhasil (' . carbonTranslatedFormat($now, 'd M Y, H.i') . ')',
-      'message' => '<p>Kami menginformasikan bahwa sesuai dengan kebijakan retensi data, sistem telah melakukan penghapusan terhadap <strong>' . $count . ' file</strong> yang telah melewati batas waktu penyimpanan.</p><p>Pembersihan ini dilakukan untuk memastikan kepatuhan terhadap kebijakan privasi dan efisiensi infrastruktur kami.</p>',
-      'status'  => EmailStatus::Draft,
-    ];
-
-    if ($count < 1) {
-      $default['message'] = '<p>Kami menginformasikan bahwa sistem baru saja selesai melakukan pemeriksaan rutin sesuai kebijakan retensi data.</p><p>Hasil pemeriksaan menunjukkan <strong>tidak ada file</strong> yang perlu dihapus saat ini. Seluruh data yang tersimpan masih berada dalam batas waktu penyimpanan yang diizinkan.</p><p>Sistem tetap berjalan optimal dan pembersihan berikutnya akan dilakukan sesuai jadwal.</p>';
+    $template = null;
+    
+    if ($count > 0) {
+      $template = EmailTemplate::where('alias', 'clean_scheduled_files')->first();
+    } else {
+      $template = EmailTemplate::where('alias', 'check_scheduled_files')->first();
     }
 
-    $email = Email::create($default);
+    if ($template) {
+      $author_email = getSetting('remove_file_email');
+      $author_name  = getSetting('author_name');
 
-    (new EmailService())->sendOrPreview($email);
+      $placeholders = array_merge($template->placeholders, [
+        'count' => $count,
+      ]);
+
+      $message = $template->message;
+  
+      foreach ($placeholders as $key => $value) {
+        $message = str_replace('{' . $key . '}', $value, $message);
+      }
+  
+      $default = [
+        'name'    => $author_name,
+        'email'   => $author_email,
+        'subject' => $template->subject . ' (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H.i', 'id') . ')',
+        'message' => $message,
+        'status'  => EmailStatus::Draft,
+      ];
+  
+      $email = Email::create($default);
+  
+      (new EmailService())->sendOrPreview($email);
+    }
 
     $defaultLog = array_merge($defaultLog, [
       'description'  => 'RemoveFileJob() Successfully Executed by ' . $causer->name,
