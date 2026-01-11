@@ -33,6 +33,11 @@ class EmailTemplatesTable
           ->toggleable()
           ->badge()
           ->copyable(),
+        TextColumn::make('alias')
+          ->label('Alias')
+          ->toggleable()
+          ->badge()
+          ->copyable(),
         TextColumn::make('subject')
           ->searchable()
           ->wrap()
@@ -41,6 +46,11 @@ class EmailTemplatesTable
         IconColumn::make('is_protected')
           ->label('Protected')
           ->boolean(),
+        TextColumn::make('notes')
+          ->label('Notes')
+          ->wrap()
+          ->limit(120)
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('message')
           ->searchable()
           ->wrap()

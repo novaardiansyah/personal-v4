@@ -13,7 +13,7 @@ class EmailTemplate extends Model
 {
   use SoftDeletes;
   protected $table = 'email_templates';
-  protected $fillable = ['code', 'subject', 'message', 'placeholders', 'is_protected'];
+  protected $fillable = ['code', 'alias', 'notes', 'subject', 'message', 'placeholders', 'is_protected'];
   protected $casts = [
     'placeholders' => 'array',
     'is_protected' => 'boolean',

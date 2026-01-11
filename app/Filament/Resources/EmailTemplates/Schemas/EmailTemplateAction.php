@@ -7,7 +7,10 @@ use App\Models\EmailTemplate;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
+use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Collection;
 
 class EmailTemplateAction
@@ -18,13 +21,29 @@ class EmailTemplateAction
       ->label('Protected')
       ->icon('heroicon-o-lock-closed')
       ->color('success')
-      ->requiresConfirmation()
       ->modalHeading('Protected Template')
-      ->modalDescription('Are you sure you want to protect this template?')
+      ->modalDescription('Enter alias to protect this template')
+      ->modalWidth(Width::Medium)
       ->visible(fn(EmailTemplate $record): bool => !$record->is_protected)
-      ->action(function (EmailTemplate $record, Action $action) {
+      ->fillForm(function (EmailTemplate $record): array {
+        return $record->toArray();
+      })
+      ->schema([
+        TextInput::make('alias')
+          ->label('Alias')
+          ->required()
+          ->maxLength(255)
+          ->unique('email_templates', 'alias'),
+        Textarea::make('notes')
+          ->label('Notes')
+          ->maxLength(1000)
+          ->rows(3),
+      ])
+      ->action(function (EmailTemplate $record, Action $action, array $data) {
         $record->update([
           'is_protected' => true,
+          'alias'        => $data['alias'],
+          'notes'        => $data['notes'],
         ]);
 
         $action->success();
