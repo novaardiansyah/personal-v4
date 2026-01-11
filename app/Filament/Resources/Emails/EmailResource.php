@@ -2,11 +2,15 @@
 
 namespace App\Filament\Resources\Emails;
 
+use App\Filament\Resources\Emails\Pages\CreateWithTemplateEmail;
 use BackedEnum;
 use UnitEnum;
 use App\Enums\EmailStatus;
 use App\Filament\Resources\Emails\Pages\ManageEmails;
 use App\Filament\Resources\Emails\Pages\ActionEmail;
+use App\Filament\Resources\Emails\Pages\CreateEmail;
+use App\Filament\Resources\Emails\Pages\EditEmail;
+use App\Filament\Resources\Emails\Pages\ViewEmail;
 use App\Models\Email;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -21,12 +25,9 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
-use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
-use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -209,9 +210,10 @@ class EmailResource extends Resource
   {
     return [
       'index' => ManageEmails::route('/'),
-      'create' => Pages\CreateEmail::route('/create'),
-      'view' => Pages\ViewEmail::route('/{record}'),
-      'edit' => Pages\EditEmail::route('/{record}/edit'),
+      'create' => CreateEmail::route('/create'),
+      'create-with-template' => CreateWithTemplateEmail::route('/create-with-template'),
+      'view' => ViewEmail::route('/{record}'),
+      'edit' => EditEmail::route('/{record}/edit'),
     ];
   }
 

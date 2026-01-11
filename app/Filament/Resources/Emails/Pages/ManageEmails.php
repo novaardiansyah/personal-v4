@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Emails\Pages;
 
 use App\Filament\Resources\Emails\EmailResource;
+use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Resources\Pages\ManageRecords;
 
@@ -14,7 +15,10 @@ class ManageEmails extends ManageRecords
   {
     return [
       CreateAction::make(),
-      ActionEmail::createWithTemplate(),
+      Action::make('create_with_template')
+        ->label('Template email')
+        ->color('primary')
+        ->url(fn(): string => EmailResource::getUrl('create-with-template')),
     ];
   }
 }
