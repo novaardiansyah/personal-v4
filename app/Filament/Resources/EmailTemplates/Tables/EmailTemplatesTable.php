@@ -2,16 +2,17 @@
 
 namespace App\Filament\Resources\EmailTemplates\Tables;
 
+use App\Filament\Resources\EmailTemplates\Schemas\EmailTemplateAction;
+use App\Models\EmailTemplate;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -37,6 +38,9 @@ class EmailTemplatesTable
           ->wrap()
           ->limit(120)
           ->toggleable(),
+        IconColumn::make('is_protected')
+          ->label('Protected')
+          ->boolean(),
         TextColumn::make('message')
           ->searchable()
           ->wrap()
@@ -68,15 +72,19 @@ class EmailTemplatesTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
+          EmailTemplateAction::protected(),
+          EmailTemplateAction::unProtected(),
+          DeleteAction::make()
+            ->visible(fn(EmailTemplate $record): bool => !$record->is_protected),
+          ForceDeleteAction::make()
+            ->visible(fn(EmailTemplate $record): bool => !$record->is_protected),
           RestoreAction::make(),
         ])
       ])
       ->toolbarActions([
         BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
+          EmailTemplateAction::deleteBulk(),
+          EmailTemplateAction::forceDeleteBulk(),
           RestoreBulkAction::make(),
         ]),
       ]);
