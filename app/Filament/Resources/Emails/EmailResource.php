@@ -189,8 +189,8 @@ class EmailResource extends Resource
           EditAction::make(),
 
           ActionEmail::send(),
-          ActionEmail::preview(),
           ActionEmail::replicate(),
+          ActionEmail::preview(),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),

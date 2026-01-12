@@ -136,4 +136,14 @@ class EmailTemplateAction
         );
       });
   }
+
+  public static function preview(): Action
+  {
+    return Action::make('preview')
+      ->label('Preview email')
+      ->icon('heroicon-o-envelope')
+      ->color('primary')
+      ->url(fn(EmailTemplate $record): string => route('admin.email-templates.preview', $record))
+      ->openUrlInNewTab();
+  }
 }

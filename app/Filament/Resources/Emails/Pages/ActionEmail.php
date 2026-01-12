@@ -31,8 +31,8 @@ class ActionEmail
   public static function preview(): Action
   {
     return Action::make('preview')
-      ->label('Preview')
-      ->icon('heroicon-s-eye')
+      ->label('Preview email')
+      ->icon('heroicon-o-envelope')
       ->color('primary')
       ->url(fn(Email $record): string => route('admin.emails.preview', $record))
       ->openUrlInNewTab();
@@ -42,7 +42,7 @@ class ActionEmail
   {
     return ReplicateAction::make('replicate')
       ->label('Replicate')
-      ->icon('heroicon-s-document-duplicate')
+      ->icon('heroicon-o-document-duplicate')
       ->color('warning')
       ->action(function (Email $record, Action $action) {
         $newRecord = $record->replicate(['files_count']);
