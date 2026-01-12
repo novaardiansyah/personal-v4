@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Item;
 use App\Models\Payment;
+use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Models\User;
 use Carbon\Carbon;
@@ -19,6 +20,19 @@ class PaymentService
     $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 
     $payment->update(['amount' => $expense, 'name' => $note]);
+
+    $paymentItem = PaymentItem::where('payment_id', $payment->id)
+      ->where('item_id', $item->id)
+      ->first();
+
+    if ($paymentItem) {
+      saveActivityLog([
+        'event'        => 'Created',
+        'model'        => 'Payment Item',
+        'subject_type' => PaymentItem::class,
+        'subject_id'   => $paymentItem->id,
+      ], $paymentItem);
+    }
 
     return [
       'success' => true,
@@ -36,6 +50,19 @@ class PaymentService
     $note = trim(implode(', ', array_diff(explode(', ', $payment->name ?? ''), [$itemName])));
 
     $payment->update(['amount' => $expense, 'name' => $note]);
+
+    $paymentItem = PaymentItem::where('payment_id', $payment->id)
+      ->where('item_id', $item->id)
+      ->first();
+
+    if ($paymentItem) {
+      saveActivityLog([
+        'event'        => 'Deleted',
+        'model'        => 'Payment Item',
+        'subject_type' => PaymentItem::class,
+        'subject_id'   => $paymentItem->id,
+      ], $paymentItem);
+    }
 
     return [
       'success' => true,
@@ -63,14 +90,34 @@ class PaymentService
     $note = str_replace($oldItemName, $newItemName, $payment->name ?? '');
 
     $payment->update(['amount' => $newPaymentAmount, 'name' => $note]);
-
     $item->update(['amount' => $newPrice]);
 
-    $payment->items()->updateExistingPivot($item->id, [
+    $paymentItem = PaymentItem::where('payment_id', $payment->id)
+      ->where('item_id', $item->id)
+      ->first();
+
+    $properties = [
       'quantity' => $newQuantity,
       'price' => $newPrice,
       'total' => $newTotal,
-    ]);
+    ];
+
+    $payment->items()->updateExistingPivot($item->id, $properties);
+
+    if ($paymentItem) {
+      saveActivityLog([
+        'event'        => 'Updated',
+        'model'        => 'Payment Item',
+        'subject_type' => PaymentItem::class,
+        'subject_id'   => $paymentItem->id,
+        'prev_properties' => [
+          'quantity' => $paymentItem->quantity,
+          'price'    => $paymentItem->price,
+          'total'    => $paymentItem->total,
+        ],
+        'properties' => $properties,
+      ], $paymentItem);
+    }
 
     return [
       'success' => true,

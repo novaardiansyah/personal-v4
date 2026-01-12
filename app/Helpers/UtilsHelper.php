@@ -235,14 +235,17 @@ function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
   $oldValue = [];
 
   if ($modelMorp) {
-    $changes = collect($modelMorp->getDirty())
-    ->except($modelMorp->getHidden());
+    $changes = collect($modelMorp->getAttributes())
+      ->except($modelMorp->getHidden());
 
     if ($event == 'Updated') {
+      $changes = collect($modelMorp->getDirty())
+        ->except($modelMorp->getHidden());
+
       $oldValue = $changes->mapWithKeys(fn ($value, $key) => [$key => $modelMorp->getOriginal($key)])->toArray();
     }
 
-    $changes  = $changes->toArray();
+    $changes = is_array($changes) ? $changes : $changes->toArray();
   }
 
   return ActivityLog::create(array_merge([

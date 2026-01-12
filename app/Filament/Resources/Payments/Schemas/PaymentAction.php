@@ -9,6 +9,7 @@ use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
+use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentService;
 use Carbon\Carbon;
@@ -28,102 +29,17 @@ use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
 
 class PaymentAction
 {
-  // ! ItemRelationManager::Attach
-  public static function ItemAttachRecordSelect(Select $select)
-  {
-    return $select
-      ->placeholder('Product & Service')
-      ->hintIcon('heroicon-o-question-mark-circle', tooltip: 'Search product or service using {name} or {Product & Service ID} in Items menu.')
-      ->live(onBlur: true)
-      ->afterStateUpdated(function ($state, $set, $get): void {
-        $item = Item::find($state ?? 0);
-
-        if ($item) {
-          $set('amount', $item->amount);
-          $get('quantity') && $set('total', $item->amount * $get('quantity'));
-        }
-      });
-  }
-
-  public static function itemAttachForm(Schema $schema, $action)
-  {
-    return $schema
-      ->components([
-        $action->getRecordSelect(),
-
-        TextInput::make('amount')
-          ->required()
-          ->numeric()
-          ->minValue(0)
-          ->live(onBlur: true)
-          ->afterStateUpdated(function ($state, $set, $get): void {
-            $get('quantity') && $set('total', $state * $get('quantity'));
-          })
-          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-
-        TextInput::make('quantity')
-          ->label('Qty')
-          ->required()
-          ->numeric()
-          ->default(1)
-          ->minValue(0)
-          ->live(onBlur: true)
-          ->afterStateUpdated(function ($state, $set, $get): void {
-            $get('amount') && $set('total', $state * $get('amount'));
-          })
-          ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
-
-        TextInput::make('total')
-          ->label('Total')
-          ->required()
-          ->numeric()
-          ->minValue(0)
-          ->live(onBlur: true)
-          ->readOnly()
-          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-      ])
-      ->columns(2);
-  }
-
-  public static function itemAttachMutateFormDataUsing(array $data): array
-  {
-    $data['price'] = $data['amount'] ?? 0;
-    $data['item_code'] = getCode('payment_item');
-    return $data;
-  }
-
-  public static function itemAttachAfter(array $data, Model $record, RelationManager $livewire, AttachAction $action)
-  {
-    return self::_afterItemAttach($data, $record, $livewire, $action);
-  }
-  // ! End ItemRelationManager::Attach
-
-  // ! ItemRelationManager::Detach
-  public static function itemDetachBefore(Model $record, RelationManager $livewire, DetachAction $action): void
-  {
-    $owner = $livewire->getOwnerRecord();
-
-    PaymentService::beforeItemDetach($owner, $record, [
-      'quantity' => $record->quantity,
-      'total' => $record->pivot_total,
-    ]);
-
-    $action->getLivewire()->dispatch('refreshForm');
-  }
-  // ! ItemRelationManager::Detach
-
   private static function _afterItemAttach(array $data, Model $record, RelationManager $livewire, $action)
   {
     $owner = $livewire->getOwnerRecord();
 
     PaymentService::afterItemAttach($owner, $record, [
       'quantity' => $data['quantity'],
-      'price' => $data['amount'],
-      'total' => $data['total'],
+      'price'    => $data['amount'],
+      'total'    => $data['total'],
     ]);
 
     $action->getLivewire()->dispatch('refreshForm');
@@ -442,6 +358,90 @@ class PaymentAction
       })
       ->action(function (array $data, Model $record, RelationManager $livewire, EditAction $action): void {
         PaymentService::updateItemPivot($livewire->getOwnerRecord(), $record, $data);
+        $action->getLivewire()->dispatch('refreshForm');
+      });
+  }
+
+  public static function attachAction(): AttachAction
+  {
+    return AttachAction::make()
+      ->modalWidth(Width::ThreeExtraLarge)
+      ->recordSelectSearchColumns(['name', 'code'])
+      ->recordSelect(function (Select $select): Select {
+        return $select
+          ->placeholder('Product & Service')
+          ->hintIcon('heroicon-o-question-mark-circle', tooltip: 'Search product or service using {name} or {Product & Service ID} in Items menu.')
+          ->live(onBlur: true)
+          ->afterStateUpdated(function ($state, $set, $get): void {
+            $item = Item::find($state ?? 0);
+
+            if ($item) {
+              $set('amount', $item->amount);
+              $get('quantity') && $set('total', $item->amount * $get('quantity'));
+            }
+          });
+      })
+      ->form(function (Schema $schema, AttachAction $action): Schema {
+        return $schema
+          ->components([
+            $action->getRecordSelect(),
+
+            TextInput::make('amount')
+              ->required()
+              ->numeric()
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->afterStateUpdated(function ($state, $set, $get): void {
+                $get('quantity') && $set('total', $state * $get('quantity'));
+              })
+              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+            TextInput::make('quantity')
+              ->label('Qty')
+              ->required()
+              ->numeric()
+              ->default(1)
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->afterStateUpdated(function ($state, $set, $get): void {
+                $get('amount') && $set('total', $state * $get('amount'));
+              })
+              ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
+
+            TextInput::make('total')
+              ->label('Total')
+              ->required()
+              ->numeric()
+              ->minValue(0)
+              ->live(onBlur: true)
+              ->readOnly()
+              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+          ])
+          ->columns(2);
+      })
+      ->preloadRecordSelect()
+      ->mutateFormDataUsing(function (array $data): array {
+         $data['price'] = $data['amount'] ?? 0;
+         $data['item_code'] = getCode('payment_item');
+         return $data;
+      })
+      ->after(function (array $data, Model $record, RelationManager $livewire, AttachAction $action) {
+        self::_afterItemAttach($data, $record, $livewire, $action);
+      });
+  }
+
+  public static function detachAction()
+  {
+    return DetachAction::make()
+      ->color('danger')
+      ->before(function (Model $record, RelationManager $livewire, DetachAction $action): void {
+        $owner = $livewire->getOwnerRecord();
+
+        PaymentService::beforeItemDetach($owner, $record, [
+          'quantity' => $record->quantity,
+          'total'    => $record->pivot_total,
+        ]);
+
         $action->getLivewire()->dispatch('refreshForm');
       });
   }

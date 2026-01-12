@@ -86,22 +86,12 @@ class ItemsRelationManager extends RelationManager
       ->defaultSort('pivot_updated_at', 'desc')
       ->headerActions([
         PaymentAction::itemCreateAction(),
-
-        AttachAction::make()
-          ->modalWidth(Width::ThreeExtraLarge)
-          ->recordSelectSearchColumns(['name', 'code'])
-          ->recordSelect(fn(Select $select): Select => PaymentAction::ItemAttachRecordSelect($select))
-          ->form(fn(Schema $form, AttachAction $action): Schema => PaymentAction::itemAttachForm($form, $action))
-          ->mutateFormDataUsing(fn(array $data): array => PaymentAction::itemAttachMutateFormDataUsing($data))
-          ->after(fn(array $data, Model $record, RelationManager $livewire, AttachAction $action) => PaymentAction::itemAttachAfter($data, $record, $livewire, $action)),
+        PaymentAction::attachAction(),
       ])
       ->actions([
         ActionGroup::make([
           PaymentAction::itemEditAction(),
-          
-          DetachAction::make()
-            ->color('danger')
-            ->before(fn(Model $record, RelationManager $livewire, DetachAction $action) => PaymentAction::itemDetachBefore($record, $livewire, $action))
+          PaymentAction::detachAction(),
         ])
       ])
       ->bulkActions([]);
