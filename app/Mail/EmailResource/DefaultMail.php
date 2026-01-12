@@ -19,7 +19,7 @@ class DefaultMail extends Mailable implements ShouldQueue
    */
   public function __construct(public array $data = [])
   {
-    //
+    $this->data['email'] = textLower($this->data['email']);
   }
 
   /**
@@ -27,14 +27,20 @@ class DefaultMail extends Mailable implements ShouldQueue
    */
   public function envelope(): Envelope
   {
+    $bcc = [];
+
+    if (!str_ends_with($this->data['email'], '@novaardiansyah.id') && $this->data['email'] !== getSetting('author_email')) {
+      $bcc = [
+        new Address(getSetting('bcc_email_to'), getSetting('author_name')),
+      ];
+    }
+
     return new Envelope(
       subject: $this->data['subject'] ?? 'No Subject',
       replyTo: [
         new Address(getSetting('reply_email_to'), getSetting('author_name')),
       ],
-      bcc: [
-        new Address(getSetting('bcc_email_to'), getSetting('author_name')),
-      ],
+      bcc: $bcc,
     );
   }
 
