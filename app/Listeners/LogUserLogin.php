@@ -111,12 +111,12 @@ class LogUserLogin
         return;
       }
 
-      $author_name  = getSetting('author_name');
-      $author_email = getSetting('login_email_notification');
+      $author_name   = getSetting('author_name');
+      $author_email  = getSetting('login_email_notification');
       $now_formatted = carbonTranslatedFormat($now, 'd M Y, H.i', 'id');
 
       $placeholders = array_merge($template->placeholders, [
-        'email'       => $author_email,
+        'user_email'  => $user->email,
         'ip_address'  => $ip_address,
         'address'     => $address,
         'geolocation' => $geolocation,
