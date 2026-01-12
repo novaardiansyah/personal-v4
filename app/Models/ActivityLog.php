@@ -39,7 +39,7 @@ class ActivityLog extends Model
       'Restored'          => 'warning',
       'Login'             => 'danger',
       'Mail Notification' => 'success',
-      'Scheduled' => 'warning',
+      'Scheduled'         => 'warning',
     ];
 
     return $colors[$event] ?? 'primary';

@@ -100,6 +100,25 @@
     .mb-2 {
       margin-bottom: 18px;
     }
+
+    ul {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    ul li {
+      background-color: #f7f8fa;
+      padding: 10px 15px;
+      border-bottom: 1px solid rgba(60, 60, 60, 0.08);    
+    }
+    
+    .content ul li p {
+      margin: 0;
+      font-size: 12px;
+    }
   </style>
 
   <link rel="icon" href="{{ asset('favicon.png') }}" type="image/png" />

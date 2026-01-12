@@ -10,7 +10,7 @@ use Illuminate\Http\Response;
 
 class EmailService
 {
-  public function sendOrPreview(Email $email, $preview = false): Response | bool
+  public function sendOrPreview(Email $email, $preview = false, array $logOverrideData = []): Response | bool
   {
     $data = $email->toArray();
 
@@ -27,7 +27,7 @@ class EmailService
 
     Mail::to($data['email'])->queue(new DefaultMail($data));
 
-    saveActivityLog([
+    $logs = [
       'log_name'     => 'Notification',
       'description'  => 'Email Sent to ' . $data['email'],
       'event'        => 'Mail Notification',
@@ -39,7 +39,17 @@ class EmailService
         'attachments' => [],
         'html'        => $html,
       ],
-    ], $email);
+    ];
+
+    if (isset($logOverrideData['properties'])) {
+      // ! Keep existing properties
+      $logs['properties'] = array_merge($logs['properties'], $logOverrideData['properties']);
+      unset($logOverrideData['properties']);
+    }
+
+    $logs = array_merge($logs, $logOverrideData);
+
+    saveActivityLog($logs, $email);
 
     $email->update([
       'status' => EmailStatus::Sent,
