@@ -31,7 +31,8 @@ function getSetting(string $key, $default = null)
 
 function carbonTranslatedFormat(string $date, string $format = 'd/m/Y H:i', string $locale = null): string
 {
-  if ($locale) Carbon::setLocale($locale);
+  if ($locale)
+    Carbon::setLocale($locale);
   return Carbon::parse($date)->translatedFormat($format);
 }
 
@@ -56,17 +57,18 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 {
   $user ??= getUser();
 
-  $extension                = 'pdf';
-  $directory                = 'public/attachments';
+  $extension = 'pdf';
+  $directory = 'public/attachments';
   $filenameWithoutExtension = Str::orderedUuid()->toString();
-  $filename                 = "{$filenameWithoutExtension}.{$extension}";
-  $filepath                 = "{$directory}/{$filename}";
-  $fullpath                 = storage_path("app/{$filepath}");
+  $filename = "{$filenameWithoutExtension}.{$extension}";
+  $filepath = "{$directory}/{$filename}";
+  $fullpath = storage_path("app/{$filepath}");
 
   $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
 
   $mpdf->WriteHTML($end_tbody . '
         </table>
+        <div style="height: 30px;"></div>
       </body>
     </html>
   ');
@@ -76,8 +78,8 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   if ($preview) {
     $mpdf->Output('', 'I'); // ! Output to browser for preview
     return [
-      'filename'   => $filename,
-      'filepath'   => $filepath,
+      'filename' => $filename,
+      'filepath' => $filepath,
       'signed_url' => null, // ! No signed URL for preview
     ];
   }
@@ -110,18 +112,18 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   }
 
   File::create([
-    'user_id'                 => $user->id,
-    'file_name'               => $filename,
-    'file_path'               => $filepath,
-    'download_url'            => $fileUrl,
+    'user_id' => $user->id,
+    'file_name' => $filename,
+    'file_path' => $filepath,
+    'download_url' => $fileUrl,
     'scheduled_deletion_time' => $expiration,
   ]);
 
   $properties = [
-    'filename'   => $filename,
-    'filepath'   => $filepath,
+    'filename' => $filename,
+    'filepath' => $filepath,
     'signed_url' => $fileUrl,
-    'fullpath'   => $fullpath,
+    'fullpath' => $fullpath,
   ];
 
   return $properties;
@@ -130,7 +132,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 function getCode(string $alias, bool $isNotPreview = true)
 {
   $genn = Generate::withTrashed()->where('alias', $alias)->first();
-  
+
   if (!$genn)
     return 'ER-' . random_int(10000, 99999);
 
@@ -228,10 +230,10 @@ function textLower($text)
 function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
 {
   $causer = getUser();
-  
-  $model    = $data['model'] ?? '';
-  $event    = $data['event'] ?? '';
-  $changes  = [];
+
+  $model = $data['model'] ?? '';
+  $event = $data['event'] ?? '';
+  $changes = [];
   $oldValue = [];
 
   if ($modelMorp) {
@@ -242,24 +244,24 @@ function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
       $changes = collect($modelMorp->getDirty())
         ->except($modelMorp->getHidden());
 
-      $oldValue = $changes->mapWithKeys(fn ($value, $key) => [$key => $modelMorp->getOriginal($key)])->toArray();
+      $oldValue = $changes->mapWithKeys(fn($value, $key) => [$key => $modelMorp->getOriginal($key)])->toArray();
     }
 
     $changes = is_array($changes) ? $changes : $changes->toArray();
   }
 
   return ActivityLog::create(array_merge([
-    'log_name'        => 'Resource',
-    'description'     => "{$model} {$event} by {$causer->name}",
-    'event'           => $event,
-    'causer_type'     => User::class,
-    'causer_id'       => $causer->id,
+    'log_name' => 'Resource',
+    'description' => "{$model} {$event} by {$causer->name}",
+    'event' => $event,
+    'causer_type' => User::class,
+    'causer_id' => $causer->id,
     'prev_properties' => $oldValue,
-    'properties'      => $changes,
+    'properties' => $changes,
   ], $data));
 }
 
-function getUser(?int $userId = null): Collection | User | null
+function getUser(?int $userId = null): Collection|User|null
 {
   if ($userId) {
     return User::find($userId);
@@ -278,7 +280,7 @@ function getIpInfo(?string $ipAddress = null): array
 
   $replace = [
     'ip_address' => $ipAddress,
-    'token'      => config('services.ipinfo.token')
+    'token' => config('services.ipinfo.token')
   ];
 
   foreach ($replace as $key => $value) {
@@ -287,13 +289,13 @@ function getIpInfo(?string $ipAddress = null): array
 
   $ipInfo = Http::get($url)->json();
 
-  $country     = $ipInfo['country'] ?? null;
-  $city        = $ipInfo['city'] ?? null;
-  $region      = $ipInfo['region'] ?? null;
-  $postal      = $ipInfo['postal'] ?? null;
+  $country = $ipInfo['country'] ?? null;
+  $city = $ipInfo['city'] ?? null;
+  $region = $ipInfo['region'] ?? null;
+  $postal = $ipInfo['postal'] ?? null;
   $geolocation = $ipInfo['loc'] ?? null;
   $geolocation = $geolocation ? str_replace(',', ', ', $geolocation) : null;
-  $timezone    = $ipInfo['timezone'] ?? null;
+  $timezone = $ipInfo['timezone'] ?? null;
 
   $address = null;
   if ($city) {
@@ -301,15 +303,15 @@ function getIpInfo(?string $ipAddress = null): array
   }
 
   return [
-    'ip_address'  => $ipAddress,
-    'country'     => $country,
-    'city'        => $city,
-    'region'      => $region,
-    'postal'      => $postal,
+    'ip_address' => $ipAddress,
+    'country' => $country,
+    'city' => $city,
+    'region' => $region,
+    'postal' => $postal,
     'geolocation' => $geolocation,
-    'timezone'    => $timezone,
-    'address'     => $address,
-    'raw_data'    => $ipInfo
+    'timezone' => $timezone,
+    'address' => $address,
+    'raw_data' => $ipInfo
   ];
 }
 
@@ -372,8 +374,7 @@ function sendPushNotification(User $user, PushNotification $record): array
   if ($result['success']) {
     $record->sent_at = Carbon::now();
     $record->response_data = $result['data'];
-  }
-  else {
+  } else {
     $record->error_message = $result['message'] . ': ' . $result['error'] ?? $result['message'];
   }
 
@@ -427,9 +428,9 @@ function uploadAndOptimize($file, string $disk = 'public', string $folder = 'ima
   $originalWidth = $img->getWidth();
 
   $versions = [
-    'small'  => ['width' => 300, 'quality' => 35],
+    'small' => ['width' => 300, 'quality' => 35],
     'medium' => ['width' => 900, 'quality' => 55],
-    'large'  => ['width' => 1600, 'quality' => 65],
+    'large' => ['width' => 1600, 'quality' => 65],
   ];
 
   $paths = [];

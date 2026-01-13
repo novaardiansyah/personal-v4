@@ -27,10 +27,10 @@ class PaymentService
 
     if ($paymentItem) {
       saveActivityLog([
-        'event'        => 'Created',
-        'model'        => 'Payment Item',
+        'event' => 'Created',
+        'model' => 'Payment Item',
         'subject_type' => PaymentItem::class,
-        'subject_id'   => $paymentItem->id,
+        'subject_id' => $paymentItem->id,
       ], $paymentItem);
     }
 
@@ -57,10 +57,10 @@ class PaymentService
 
     if ($paymentItem) {
       saveActivityLog([
-        'event'        => 'Deleted',
-        'model'        => 'Payment Item',
+        'event' => 'Deleted',
+        'model' => 'Payment Item',
         'subject_type' => PaymentItem::class,
-        'subject_id'   => $paymentItem->id,
+        'subject_id' => $paymentItem->id,
       ], $paymentItem);
     }
 
@@ -106,14 +106,14 @@ class PaymentService
 
     if ($paymentItem) {
       saveActivityLog([
-        'event'        => 'Updated',
-        'model'        => 'Payment Item',
+        'event' => 'Updated',
+        'model' => 'Payment Item',
         'subject_type' => PaymentItem::class,
-        'subject_id'   => $paymentItem->id,
+        'subject_id' => $paymentItem->id,
         'prev_properties' => [
           'quantity' => $paymentItem->quantity,
-          'price'    => $paymentItem->price,
-          'total'    => $paymentItem->total,
+          'price' => $paymentItem->price,
+          'total' => $paymentItem->total,
         ],
         'properties' => $properties,
       ], $paymentItem);

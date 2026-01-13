@@ -11,7 +11,7 @@
 
 <hr>
 
-<table class="table table-bordered table-sm">
+<table class="table table-bordered table-sm" style="margin-top: 15px;">
   <thead>
     <tr>
       <th scope="col">#</th>
