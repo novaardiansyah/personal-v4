@@ -19,10 +19,17 @@ class EmailService
     }
 
     $html = (new DefaultMail($data))->render();
-    
+
     if ($preview) {
       $html = '<div style="margin-top: 30px; margin-bottom: 30px;">' . $html . '</div>';
       return response($html)->header('Content-Type', 'text/html');
+    }
+
+    $data['attachments'] = [];
+    $total_size = $email->size_attachments;
+
+    if ($total_size <= 9 * 1024 * 1024) {
+      $data['attachments'] = $email->attachments;
     }
 
     Mail::to($data['email'])->queue(new DefaultMail($data));

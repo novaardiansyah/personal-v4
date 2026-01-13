@@ -11,6 +11,7 @@ use App\Filament\Resources\Emails\Pages\ActionEmail;
 use App\Filament\Resources\Emails\Pages\CreateEmail;
 use App\Filament\Resources\Emails\Pages\EditEmail;
 use App\Filament\Resources\Emails\Pages\ViewEmail;
+use App\Filament\Resources\Emails\RelationManagers\FilesRelationManager;
 use App\Models\Email;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -223,5 +224,12 @@ class EmailResource extends Resource
       ->withoutGlobalScopes([
         SoftDeletingScope::class,
       ]);
+  }
+
+  public static function getRelations(): array
+  {
+    return [
+      FilesRelationManager::class,
+    ];
   }
 }
