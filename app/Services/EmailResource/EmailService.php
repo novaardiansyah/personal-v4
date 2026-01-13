@@ -43,7 +43,7 @@ class EmailService
       'properties' => [
         'email'       => $data['email'],
         'subject'     => $data['subject'],
-        'attachments' => [],
+        'attachments' => $data['attachments'],
         'html'        => $html,
       ],
     ];
