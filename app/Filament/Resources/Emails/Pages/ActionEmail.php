@@ -75,7 +75,7 @@ class ActionEmail
       ->color('primary')
       ->modalHeading('Upload attachment')
       ->modalDescription('You can upload multiple files at once.')
-      ->modalWidth(Width::Medium)
+      ->modalWidth(Width::TwoExtraLarge)
       ->schema([
         FileUpload::make('files')
           ->required()

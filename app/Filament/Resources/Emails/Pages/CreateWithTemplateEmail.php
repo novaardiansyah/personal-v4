@@ -128,7 +128,10 @@ class CreateWithTemplateEmail extends CreateRecord
 
   protected function getRedirectUrl(): string
   {
-    return $this->getResource()::getUrl('edit');
+    $resource = static::getResource();
+    $record = $this->getRecord();
+
+    return $resource::getUrl('edit', ['record' => $record]);
   }
 
   protected function getCreatedNotificationTitle(): ?string
