@@ -7,6 +7,7 @@ use App\Models\EmailTemplate;
 use Filament\Actions\Action;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\ForceDeleteBulkAction;
+use Filament\Actions\ReplicateAction;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -145,5 +146,25 @@ class EmailTemplateAction
       ->color('primary')
       ->url(fn(EmailTemplate $record): string => route('admin.email-templates.preview', $record))
       ->openUrlInNewTab();
+  }
+
+  public static function replicate(): Action 
+  {
+    return ReplicateAction::make('replicate')
+      ->label('Replicate')
+      ->icon('heroicon-o-document-duplicate')
+      ->color('warning')
+      ->action(function (EmailTemplate $record, Action $action) {
+        $newRecord = $record->replicate(['is_protected', 'alias']);
+        $newRecord->subject = $record->subject . ' (Copy)';
+
+        $newRecord->save();
+
+        $action->success();
+        $action->successNotificationTitle('Email template replicated successfully');
+      })
+      ->requiresConfirmation()
+      ->modalHeading('Replicate Email Template')
+      ->modalDescription('Are you sure you want to replicate this email template?');
   }
 }

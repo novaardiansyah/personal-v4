@@ -85,6 +85,7 @@ class EmailTemplatesTable
           EmailTemplateAction::protected(),
           EmailTemplateAction::unProtected(),
           EmailTemplateAction::preview(),
+          EmailTemplateAction::replicate(),
           DeleteAction::make()
             ->visible(fn(EmailTemplate $record): bool => !$record->is_protected),
           ForceDeleteAction::make()
