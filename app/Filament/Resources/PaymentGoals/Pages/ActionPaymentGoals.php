@@ -129,7 +129,7 @@ class ActionPaymentGoals
         $paymentData = [
           'amount'             => $amount,
           'date'               => now()->format('Y-m-d'),
-          'name'               => "Contribution to payment goal: {$record->name} ({$record->code})",
+          'name'               => "Contribution : {$record->name} ({$record->code})",
           'type_id'            => PaymentType::EXPENSE,
           'payment_account_id' => $paymentAccountId,
           'has_items'          => false,

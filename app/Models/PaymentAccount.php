@@ -42,7 +42,7 @@ class PaymentAccount extends Model
 
     $payment = Payment::create([
       'code'               => getCode('payment'),
-      'name'               => 'Audit payment account ' . $this->name,
+      'name'               => 'Audit : ' . $this->name,
       'type_id'            => $paymentType,
       'user_id'            => getUser()->id,
       'payment_account_id' => $this->id,
