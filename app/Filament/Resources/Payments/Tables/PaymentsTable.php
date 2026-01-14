@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Payments\Tables;
 
 use App\Filament\Resources\Payments\Schemas\PaymentAction;
+use App\Filament\Resources\Payments\Schemas\PaymentFilter;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
@@ -17,7 +18,6 @@ use Filament\Actions\ViewAction;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\IconColumn;
-use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -95,6 +95,8 @@ class PaymentsTable
       ->filters([
         TrashedFilter::make()
           ->native(false),
+        
+        PaymentFilter::date(),
       ])
       ->headerActions([
         Action::make('print_pdf')
