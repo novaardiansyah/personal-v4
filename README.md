@@ -14,6 +14,11 @@ This repository is the public evolution of my previous public admin panel projec
 - [MySQL](https://www.mysql.com/) - Database Management
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 
+## User Manual
+
+For a complete guide on how to use the application, you can view the user manual at the following link: [https://novadev.my.id/XWtw16D](https://novadev.my.id/XWtw16D). There is a PDF file that explains the application, usage, and other information in detail.
+
+
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
 
