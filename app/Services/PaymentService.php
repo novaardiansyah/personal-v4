@@ -215,7 +215,7 @@ class PaymentService
 
     $mpdf->WriteHTML(view('payment-resource.make-pdf.header', [
       'title' => $data['title'] ?? 'Laporan keuangan',
-      'now' => carbonTranslatedFormat($now, 'd/m/Y H:i'),
+      'now' => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
       'periode' => $periode,
       'user' => $user,
     ])->render());
