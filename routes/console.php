@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\Api\AuthController;
 use App\Jobs\CleanExpiredTokens;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
