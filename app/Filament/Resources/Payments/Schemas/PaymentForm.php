@@ -78,7 +78,8 @@ class PaymentForm
         ])
           ->description('Transaction details')
           ->columns(2)
-          ->columnSpan(['sm' => 3, 'md' => 2]),
+          ->columnSpan(['sm' => 3, 'md' => 2])
+          ->collapsible(),
 
         Section::make([
           TextInput::make('code')
@@ -169,7 +170,8 @@ class PaymentForm
         ])
           ->description('Payment account details')
           ->columns(1)
-          ->columnSpan(['sm' => 3, 'md' => 1]),
+          ->columnSpan(['sm' => 3, 'md' => 1])
+          ->collapsible(),
       ])
       ->columns(3);
   }

@@ -18,6 +18,9 @@ This repository is the public evolution of my previous public admin panel projec
 
 For a complete guide on how to use the application, you can view the user manual at the following link: [https://novadev.my.id/XWtw16D](https://novadev.my.id/XWtw16D). There is a PDF file that explains the application, usage, and other information in detail.
 
+<img src="public/markdown/preview-8.png" width="200" alt="User Manual QR Code" />
+
+*Scan the QR code above to quickly access the download page.*
 
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
