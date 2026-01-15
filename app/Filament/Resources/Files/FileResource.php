@@ -120,7 +120,7 @@ class FileResource extends Resource
           ->searchable()
           ->badge()
           ->copyable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('user.name')
           ->label('User')
           ->searchable()
@@ -141,17 +141,15 @@ class FileResource extends Resource
               return;
             return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
           })
-          ->toggleable()
-          ->searchable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         IconColumn::make('has_been_deleted')
           ->label('File Deleted')
           ->boolean()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('scheduled_deletion_time')
-          ->label('Scheduled Deletion')
-          ->dateTime()
+          ->label('Expiry Date')
+          ->since()
           ->sortable()
-          ->sinceTooltip()
           ->toggleable(),
         TextColumn::make('deleted_at')
           ->dateTime()
@@ -165,7 +163,7 @@ class FileResource extends Resource
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
       ])
       ->filters([
         TrashedFilter::make()
