@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Files\Schemas;
 
 use App\Models\File;
+use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
@@ -58,7 +59,7 @@ class FileAction
     $files = $data['files'];
 
     $expiration = $data['scheduled_deletion_time'] ?? now()->addMonth();
-    $expiration = carbonTranslatedFormat($expiration, 'Y-m-d H:i:s');
+    $expirationCarbon = Carbon::parse($expiration)->endOfDay();
 
     $file_alias = $data['file_alias'] ?? null;
 
@@ -69,7 +70,7 @@ class FileAction
 
       $fileUrl = URL::temporarySignedRoute(
         'download',
-        $expiration,
+        $expirationCarbon,
         ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
       );
 
@@ -79,7 +80,7 @@ class FileAction
         'file_name' => $filename,
         'file_path' => $file,
         'download_url' => $fileUrl,
-        'scheduled_deletion_time' => $expiration,
+        'scheduled_deletion_time' => $expirationCarbon,
       ];
 
       if ($relationData) {
