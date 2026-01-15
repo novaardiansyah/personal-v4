@@ -39,7 +39,6 @@ class FileAction
             fn(TemporaryUploadedFile $file): string => Str::orderedUuid()->toString() . '.' . $file->getClientOriginalExtension()
           ),
 
-
         Grid::make(3)
           ->schema([
             TextInput::make('file_alias')

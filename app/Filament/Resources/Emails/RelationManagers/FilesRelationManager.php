@@ -4,8 +4,10 @@ namespace App\Filament\Resources\Emails\RelationManagers;
 
 use App\Filament\Resources\Emails\Pages\ActionEmail;
 use App\Filament\Resources\Files\FileResource;
+use Filament\Actions\AssociateAction;
 use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
+use Filament\Support\Enums\Width;
 use Filament\Tables\Table;
 
 class FilesRelationManager extends RelationManager
