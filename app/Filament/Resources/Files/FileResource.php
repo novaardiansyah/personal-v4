@@ -56,8 +56,11 @@ class FileResource extends Resource
           ->components([
             TextEntry::make('file_name')
               ->label('File Name'),
+            TextEntry::make('file_alias')
+              ->label('Display Name'),
             TextEntry::make('file_path')
-              ->label('File Path'),
+              ->label('File Path')
+              ->columnSpanFull(),
             TextEntry::make('download_url')
               ->label('Download URL')
               ->url(fn(File $record): ?string => !$record->has_been_deleted ? $record->download_url : null)
@@ -127,9 +130,13 @@ class FileResource extends Resource
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File')
-          ->tooltip(fn(File $record): string => $record->has_been_deleted ? 'File already removed' : '')
+          ->tooltip(fn(File $record): string => $record->file_alias ? $record->file_alias : '')
           ->searchable()
           ->toggleable(),
+        TextColumn::make('file_alias')
+          ->label('Display Name')
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_size')
           ->label('File Size')
           ->formatStateUsing(fn(string $state): string => sizeFormat(floatval($state ?? 0)))

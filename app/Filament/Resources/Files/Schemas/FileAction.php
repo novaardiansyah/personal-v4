@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
@@ -39,16 +40,20 @@ class FileAction
           ),
 
 
-        Grid::make(2)
+        Grid::make(3)
           ->schema([
+            TextInput::make('file_alias')
+              ->label('Display Name')
+              ->maxLength(255)
+              ->columnSpan(2),
+
             DatePicker::make('scheduled_deletion_time')
               ->label('Expiry Date')
               ->required()
               ->default(now()->addMonth())
               ->native(false)
               ->displayFormat('M d, Y')
-              ->closeOnDateSelection()
-              ->suffix('at midnight'),
+              ->closeOnDateSelection(),
           ])
       ])
       ->action(function (array $data, Action $action) {
@@ -57,6 +62,8 @@ class FileAction
 
         $expiration = $data['scheduled_deletion_time'] ?? now()->addMonth();
         $expiration = carbonTranslatedFormat($expiration, 'Y-m-d H:i:s');
+
+        $file_alias = $data['file_alias'] ?? null;
 
         foreach ($files as $file) {
           $filename = pathinfo($file, PATHINFO_BASENAME);
@@ -70,6 +77,7 @@ class FileAction
           );
 
           File::create([
+            'file_alias' => $file_alias . '.' . $extension,
             'user_id' => $user->id,
             'file_name' => $filename,
             'file_path' => $file,
