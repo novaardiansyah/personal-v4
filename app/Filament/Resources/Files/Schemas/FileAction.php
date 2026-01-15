@@ -5,8 +5,10 @@ namespace App\Filament\Resources\Files\Schemas;
 use App\Models\File;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Notifications\Notification;
+use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -34,18 +36,32 @@ class FileAction
           ->imageEditor()
           ->getUploadedFileNameForStorageUsing(
             fn(TemporaryUploadedFile $file): string => Str::orderedUuid()->toString() . '.' . $file->getClientOriginalExtension()
-          )
+          ),
+
+
+        Grid::make(2)
+          ->schema([
+            DatePicker::make('scheduled_deletion_time')
+              ->label('Expiry Date')
+              ->required()
+              ->default(now()->addMonth())
+              ->native(false)
+              ->displayFormat('M d, Y')
+              ->closeOnDateSelection()
+              ->suffix('at midnight'),
+          ])
       ])
       ->action(function (array $data, Action $action) {
         $user = getUser();
         $files = $data['files'];
 
+        $expiration = $data['scheduled_deletion_time'] ?? now()->addMonth();
+        $expiration = carbonTranslatedFormat($expiration, 'Y-m-d H:i:s');
+
         foreach ($files as $file) {
           $filename = pathinfo($file, PATHINFO_BASENAME);
           $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
           $extension = pathinfo($filename, PATHINFO_EXTENSION);
-
-          $expiration = now()->addMonth();
 
           $fileUrl = URL::temporarySignedRoute(
             'download',
