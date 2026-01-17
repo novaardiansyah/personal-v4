@@ -15,11 +15,7 @@ class ManagePaymentGoals extends ManageRecords
   {
     return [
       CreateAction::make()
-        ->modalWidth(Width::FiveExtraLarge)
-        ->mutateFormDataUsing(function (array $data): array {
-          $data['code'] = getCode('payment_goals');
-          return $data;
-        }),
+        ->modalWidth(Width::SixExtraLarge),
     ];
   }
 }

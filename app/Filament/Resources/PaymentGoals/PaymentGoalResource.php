@@ -2,15 +2,14 @@
 
 namespace App\Filament\Resources\PaymentGoals;
 
+use BackedEnum;
+use UnitEnum;
+use Carbon\Carbon;
 use App\Filament\Resources\PaymentGoals\Pages\ActionPaymentGoals;
 use App\Filament\Resources\PaymentGoals\Pages\ManagePaymentGoals;
 use App\Models\PaymentGoal;
 use App\Models\PaymentGoalStatus;
-use BackedEnum;
-use Carbon\Carbon;
 use Filament\Support\Enums\Width;
-use UnitEnum;
-use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -298,10 +297,10 @@ class PaymentGoalResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
-            ->modalWidth(Width::FiveExtraLarge),
+            ->modalWidth(Width::SixExtraLarge),
 
           EditAction::make()
-            ->modalWidth(Width::FiveExtraLarge),
+            ->modalWidth(Width::SixExtraLarge),
 
           ActionPaymentGoals::fund()
             ->visible(fn(PaymentGoal $record) => $record->progress_percent < 100),

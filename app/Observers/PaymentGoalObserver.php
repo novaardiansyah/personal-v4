@@ -6,6 +6,12 @@ use App\Models\PaymentGoal;
 
 class PaymentGoalObserver
 {
+  public function creating(PaymentGoal $paymentGoal)
+  {
+    $paymentGoal->code = getCode('payment_goals');
+    $paymentGoal->user_id = auth()->id();
+  }
+
   /**
    * Handle the PaymentGoal "created" event.
    */
