@@ -9,7 +9,8 @@ class PaymentGoalStatus extends Model
 {
   use SoftDeletes;
   
-  protected $guarded = ['id'];
+  protected $table = 'payment_goal_statuses';
+  protected $fillable = ['name'];
 
   public const ONGOING = 1;
   public const OVERDUE = 2;

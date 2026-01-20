@@ -13,7 +13,7 @@ class PaymentGoal extends Model
 {
   use SoftDeletes;
 
-  protected $guarded = ['id'];
+  protected $fillable = ['user_id', 'status_id', 'code', 'name', 'description', 'amount', 'target_amount', 'progress_percent', 'start_date', 'target_date'];
 
   protected $casts = [
     'amount'           => 'integer',
