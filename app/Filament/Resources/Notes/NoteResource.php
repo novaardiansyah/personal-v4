@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Notes;
 
+use App\Filament\Resources\Notes\Pages\CreateNote;
+use App\Filament\Resources\Notes\Pages\EditNote;
 use App\Filament\Resources\Notes\Pages\ManageNotes;
 use App\Models\Note;
 use BackedEnum;
@@ -16,14 +18,14 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
-use Filament\Forms\Components\Select;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
@@ -46,18 +48,32 @@ class NoteResource extends Resource
   {
     return $schema
       ->components([
-        TextInput::make('title')
-          ->required(),
-        Textarea::make('content')
-          ->default(null)
-          ->rows(5)
-          ->columnSpanFull(),
-        Toggle::make('is_pinned')
-          ->default(false),
-        Toggle::make('is_archived')
-          ->default(false),
+        Section::make()
+          ->description('Note information')
+          ->collapsible()
+          ->columnSpan(2)
+          ->schema([
+            TextInput::make('title')
+              ->required(),
+
+            RichEditor::make('content')
+              ->default(null)
+              ->columnSpanFull(),
+          ]),
+
+        Section::make()
+          ->description('Note settings')
+          ->collapsible()
+          ->columnSpan(1)
+          ->columns(2)
+          ->schema([
+            Toggle::make('is_pinned')
+              ->default(false),
+            Toggle::make('is_archived')
+              ->default(false),
+          ]),
       ])
-      ->columns(1);
+      ->columns(3);
   }
 
   public static function infolist(Schema $schema): Schema
@@ -139,8 +155,7 @@ class NoteResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          EditAction::make()
-            ->modalWidth(Width::Medium),
+          EditAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
@@ -159,6 +174,8 @@ class NoteResource extends Resource
   {
     return [
       'index' => ManageNotes::route('/'),
+      'create' => CreateNote::route('/create'),
+      'edit' => EditNote::route('/{record}/edit'),
     ];
   }
 
