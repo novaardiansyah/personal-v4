@@ -3,9 +3,20 @@
 namespace App\Observers;
 
 use App\Models\PaymentAccount;
+use Illuminate\Support\Facades\Storage;
 
 class PaymentAccountObserver
 {
+  public function saving(PaymentAccount $paymentAccount): void
+  {
+    $isImageChange = $paymentAccount->isDirty('logo');
+    $oldImage = $paymentAccount->getOriginal('logo');
+
+    if ($isImageChange) {
+      Storage::disk('public')->delete($oldImage);
+    }
+  }
+
   /**
    * Handle the PaymentAccount "created" event.
    */

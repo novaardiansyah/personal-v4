@@ -5,7 +5,6 @@ namespace App\Filament\Resources\PaymentAccounts;
 use App\Models\Setting;
 use BackedEnum;
 use UnitEnum;
-
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Forms\Components\FileUpload;
@@ -13,7 +12,6 @@ use Filament\Infolists\Components\ImageEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\ImageColumn;
-
 use App\Filament\Resources\PaymentAccounts\Pages\ManagePaymentAccounts;
 use App\Models\PaymentAccount;
 use Filament\Actions\BulkActionGroup;
@@ -40,8 +38,8 @@ class PaymentAccountResource extends Resource
 {
   protected static ?string $model = PaymentAccount::class;
 
-  protected static string | BackedEnum | null $navigationIcon = Heroicon::OutlinedCreditCard;
-  protected static string | UnitEnum | null $navigationGroup = 'Payments';
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
+  protected static string|UnitEnum|null $navigationGroup = 'Payments';
   protected static ?int $navigationSort = 10;
   protected static ?string $recordTitleAttribute = 'name';
 
@@ -102,7 +100,7 @@ class PaymentAccountResource extends Resource
         TextColumn::make('name')
           ->searchable(),
         TextColumn::make('deposit')
-          ->formatStateUsing(fn ($state) => toIndonesianCurrency((float) $state ?? 0, showCurrency: Setting::showPaymentCurrency()))
+          ->formatStateUsing(fn($state) => toIndonesianCurrency((float) $state ?? 0, showCurrency: Setting::showPaymentCurrency()))
           ->sortable(),
         ImageColumn::make('logo')
           ->checkFileExistence(false)
@@ -128,7 +126,7 @@ class PaymentAccountResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          
+
           EditAction::make()
             ->modalWidth(Width::ExtraLarge),
 
@@ -136,12 +134,12 @@ class PaymentAccountResource extends Resource
             ->label('Audit')
             ->color('danger')
             ->icon('heroicon-o-scale')
-            ->modalHeading(fn (PaymentAccount $record) => 'Audit ' . $record->name)
+            ->modalHeading(fn(PaymentAccount $record) => 'Audit ' . $record->name)
             ->modalWidth(Width::Medium)
-            ->form(fn (Schema $form) => ManagePaymentAccounts::formAudit($form))
-            ->fillForm(fn (PaymentAccount $record): array => ManagePaymentAccounts::fillFormAudit($record))
-            ->action(fn (Action $action, PaymentAccount $record, array $data) => ManagePaymentAccounts::actionAudit($action, $record, $data)),
-          
+            ->form(fn(Schema $form) => ManagePaymentAccounts::formAudit($form))
+            ->fillForm(fn(PaymentAccount $record): array => ManagePaymentAccounts::fillFormAudit($record))
+            ->action(fn(Action $action, PaymentAccount $record, array $data) => ManagePaymentAccounts::actionAudit($action, $record, $data)),
+
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),

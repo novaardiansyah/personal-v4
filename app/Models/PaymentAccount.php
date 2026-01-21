@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[ObservedBy([PaymentAccountObserver::class])]
 class PaymentAccount extends Model
@@ -37,32 +38,37 @@ class PaymentAccount extends Model
   public function audit(float $newDeposit): array
   {
     $currentDeposit = $this->deposit;
-    $diffDeposit    = $currentDeposit - $newDeposit;
-    $paymentType    = $diffDeposit > 0 ? PaymentType::EXPENSE : PaymentType::INCOME;
+    $diffDeposit = $currentDeposit - $newDeposit;
+    $paymentType = $diffDeposit > 0 ? PaymentType::EXPENSE : PaymentType::INCOME;
 
     $payment = Payment::create([
-      'code'               => getCode('payment'),
-      'name'               => 'Audit : ' . $this->name,
-      'type_id'            => $paymentType,
-      'user_id'            => getUser()->id,
+      'code' => getCode('payment'),
+      'name' => 'Audit : ' . $this->name,
+      'type_id' => $paymentType,
+      'user_id' => getUser()->id,
       'payment_account_id' => $this->id,
-      'amount'             => abs($diffDeposit),
-      'has_items'          => false,
-      'attachments'        => [],
-      'date'               => Carbon::now()->format('Y-m-d')
+      'amount' => abs($diffDeposit),
+      'has_items' => false,
+      'attachments' => [],
+      'date' => Carbon::now()->format('Y-m-d')
     ]);
 
     return [
       'payment_account' => $this,
-      'payment'         => $payment,
+      'payment' => $payment,
       'audit_details' => [
-        'previous_deposit'    => $currentDeposit,
-        'new_deposit'         => $newDeposit,
-        'difference'          => $diffDeposit,
+        'previous_deposit' => $currentDeposit,
+        'new_deposit' => $newDeposit,
+        'difference' => $diffDeposit,
         'absolute_difference' => abs($diffDeposit),
-        'adjustment_type'     => $diffDeposit < 0 ? 'increase' : 'decrease',
-        'payment_type'        => $paymentType
+        'adjustment_type' => $diffDeposit < 0 ? 'increase' : 'decrease',
+        'payment_type' => $paymentType
       ]
     ];
+  }
+
+  public function gallery(): MorphOne
+  {
+    return $this->morphOne(Gallery::class, 'subject');
   }
 }
