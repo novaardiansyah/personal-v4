@@ -6,6 +6,7 @@ use App\Observers\NoteObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([NoteObserver::class])]
@@ -23,5 +24,10 @@ class Note extends Model
   public function user(): BelongsTo
   {
     return $this->belongsTo(User::class, 'user_id');
+  }
+
+  public function files(): MorphMany
+  {
+    return $this->MorphMany(File::class, 'subject');
   }
 }

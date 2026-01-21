@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Notes;
 use App\Filament\Resources\Notes\Pages\CreateNote;
 use App\Filament\Resources\Notes\Pages\EditNote;
 use App\Filament\Resources\Notes\Pages\ManageNotes;
+use App\Filament\Resources\Notes\RelationManagers\FilesRelationManager;
 use App\Models\Note;
 use BackedEnum;
 use UnitEnum;
@@ -185,5 +186,12 @@ class NoteResource extends Resource
       ->withoutGlobalScopes([
         SoftDeletingScope::class,
       ]);
+  }
+
+  public static function getRelations(): array
+  {
+    return [
+      FilesRelationManager::class,
+    ];
   }
 }
