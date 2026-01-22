@@ -3,8 +3,6 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Filament\Resources\Payments\PaymentResource;
-use App\Models\Gallery;
-use App\Models\Payment;
 use Filament\Resources\Pages\CreateRecord;
 
 class CreatePayment extends CreateRecord
@@ -16,9 +14,6 @@ class CreatePayment extends CreateRecord
     $resource = static::getResource();
     $record = $this->getRecord();
 
-    if ($record->has_items)
-      return $resource::getUrl('edit', ['record' => $record]);
-
-    return $resource::getUrl('index');
+    return $resource::getUrl('edit', ['record' => $record]);
   }
 }
