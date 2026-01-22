@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: ItemsRelationManager.php
+ * Created Date: Thursday December 11th 2025
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2025-2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Payments\RelationManagers;
 
 use App\Filament\Resources\Items\ItemResource;
@@ -8,13 +20,7 @@ use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
-use Filament\Actions\AttachAction;
-use Filament\Actions\DetachAction;
-use Filament\Actions\EditAction;
-use Filament\Forms\Components\Select;
 use Filament\Resources\RelationManagers\RelationManager;
-use Filament\Schemas\Schema;
-use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;

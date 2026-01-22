@@ -14,7 +14,7 @@ class PaymentService
 {
   public static function afterItemAttach(Payment $payment, Item $item, array $data): array
   {
-    $item->update(['amount' => $data['price']]);
+    $item->update(['amount' => $data['price'], 'updated_at' => now()]);
 
     $expense = $payment->amount + (int) $data['total'];
     $note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');

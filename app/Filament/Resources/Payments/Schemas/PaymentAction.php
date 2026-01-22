@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentAction.php
+ * Created Date: Thursday December 11th 2025
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2025-2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Jobs\PaymentResource\DailyReportJob;
@@ -9,7 +21,6 @@ use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
-use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentService;
 use Carbon\Carbon;
@@ -26,6 +37,7 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
+use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
@@ -366,25 +378,29 @@ class PaymentAction
   {
     return AttachAction::make()
       ->modalWidth(Width::ThreeExtraLarge)
-      ->recordSelectSearchColumns(['name', 'code'])
-      ->recordSelect(function (Select $select): Select {
-        return $select
-          ->placeholder('Product & Service')
-          ->hintIcon('heroicon-o-question-mark-circle', tooltip: 'Search product or service using {name} or {Product & Service ID} in Items menu.')
-          ->live(onBlur: true)
-          ->afterStateUpdated(function ($state, $set, $get): void {
-            $item = Item::find($state ?? 0);
-
-            if ($item) {
-              $set('amount', $item->amount);
-              $get('quantity') && $set('total', $item->amount * $get('quantity'));
-            }
-          });
-      })
-      ->form(function (Schema $schema, AttachAction $action): Schema {
+      ->form(function (Schema $schema): Schema {
         return $schema
           ->components([
-            $action->getRecordSelect(),
+            Select::make('recordId')
+              ->label('Product / Service')
+              ->native(false)
+              ->options(function () {
+                return Item::latest('updated_at')->pluck('name', 'id');
+              })
+              ->preload()
+              ->required()
+              ->live(onBlur: true)
+              ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
+                logger('state: '.$state);
+                if (!$state) return;
+                
+                $item = Item::where('id', $state)->first();
+
+                if (!$item) return;
+
+                $set('amount', $item->amount);
+                $get('quantity') && $set('total', $item->amount * $get('quantity'));
+              }),
 
             TextInput::make('amount')
               ->required()
@@ -394,7 +410,7 @@ class PaymentAction
               ->afterStateUpdated(function ($state, $set, $get): void {
                 $get('quantity') && $set('total', $state * $get('quantity'));
               })
-              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+              ->hint(fn(?string $state) => toIndonesianCurrency(((float) $state ?? 0))),
 
             TextInput::make('quantity')
               ->label('Qty')
@@ -406,7 +422,7 @@ class PaymentAction
               ->afterStateUpdated(function ($state, $set, $get): void {
                 $get('amount') && $set('total', $state * $get('amount'));
               })
-              ->hint(fn(?string $state) => number_format($state ?? 0, 0, ',', '.')),
+              ->hint(fn(?string $state) => number_format(((float) $state ?? 0), 0, ',', '.')),
 
             TextInput::make('total')
               ->label('Total')
@@ -415,11 +431,10 @@ class PaymentAction
               ->minValue(0)
               ->live(onBlur: true)
               ->readOnly()
-              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+              ->hint(fn(?string $state) => toIndonesianCurrency(((float) $state ?? 0))),
           ])
           ->columns(2);
       })
-      ->preloadRecordSelect()
       ->mutateFormDataUsing(function (array $data): array {
          $data['price'] = $data['amount'] ?? 0;
          $data['item_code'] = getCode('payment_item');
