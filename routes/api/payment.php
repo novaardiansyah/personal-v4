@@ -32,7 +32,7 @@ Route::prefix('payments')->group(function () {
   Route::get('/{id}/items/not-attached', [PaymentController::class, 'getItemsNotAttached']);
   Route::get('/{id}/items/available', [PaymentController::class, 'getAvailableItems']);
   Route::post('/{id}/items/attach', [PaymentController::class, 'attachItem']);
-  Route::post('/{id}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
+  Route::post('/{payment}/items/create-attach', [PaymentController::class, 'createAndAttachItem']);
   Route::post('/{payment}/items/attach-multiple', [PaymentController::class, 'attachMultipleItems']);
   Route::put('/{payment}/items/{pivotId}', [PaymentController::class, 'updateItem']);
   Route::delete('/{payment}/items/{pivotId}', [PaymentController::class, 'detachItem']);
