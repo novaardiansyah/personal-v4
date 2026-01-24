@@ -1,0 +1,9 @@
+/vendor
+/public
+/storage
+node_modules
+dist
+.env
+package-lock.json
+composer.lock
+*.blade.php

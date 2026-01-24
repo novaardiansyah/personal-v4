@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: ScheduledPaymentJob.php
+ * Created Date: Saturday January 24th 2026
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Jobs\PaymentResource;
 
 use App\Mail\PaymentResource\ScheduledPaymentMail;
@@ -7,7 +19,7 @@ use App\Models\ActivityLog;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\User;
-use App\Services\PaymentService;
+use App\Services\PaymentResource\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -49,7 +61,7 @@ class ScheduledPaymentJob implements ShouldQueue
     ];
 
     $startLog = saveActivityLog($defaultLog);
-    $result = Payment::scheduledPayment();
+    $result = PaymentService::scheduledPayment();
 
     if (!$result['status']) {
       $defaultLog = array_merge($defaultLog, [
@@ -89,7 +101,7 @@ class ScheduledPaymentJob implements ShouldQueue
       'author_name'      => getSetting('author_name'),
       'log_name'         => 'scheduled_payment_notification',
       'email'            => getSetting('scheduled_payment_email'),
-      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Terjadwal',
+      'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Terjadwal' . ' (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H.i', 'id') . ')',
       'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
       'payment'          => $payment->toArray(),
       'date'             => carbonTranslatedFormat($now, 'd F Y'),
@@ -118,6 +130,9 @@ class ScheduledPaymentJob implements ShouldQueue
       'description'  => 'ScheduledPaymentJob() Successfully Executed by ' . $causer->name,
       'subject_type' => ActivityLog::class,
       'subject_id'   => $startLog->id,
+      'properties' => array_merge($defaultLog['properties'], [
+        'reports' => $result['reports'],
+      ]),
     ]);
 
     saveActivityLog($defaultLog);

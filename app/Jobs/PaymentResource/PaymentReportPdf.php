@@ -5,7 +5,7 @@ namespace App\Jobs\PaymentResource;
 use App\Mail\PaymentResource\CustomReportMail;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
-use App\Services\PaymentService;
+use App\Services\PaymentResource\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -56,12 +56,18 @@ class PaymentReportPdf implements ShouldQueue
       COUNT(CASE WHEN type_id = 2 AND date BETWEEN ? AND ? THEN id END) AS daily_income_count,
       COUNT(CASE WHEN type_id != 1 AND type_id != 2 AND date BETWEEN ? AND ? THEN id END) AS daily_other_count
     ', [
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate
     ])->first();
 
     Carbon::setLocale('id');
@@ -93,10 +99,10 @@ class PaymentReportPdf implements ShouldQueue
           $pdf['fullpath'],
         ],
       ];
-  
+
       Mail::to($data['email'])->queue(new CustomReportMail($data));
       $html = (new CustomReportMail($data))->render();
-  
+
       saveActivityLog([
         'log_name'    => 'Notification',
         'description' => 'Custom Payment Report by ' . $causer->name,

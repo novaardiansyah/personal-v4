@@ -1,12 +1,23 @@
 <?php
 
-namespace App\Services;
+/*
+ * Project Name: personal-v4
+ * File: PaymentService.php
+ * Created Date: Thursday December 11th 2025
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
+namespace App\Services\PaymentResource;
 
 use App\Models\Item;
 use App\Models\Payment;
 use App\Models\PaymentItem;
 use App\Models\PaymentType;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -265,5 +276,77 @@ class PaymentService
     Log::info('4236 --> PaymentService::make_pdf(): Finished.');
 
     return $result;
+  }
+
+  public static function scheduledPayment(): array
+  {
+    $today = Carbon::now()->format('Y-m-d');
+    $tomorrow = Carbon::now()->addDay()->format('Y-m-d');
+
+    $scheduledPayments = Payment::where('is_scheduled', true)
+      ->whereBetween('date', [$today, $tomorrow])
+      ->orderBy('type_id', 'desc')
+      ->get();
+
+    if ($scheduledPayments->isEmpty()) {
+      return ['status' => false, 'message' => 'No scheduled payments found for today.'];
+    }
+
+    $reports = [];
+    $scheduledPayments->each(function (Payment $payment) use (&$reports) {
+      $report = self::processScheduledPayment($payment);
+      if ($report['status'] == false) {
+        $reports[] = $report['message'];
+      }
+    });
+
+    return ['status' => true, 'message' => 'Scheduled payments processed successfully.', 'reports' => $reports];
+  }
+
+  public static function processScheduledPayment(Payment $payment): array
+  {
+    $record = $payment;
+    $type_id = intval($record->type_id);
+    $amount = intval($record->amount);
+
+    $incomeOrExpense = $type_id == PaymentType::EXPENSE || $type_id == PaymentType::INCOME;
+    $transferOrWithdrawal = $type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL;
+
+    if ($incomeOrExpense) {
+      $depositChange = $record->payment_account->deposit;
+
+      if ($type_id == PaymentType::EXPENSE) {
+        if ($depositChange < $amount) {
+          return ['status' => false, 'message' => 'Insufficient account balance for transaction: ' . $record->code];
+        }
+        $depositChange -= $amount;
+      } else {
+        $depositChange += $amount;
+      }
+
+      $record->payment_account->update([
+        'deposit' => $depositChange
+      ]);
+    } else if ($transferOrWithdrawal) {
+      $balanceOrigin = $record->payment_account->deposit;
+      $balanceTo = $record->payment_account_to->deposit;
+
+      if ($balanceOrigin < $amount) {
+        return ['status' => false, 'message' => 'Insufficient account balance for transaction: ' . $record->code];
+      }
+
+      $record->payment_account->update([
+        'deposit' => $balanceOrigin - $amount
+      ]);
+
+      $record->payment_account_to->update([
+        'deposit' => $balanceTo + $amount
+      ]);
+    }
+
+    $payment->is_scheduled = false;
+    $payment->save();
+
+    return ['status' => true, 'message' => 'Scheduled payment processed successfully.'];
   }
 }

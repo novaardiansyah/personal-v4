@@ -6,6 +6,7 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use App\Services\AttachmentService;
+use App\Services\PaymentResource\PaymentService;
 use Illuminate\Validation\ValidationException;
 
 class PaymentObserver
@@ -241,8 +242,8 @@ class PaymentObserver
       }
 
       return;
-    } 
-    
+    }
+
     if ($amountChanged) {
       $oldAmount = intval($oldValue['amount']);
       $amount = intval($record->amount);

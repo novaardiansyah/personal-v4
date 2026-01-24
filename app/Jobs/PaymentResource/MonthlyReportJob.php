@@ -5,7 +5,7 @@ namespace App\Jobs\PaymentResource;
 use App\Mail\PaymentResource\MonthlyReportMail;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
-use App\Services\PaymentService;
+use App\Services\PaymentResource\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -60,12 +60,18 @@ class MonthlyReportJob implements ShouldQueue
       COUNT(CASE WHEN type_id = 2 AND date BETWEEN ? AND ? THEN id END) AS daily_income_count,
       COUNT(CASE WHEN type_id != 1 AND type_id != 2 AND date BETWEEN ? AND ? THEN id END) AS daily_other_count
     ', [
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate,
-      $startDate, $endDate
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate,
+      $startDate,
+      $endDate
     ])->first();
 
     Carbon::setLocale('id');
@@ -99,7 +105,7 @@ class MonthlyReportJob implements ShouldQueue
       ];
       Mail::to($data['email'])->queue(new MonthlyReportMail($data));
       $html = (new MonthlyReportMail($data))->render();
-  
+
       saveActivityLog([
         'log_name'    => 'Notification',
         'description' => 'Monthly Payment Report by ' . $causer->name,

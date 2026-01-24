@@ -4,11 +4,11 @@
  * Project Name: personal-v4
  * File: PaymentAction.php
  * Created Date: Thursday December 11th 2025
- * 
+ *
  * Author: Nova Ardiansyah admin@novaardiansyah.id
  * Website: https://novaardiansyah.id
  * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
- * 
+ *
  * Copyright (c) 2025-2026 Nova Ardiansyah, Org
  */
 
@@ -22,7 +22,7 @@ use App\Models\ItemType;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
-use App\Services\PaymentService;
+use App\Services\PaymentResource\PaymentService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\AttachAction;
@@ -391,9 +391,8 @@ class PaymentAction
               ->required()
               ->live(onBlur: true)
               ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
-                logger('state: '.$state);
                 if (!$state) return;
-                
+
                 $item = Item::where('id', $state)->first();
 
                 if (!$item) return;
@@ -436,9 +435,9 @@ class PaymentAction
           ->columns(2);
       })
       ->mutateFormDataUsing(function (array $data): array {
-         $data['price'] = $data['amount'] ?? 0;
-         $data['item_code'] = getCode('payment_item');
-         return $data;
+        $data['price'] = $data['amount'] ?? 0;
+        $data['item_code'] = getCode('payment_item');
+        return $data;
       })
       ->after(function (array $data, Model $record, RelationManager $livewire, AttachAction $action) {
         self::_afterItemAttach($data, $record, $livewire, $action);

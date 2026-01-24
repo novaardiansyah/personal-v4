@@ -7,7 +7,7 @@ use App\Models\ActivityLog;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\User;
-use App\Services\PaymentService;
+use App\Services\PaymentResource\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -36,7 +36,7 @@ class DailyReportJob implements ShouldQueue
     $today         = Carbon::now()->toDateString();
     $send_to_email = $this->data['send_to_email'] ?? false;
     $causer        = $this->data['user'] ?? getUser();
-    
+
     $send = [
       'title'        => 'Laporan keuangan harian',
       'start_date'   => $startDate,
@@ -72,8 +72,12 @@ class DailyReportJob implements ShouldQueue
       COUNT(CASE WHEN type_id = 2 AND date = ? THEN id END) AS daily_income_count,
       COUNT(CASE WHEN type_id != 1 AND type_id != 2 AND date = ? THEN id END) AS daily_other_count
     ', [
-      $today, $today, $today,
-      $today, $today, $today
+      $today,
+      $today,
+      $today,
+      $today,
+      $today,
+      $today
     ])->first();
 
     $date = carbonTranslatedFormat($now, 'd F Y');
