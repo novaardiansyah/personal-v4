@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GallerySize;
 use App\Observers\PaymentAccountObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -28,6 +29,16 @@ class PaymentAccount extends Model
   public function getPaymentAccountNameAttribute(): string
   {
     return $this->name ?? 'Unknown';
+  }
+
+  public function getLogoAttribute(): string|null
+  {
+    $gallery = Gallery::where('subject_type', PaymentAccount::class)
+      ->where('subject_id', $this->id)
+      ->where('size', GallerySize::Large)
+      ->first();
+
+    return $gallery ? config('services.self.cdn_url') . '/' . $gallery->file_path : null;
   }
 
   public function payments(): HasMany
@@ -65,10 +76,5 @@ class PaymentAccount extends Model
         'payment_type' => $paymentType
       ]
     ];
-  }
-
-  public function gallery(): MorphOne
-  {
-    return $this->morphOne(Gallery::class, 'subject');
   }
 }

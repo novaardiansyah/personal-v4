@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: GalleryResource.php
+ * Created Date: Thursday December 25th 2025
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Galleries;
 
 use App\Enums\GallerySize;
@@ -26,7 +38,6 @@ use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Infolists\Components\IconEntry;
-use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
@@ -206,11 +217,10 @@ class GalleryResource extends Resource
       ->filters([
         SelectFilter::make('size')
           ->options(GallerySize::class)
-          ->default(GallerySize::Original->value)
+          ->default(GallerySize::Large->value)
           ->native(false),
         TrashedFilter::make()
-          ->native(false)
-          ->default(true),
+          ->native(false),
       ])
       ->defaultSort('updated_at', 'desc')
       ->recordActions([

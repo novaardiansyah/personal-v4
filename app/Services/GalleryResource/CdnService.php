@@ -1,5 +1,19 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: CdnService.php
+ * Created Date: Friday January 16th 2026
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
+declare(strict_types=1);
+
 namespace App\Services\GalleryResource;
 
 use Illuminate\Http\Client\Response;
@@ -19,17 +33,32 @@ class CdnService
 
   public function delete(string|int $id): Response
   {
-    return Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$id}");
+    /** @var \Illuminate\Http\Client\Response $response */
+    $response = Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$id}");
+    return $response;
+  }
+
+  public function deleteByGroupCode(string $groupCode, ?string $size = null): Response
+  {
+    /** @var \Illuminate\Http\Client\Response $response */
+    $response = Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$groupCode}", [
+      'size' => $size
+    ]);
+    return $response;
   }
 
   public function forceDelete(string|int $id): Response
   {
-    return Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$id}/force");
+    /** @var \Illuminate\Http\Client\Response $response */
+    $response = Http::withToken($this->apiKey)->delete("{$this->baseUrl}/{$id}/force");
+    return $response;
   }
 
   public function restore(string|int $id): Response
   {
-    return Http::withToken($this->apiKey)->post("{$this->baseUrl}/{$id}/restore");
+    /** @var \Illuminate\Http\Client\Response $response */
+    $response = Http::withToken($this->apiKey)->post("{$this->baseUrl}/{$id}/restore");
+    return $response;
   }
 
   public function upload(string $filePath, ?string $description = null, bool $isPrivate = false, ?string $subjectType = null, ?int $subjectId = null, ?string $dir = 'gallery'): Response
@@ -57,8 +86,11 @@ class CdnService
 
     $postData['dir'] = $dir;
 
-    return Http::withToken($this->apiKey)
+    /** @var \Illuminate\Http\Client\Response $response */
+    $response = Http::withToken($this->apiKey)
       ->attach('file', $fileContent, $fileName, ['Content-Type' => $mimeType])
       ->post("{$this->baseUrl}/upload", $postData);
+
+    return $response;
   }
 }

@@ -4,11 +4,11 @@
  * Project Name: personal-v4
  * File: AuthController.php
  * Created Date: Thursday December 11th 2025
- * 
+ *
  * Author: Nova Ardiansyah admin@novaardiansyah.id
  * Website: https://novaardiansyah.id
  * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
- * 
+ *
  * Copyright (c) 2025-2026 Nova Ardiansyah, Org
  */
 

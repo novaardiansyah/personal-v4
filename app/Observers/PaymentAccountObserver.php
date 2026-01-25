@@ -1,8 +1,24 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentAccountObserver.php
+ * Created Date: Thursday December 11th 2025
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
+declare(strict_types=1);
+
 namespace App\Observers;
 
+use App\Models\Gallery;
 use App\Models\PaymentAccount;
+use App\Services\GalleryResource\CdnService;
 use Illuminate\Support\Facades\Storage;
 
 class PaymentAccountObserver
@@ -10,10 +26,25 @@ class PaymentAccountObserver
   public function saving(PaymentAccount $paymentAccount): void
   {
     $isImageChange = $paymentAccount->isDirty('logo');
-    $oldImage = $paymentAccount->getOriginal('logo');
+    $currentImage = $paymentAccount->logo;
 
-    if ($isImageChange) {
-      Storage::disk('public')->delete($oldImage);
+    if ($isImageChange && $currentImage) {
+      $exist = Gallery::where('subject_type', PaymentAccount::class)->where('subject_id', $paymentAccount->id)->first();
+
+      if ($exist) {
+        app(CdnService::class)->deleteByGroupCode($exist->group_code);
+      }
+
+      $req = app(CdnService::class)->upload(
+        $currentImage,
+        subjectType: PaymentAccount::class,
+        subjectId: $paymentAccount->id,
+        dir: 'payment-account'
+      );
+
+      if ($req->successful()) {
+        Storage::disk('public')->delete($currentImage);
+      }
     }
   }
 
