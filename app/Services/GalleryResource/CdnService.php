@@ -78,12 +78,6 @@ class CdnService
       $postData['subject_id'] = $subjectId;
     }
 
-    $allowed_dir = ['gallery', 'payment', 'item'];
-
-    if (!in_array($dir, $allowed_dir)) {
-      $dir = 'gallery';
-    }
-
     $postData['dir'] = $dir;
 
     /** @var \Illuminate\Http\Client\Response $response */
