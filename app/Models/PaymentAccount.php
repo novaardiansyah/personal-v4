@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 #[ObservedBy([PaymentAccountObserver::class])]
 class PaymentAccount extends Model
@@ -17,6 +16,8 @@ class PaymentAccount extends Model
   use SoftDeletes;
 
   protected $guarded = ['id'];
+
+  protected $appends = ['logo_url'];
 
   public const PERMATA_BANK = 1;
   public const DANA = 2;
@@ -31,7 +32,7 @@ class PaymentAccount extends Model
     return $this->name ?? 'Unknown';
   }
 
-  public function getLogoAttribute(): string|null
+  public function getLogoUrlAttribute(): string|null
   {
     $gallery = Gallery::where('subject_type', PaymentAccount::class)
       ->where('subject_id', $this->id)

@@ -70,7 +70,8 @@ class PaymentAccountResource extends Resource
         TextEntry::make('name'),
         TextEntry::make('deposit')
           ->numeric(),
-        ImageEntry::make('logo')
+        ImageEntry::make('logo_url')
+          ->label('Logo')
           ->checkFileExistence(false)
           ->circular()
           ->size(70),
@@ -102,7 +103,8 @@ class PaymentAccountResource extends Resource
         TextColumn::make('deposit')
           ->formatStateUsing(fn($state) => toIndonesianCurrency((float) $state ?? 0, showCurrency: Setting::showPaymentCurrency()))
           ->sortable(),
-        ImageColumn::make('logo')
+        ImageColumn::make('logo_url')
+          ->label('Logo')
           ->checkFileExistence(false)
           ->circular(),
         TextColumn::make('deleted_at')
