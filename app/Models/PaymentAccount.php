@@ -38,7 +38,7 @@ class PaymentAccount extends Model
       ->where('size', GallerySize::Large)
       ->first();
 
-    return $gallery ? config('services.self.cdn_url') . '/' . $gallery->file_path : null;
+    return $gallery ? config('services.self.cdn_url') . '/' . $gallery->file_path : $this->logo;
   }
 
   public function payments(): HasMany
