@@ -389,6 +389,7 @@ class PaymentAction
               })
               ->preload()
               ->required()
+              ->searchable()
               ->live(onBlur: true)
               ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
                 if (!$state) return;
