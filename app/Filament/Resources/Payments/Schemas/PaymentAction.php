@@ -16,6 +16,7 @@ namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
+use App\Jobs\PaymentResource\PaymentReportExcelJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
 use App\Models\Item;
 use App\Models\ItemType;
@@ -106,20 +107,21 @@ class PaymentAction
   public static function manageDraftFillForm(Payment $record): array
   {
     return [
-      'amount' => $record->amount,
-      'type_id' => $record->type_id,
-      'payment_account_id' => $record->payment_account_id,
+      'amount'                => $record->amount,
+      'type_id'               => $record->type_id,
+      'payment_account_id'    => $record->payment_account_id,
       'payment_account_to_id' => $record->payment_account_to_id,
-      'approve_draft' => false,
+      'approve_draft'         => false,
     ];
   }
 
   public static function manageDraftAction(Action $action, Payment $record, array $data): void
   {
-    $record->amount = intval($data['amount']);
-    $record->type_id = intval($data['type_id']);
-    $record->payment_account_id = intval($data['payment_account_id']);
+    $record->amount                = intval($data['amount']);
+    $record->type_id               = intval($data['type_id']);
+    $record->payment_account_id    = intval($data['payment_account_id']);
     $record->payment_account_to_id = $data['payment_account_to_id'] ?? null;
+
     $record->save();
     $record->load(['payment_account', 'payment_account_to']);
 
@@ -481,5 +483,118 @@ class PaymentAction
       ->modalWidth(Width::Medium)
       ->schema(fn(Schema $form): Schema => self::printPdfSchema($form))
       ->action(fn(Action $action, array $data) => self::printPdfAction($action, $data));
+  }
+
+  public static function printExcelSchema(Schema $schema): Schema
+  {
+    return $schema
+      ->components([
+        Select::make('payment_account_id')
+          ->label('Payment')
+          ->options(fn() => PaymentAccount::where('user_id', auth()->id())->pluck('name', 'id'))
+          ->searchable()
+          ->native(false),
+        Select::make('report_type')
+          ->label('Report Type')
+          ->options([
+            'date_range' => 'Custom Date Range',
+            'monthly' => 'Monthly Report',
+          ])
+          ->default('monthly')
+          ->required()
+          ->live()
+          ->native(false),
+        DatePicker::make('start_date')
+          ->label('Start Date')
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->startOfMonth())
+          ->visible(fn($get) => $get('report_type') === 'date_range'),
+        DatePicker::make('end_date')
+          ->label('End Date')
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->endOfMonth())
+          ->visible(fn($get) => $get('report_type') === 'date_range'),
+        Select::make('periode')
+          ->label('Periode (Month)')
+          ->options(function () {
+            $options = [];
+            $now = Carbon::now();
+            $start = $now->copy()->subMonths(12);
+            $end = $now->copy()->addMonths(12);
+            while ($start->lte($end)) {
+              $options[$start->format('Y-m')] = $start->translatedFormat('F Y');
+              $start->addMonth();
+            }
+            return $options;
+          })
+          ->required()
+          ->native(false)
+          ->default(Carbon::now()->format('Y-m'))
+          ->visible(fn($get) => $get('report_type') === 'monthly'),
+        Toggle::make('send_to_email')
+          ->label('Send to Email')
+          ->default(true),
+      ]);
+  }
+
+  public static function printExcelAction(Action $action, array $data): void
+  {
+    $user               = getUser();
+    $send_to_email      = $data['send_to_email'] ?? false;
+    $payment_account_id = $data['payment_account_id'] ?? null;
+
+    $sendTo = [
+      'send_to_email'      => $send_to_email,
+      'user'               => $user,
+      'notification'       => true,
+      'payment_account_id' => $payment_account_id,
+    ];
+
+    if ($data['report_type'] === 'monthly') {
+      $periode   = $data['periode'];
+      $startDate = Carbon::createFromFormat('Y-m', $periode)->startOfMonth()->format('Y-m-d');
+      $endDate   = Carbon::createFromFormat('Y-m', $periode)->endOfMonth()->format('Y-m-d');
+    } else {
+      $startDate = $data['start_date'];
+      $endDate   = $data['end_date'];
+    }
+
+    PaymentReportExcelJob::dispatch(array_merge($sendTo, [
+      'start_date' => $startDate,
+      'end_date'   => $endDate,
+    ]));
+
+    $messages = [
+      'monthly'    => 'Monthly Excel report will be sent to your email.',
+      'date_range' => 'Custom Excel report will be sent to your email.',
+      'default'    => 'You will receive a notification when the Excel report is ready.',
+    ];
+
+    if (!$send_to_email) {
+      $data['report_type'] = 'default';
+    }
+
+    $action->success();
+    $action->successNotification(
+      Notification::make()
+        ->title('Excel Report in process')
+        ->body($messages[$data['report_type']])
+        ->success()
+    );
+  }
+
+  public static function printExcel()
+  {
+    return Action::make('print_excel')
+      ->label('Excel')
+      ->color('primary')
+      ->icon('heroicon-o-printer')
+      ->modalHeading('Generate Excel Report')
+      ->modalDescription('Select report type and configure options.')
+      ->modalWidth(Width::Medium)
+      ->schema(fn(Schema $form): Schema => self::printExcelSchema($form))
+      ->action(fn(Action $action, array $data) => self::printExcelAction($action, $data));
   }
 }

@@ -99,6 +99,7 @@ class PaymentsTable
         PaymentFilter::date(),
       ])
       ->headerActions([
+        PaymentAction::printExcel(),
         PaymentAction::printPdf(),
       ])
       ->recordActions([
