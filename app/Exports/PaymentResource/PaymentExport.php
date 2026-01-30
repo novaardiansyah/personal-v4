@@ -27,8 +27,8 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping, WithSt
 
   public function __construct(string $startDate, string $endDate, ?int $paymentAccountId = null)
   {
-    $this->startDate = $startDate;
-    $this->endDate = $endDate;
+    $this->startDate        = $startDate;
+    $this->endDate          = $endDate;
     $this->paymentAccountId = $paymentAccountId;
   }
 
@@ -44,34 +44,24 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping, WithSt
 
   public function headings(): array
   {
-    return [
-      '#',
-      'Transaction ID',
-      'Date',
-      'Notes',
-      'Payment Account',
-      'Type',
-      'Transfer/Other',
-      'Income',
-      'Expense',
-    ];
+    return ['#', 'ID Transaksi', 'Tanggal', 'Akun', 'Akun Tujuan', 'Catatan', 'Transfer', 'Pemasukan', 'Pengeluaran'];
   }
 
   public function map($payment): array
   {
     $this->rowIndex++;
 
-    $income = (int) $payment->type_id === PaymentType::INCOME ? $payment->amount : 0;
-    $expense = (int) $payment->type_id === PaymentType::EXPENSE ? $payment->amount : 0;
+    $income   = (int) $payment->type_id === PaymentType::INCOME ? $payment->amount : 0;
+    $expense  = (int) $payment->type_id === PaymentType::EXPENSE ? $payment->amount : 0;
     $transfer = !in_array((int) $payment->type_id, [PaymentType::INCOME, PaymentType::EXPENSE]) ? $payment->amount : 0;
 
     return [
       $this->rowIndex,
       $payment->code,
       Carbon::parse($payment->date)->format('d M Y'),
-      $payment->name ?? '-',
       $payment->payment_account?->name ?? '-',
-      $payment->payment_type?->name ?? '-',
+      $payment->payment_account_to?->name ?? '-',
+      $payment->name ?? '-',
       $transfer,
       $income,
       $expense,
@@ -85,16 +75,16 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping, WithSt
 
     $sheet->getStyle("A1:{$lastColumn}1")->applyFromArray([
       'font' => [
-        'bold' => true,
+        'bold'  => true,
         'color' => ['rgb' => 'FFFFFF'],
       ],
       'fill' => [
-        'fillType' => Fill::FILL_SOLID,
-        'startColor' => ['rgb' => '4F46E5'],
+        'fillType'   => Fill::FILL_SOLID,
+        'startColor' => ['rgb' => '155dfc'],
       ],
       'alignment' => [
         'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical' => Alignment::VERTICAL_CENTER,
+        'vertical'   => Alignment::VERTICAL_CENTER,
       ],
     ]);
 
@@ -102,7 +92,7 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping, WithSt
       'borders' => [
         'allBorders' => [
           'borderStyle' => Border::BORDER_THIN,
-          'color' => ['rgb' => 'D1D5DB'],
+          'color'       => ['rgb' => '061E29'],
         ],
       ],
     ]);
@@ -135,7 +125,7 @@ class PaymentExport implements FromCollection, WithHeadings, WithMapping, WithSt
   {
     Carbon::setLocale('id');
     $carbonStart = Carbon::parse($this->startDate);
-    $carbonEnd = Carbon::parse($this->endDate);
+    $carbonEnd   = Carbon::parse($this->endDate);
 
     if ($carbonStart->isSameDay($carbonEnd)) {
       return $carbonStart->translatedFormat('d F Y');
