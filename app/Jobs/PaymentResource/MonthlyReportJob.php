@@ -35,19 +35,21 @@ class MonthlyReportJob implements ShouldQueue
     $year    = Carbon::parse($periode)->format('Y');
     $month   = Carbon::parse($periode)->format('m');
 
-    $startDate = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
-    $endDate   = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
-    $now       = Carbon::now()->toDateTimeString();
-    $causer    = $this->data['user'] ?? getUser();
+    $startDate          = Carbon::createFromDate($year, $month, 1)->startOfMonth()->format('Y-m-d');
+    $endDate            = Carbon::createFromDate($year, $month, 1)->endOfMonth()->format('Y-m-d');
+    $now                = Carbon::now()->toDateTimeString();
+    $causer             = $this->data['user'] ?? getUser();
+    $payment_account_id = $this->data['payment_account_id'] ?? null;
 
     $send = array_merge($this->data, [
-      'filename'     => 'monthly-payment-report',
-      'title'        => 'Laporan keuangan bulanan',
-      'start_date'   => $startDate,
-      'end_date'     => $endDate,
-      'now'          => $now,
-      'user'         => $causer,
-      'notification' => $this->data['notification'] ?? false,
+      'filename'           => 'monthly-payment-report',
+      'title'              => 'Laporan keuangan bulanan',
+      'start_date'         => $startDate,
+      'end_date'           => $endDate,
+      'now'                => $now,
+      'user'               => $causer,
+      'notification'       => $this->data['notification'] ?? false,
+      'payment_account_id' => $payment_account_id,
     ]);
 
     $pdf = PaymentService::make_pdf($send);
@@ -72,7 +74,9 @@ class MonthlyReportJob implements ShouldQueue
       $endDate,
       $startDate,
       $endDate
-    ])->first();
+    ])->when($payment_account_id, function ($query) use ($payment_account_id) {
+      $query->where('payment_account_id', $payment_account_id);
+    })->first();
 
     Carbon::setLocale('id');
 

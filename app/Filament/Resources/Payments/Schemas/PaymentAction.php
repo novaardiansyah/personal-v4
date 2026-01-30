@@ -151,6 +151,11 @@ class PaymentAction
   {
     return $schema
       ->components([
+        Select::make('payment_account_id')
+          ->label('Payment')
+          ->options(fn() => PaymentAccount::where('user_id', auth()->id())->pluck('name', 'id'))
+          ->searchable()
+          ->native(false),
         Select::make('report_type')
           ->label('Report Type')
           ->options([
@@ -201,38 +206,42 @@ class PaymentAction
   {
     $user = getUser();
     $send_to_email = $data['send_to_email'] ?? false;
+    $payment_account_id = $data['payment_account_id'] ?? null;
 
     $sendTo = [
-      'send_to_email' => $send_to_email,
-      'user' => $user,
-      'notification' => true,
+      'send_to_email'      => $send_to_email,
+      'user'               => $user,
+      'notification'       => true,
+      'payment_account_id' => $payment_account_id,
     ];
 
     match ($data['report_type']) {
-      'daily' => DailyReportJob::dispatch($sendTo),
+      'daily'   => DailyReportJob::dispatch($sendTo),
       'monthly' => MonthlyReportJob::dispatch(array_merge($sendTo, ['periode' => $data['periode']])),
-      default => PaymentReportPdf::dispatch(array_merge($sendTo, [
+      default   => PaymentReportPdf::dispatch(array_merge($sendTo, [
         'start_date' => $data['start_date'],
-        'end_date' => $data['end_date'],
+        'end_date'   => $data['end_date'],
       ])),
     };
 
     $messages = [
-      'daily' => 'Daily report will be sent to your email.',
-      'monthly' => 'Monthly report will be sent to your email.',
+      'daily'      => 'Daily report will be sent to your email.',
+      'monthly'    => 'Monthly report will be sent to your email.',
       'date_range' => 'Custom report will be sent to your email.',
-      'default' => 'You will receive a notification when the report is ready.',
+      'default'    => 'You will receive a notification when the report is ready.',
     ];
 
     if (!$send_to_email) {
       $data['report_type'] = 'default';
     }
 
-    Notification::make()
-      ->title('Report in process')
-      ->body($messages[$data['report_type']])
-      ->success()
-      ->send();
+    $action->success();
+    $action->successNotification(
+      Notification::make()
+        ->title('Report in process')
+        ->body($messages[$data['report_type']])
+        ->success()
+    );
   }
   // ! End PrintPdf
 
@@ -459,5 +468,18 @@ class PaymentAction
 
         $action->getLivewire()->dispatch('refreshForm');
       });
+  }
+
+  public static function printPdf()
+  {
+    return Action::make('print_pdf')
+      ->label('Report')
+      ->color('primary')
+      ->icon('heroicon-o-printer')
+      ->modalHeading('Generate Payment Report')
+      ->modalDescription('Select report type and configure options.')
+      ->modalWidth(Width::Medium)
+      ->schema(fn(Schema $form): Schema => self::printPdfSchema($form))
+      ->action(fn(Action $action, array $data) => self::printPdfAction($action, $data));
   }
 }

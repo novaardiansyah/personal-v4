@@ -35,15 +35,17 @@ class PaymentReportPdf implements ShouldQueue
     $endDate   = $this->data['end_date'] ?? Carbon::now()->endOfMonth()->format('Y-m-d');
     $now       = Carbon::now()->toDateTimeString();
     $causer    = $this->data['user'] ?? getUser();
+    $payment_account_id = $this->data['payment_account_id'] ?? null;
 
     $send = array_merge([
-      'filename'     => 'custom-payment-report',
-      'title'        => 'Laporan keuangan',
-      'start_date'   => $startDate,
-      'end_date'     => $endDate,
-      'now'          => $now,
-      'user'         => $causer,
-      'notification' => $this->data['notification'] ?? false,
+      'filename'           => 'custom-payment-report',
+      'title'              => 'Laporan keuangan',
+      'start_date'         => $startDate,
+      'end_date'           => $endDate,
+      'now'                => $now,
+      'user'               => $causer,
+      'notification'       => $this->data['notification'] ?? false,
+      'payment_account_id' => $payment_account_id,
     ], $this->data);
 
     $pdf = PaymentService::make_pdf($send);
@@ -68,7 +70,9 @@ class PaymentReportPdf implements ShouldQueue
       $endDate,
       $startDate,
       $endDate
-    ])->first();
+    ])->when($payment_account_id, function ($query) use ($payment_account_id) {
+      $query->where('payment_account_id', $payment_account_id);
+    })->first();
 
     Carbon::setLocale('id');
 

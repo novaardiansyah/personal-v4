@@ -200,6 +200,7 @@ class PaymentService
 
     $notification = $data['notification'] ?? false;
     $auto_close_tbody = $data['auto_close_tbody'] ?? false;
+    $payment_account_id = $data['payment_account_id'] ?? null;
 
     $startDate = $data['start_date'] ?? now()->startOfMonth();
     $endDate = $data['end_date'] ?? now()->endOfMonth();
@@ -233,6 +234,9 @@ class PaymentService
 
     Payment::whereBetween('date', [$startDate, $endDate])
       ->orderBy('date', 'desc')
+      ->when($payment_account_id, function ($query) use ($payment_account_id) {
+        $query->where('payment_account_id', $payment_account_id);
+      })
       ->chunk(200, function ($list) use ($mpdf, &$rowIndex, &$totalExpense, &$totalIncome, &$totalTransfer) {
         foreach ($list as $record) {
           $record->income = (int) $record->type_id === PaymentType::INCOME ? $record->amount : 0;

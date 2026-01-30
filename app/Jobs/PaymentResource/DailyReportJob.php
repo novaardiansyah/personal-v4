@@ -30,20 +30,22 @@ class DailyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
-    $startDate     = Carbon::now()->startOfWeek();
-    $endDate       = Carbon::now()->endOfWeek();
-    $now           = Carbon::now()->toDateTimeString();
-    $today         = Carbon::now()->toDateString();
-    $send_to_email = $this->data['send_to_email'] ?? false;
-    $causer        = $this->data['user'] ?? getUser();
+    $startDate          = Carbon::now()->startOfWeek();
+    $endDate            = Carbon::now()->endOfWeek();
+    $now                = Carbon::now()->toDateTimeString();
+    $today              = Carbon::now()->toDateString();
+    $send_to_email      = $this->data['send_to_email'] ?? false;
+    $payment_account_id = $this->data['payment_account_id'] ?? null;
+    $causer             = $this->data['user'] ?? getUser();
 
     $send = [
-      'title'        => 'Laporan keuangan harian',
-      'start_date'   => $startDate,
-      'end_date'     => $endDate,
-      'now'          => $now,
-      'user'         => $causer,
-      'notification' => $this->data['notification'] ?? false,
+      'title'              => 'Laporan keuangan harian',
+      'start_date'         => $startDate,
+      'end_date'           => $endDate,
+      'now'                => $now,
+      'user'               => $causer,
+      'notification'       => $this->data['notification'] ?? false,
+      'payment_account_id' => $payment_account_id,
     ];
 
     $defaultLog = [
@@ -78,7 +80,9 @@ class DailyReportJob implements ShouldQueue
       $today,
       $today,
       $today
-    ])->first();
+    ])->when($payment_account_id, function ($query) use ($payment_account_id) {
+      $query->where('payment_account_id', $payment_account_id);
+    })->first();
 
     $date = carbonTranslatedFormat($now, 'd F Y');
 

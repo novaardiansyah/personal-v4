@@ -95,19 +95,11 @@ class PaymentsTable
       ->filters([
         TrashedFilter::make()
           ->native(false),
-        
+
         PaymentFilter::date(),
       ])
       ->headerActions([
-        Action::make('print_pdf')
-          ->label('Report')
-          ->color('primary')
-          ->icon('heroicon-o-printer')
-          ->modalHeading('Generate Payment Report')
-          ->modalDescription('Select report type and configure options.')
-          ->modalWidth(Width::Medium)
-          ->schema(fn(Schema $form): Schema => PaymentAction::printPdfSchema($form))
-          ->action(fn(Action $action, array $data) => PaymentAction::printPdfAction($action, $data))
+        PaymentAction::printPdf(),
       ])
       ->recordActions([
         ActionGroup::make([
