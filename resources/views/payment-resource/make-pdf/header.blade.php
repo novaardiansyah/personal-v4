@@ -4,8 +4,12 @@
 
 <table width="100%">
   <tr>
-    <td align="left"><p class="vertical-0 text-muted">Dicetak Pada: {{ $now }} <br>oleh {{ $user->name }}</p></td>
-    <td align="right"><p class="vertical-0 text-muted">Periode: {{ $periode }}</p></td>
+    <td align="left">
+      <p class="vertical-0 text-muted">Dicetak Pada: {{ $now }} <br>oleh {{ $user->name }}</p>
+    </td>
+    <td align="right">
+      <p class="vertical-0 text-muted">Periode: {{ $periode }}</p>
+    </td>
   </tr>
 </table>
 
@@ -17,6 +21,7 @@
       <th scope="col">#</th>
       <th scope="col">ID Transaksi</th>
       <th scope="col">Tanggal</th>
+      <th scope="col">Akun</th>
       <th scope="col">Catatan</th>
       <th scope="col">Transfer</th>
       <th scope="col">Pemasukan</th>

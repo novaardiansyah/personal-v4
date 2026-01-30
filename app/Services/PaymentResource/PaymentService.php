@@ -198,38 +198,38 @@ class PaymentService
 
     Carbon::setLocale('id');
 
-    $notification = $data['notification'] ?? false;
-    $auto_close_tbody = $data['auto_close_tbody'] ?? false;
+    $notification       = $data['notification'] ?? false;
+    $auto_close_tbody   = $data['auto_close_tbody'] ?? false;
     $payment_account_id = $data['payment_account_id'] ?? null;
 
     $startDate = $data['start_date'] ?? now()->startOfMonth();
-    $endDate = $data['end_date'] ?? now()->endOfMonth();
-    $now = $data['now'] ?? now()->toDateTimeString();
+    $endDate   = $data['end_date'] ?? now()->endOfMonth();
+    $now       = $data['now'] ?? now()->toDateTimeString();
 
     $carbonStartDate = Carbon::parse($startDate);
-    $carbonEndDate = Carbon::parse($endDate);
-    $periode = '-';
+    $carbonEndDate   = Carbon::parse($endDate);
+    $periode         = '-';
 
     if ($carbonStartDate->isSameDay($carbonEndDate)) {
       $periode = $carbonStartDate->translatedFormat('d F Y');
     } else {
       $startFormat = $carbonStartDate->isSameMonth($carbonEndDate) ? 'd' : 'd F Y';
-      $periode = $carbonStartDate->translatedFormat($startFormat) . ' - ' . $carbonEndDate->translatedFormat('d F Y');
+      $periode     = $carbonStartDate->translatedFormat($startFormat) . ' - ' . $carbonEndDate->translatedFormat('d F Y');
     }
 
     // ! Setup pdf attachment
-    $mpdf = new \Mpdf\Mpdf();
-    $rowIndex = 1;
-    $totalExpense = 0;
-    $totalIncome = 0;
+    $mpdf          = new \Mpdf\Mpdf();
+    $rowIndex      = 1;
+    $totalExpense  = 0;
+    $totalIncome   = 0;
     $totalTransfer = 0;
-    $user = $data['user'] ?? getUser();
+    $user          = $data['user'] ?? getUser();
 
     $mpdf->WriteHTML(view('payment-resource.make-pdf.header', [
-      'title' => $data['title'] ?? 'Laporan keuangan',
-      'now' => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
+      'title'   => $data['title'] ?? 'Laporan keuangan',
+      'now'     => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
       'periode' => $periode,
-      'user' => $user,
+      'user'    => $user,
     ])->render());
 
     Payment::whereBetween('date', [$startDate, $endDate])
@@ -239,7 +239,7 @@ class PaymentService
       })
       ->chunk(200, function ($list) use ($mpdf, &$rowIndex, &$totalExpense, &$totalIncome, &$totalTransfer) {
         foreach ($list as $record) {
-          $record->income = (int) $record->type_id === PaymentType::INCOME ? $record->amount : 0;
+          $record->income  = (int) $record->type_id === PaymentType::INCOME ? $record->amount : 0;
           $record->expense = (int) $record->type_id === PaymentType::EXPENSE ? $record->amount : 0;
 
           if ((int) $record->type_id === PaymentType::INCOME || (int) $record->type_id === PaymentType::EXPENSE) {
@@ -247,7 +247,7 @@ class PaymentService
           }
 
           $view = view('payment-resource.make-pdf.body', [
-            'record' => $record,
+            'record'    => $record,
             'loopIndex' => $rowIndex++,
           ])->render();
 
@@ -267,7 +267,7 @@ class PaymentService
       </tbody>
       <tfoot>
         <tr>
-          <td colspan="4" style="text-align: center; font-weight: bold;">Total Transaksi</td>
+          <td colspan="5" style="text-align: center; font-weight: bold;">Total Transaksi</td>
           <td style="font-weight: bold;">' . toIndonesianCurrency($totalTransfer) . '</td>
           <td style="font-weight: bold;">' . toIndonesianCurrency($totalIncome) . '</td>
           <td style="font-weight: bold;">' . toIndonesianCurrency($totalExpense) . '</td>
