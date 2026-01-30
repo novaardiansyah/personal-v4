@@ -5,6 +5,10 @@
 
 echo "[setup.sh] Start to execute..."
 
+echo "--> Git Setup"
+sudo git checkout main
+sudo git pull origin main
+
 echo "--> Composer install..."
 COMPOSER_PROCESS_TIMEOUT=0 composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
 

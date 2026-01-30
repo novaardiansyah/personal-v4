@@ -6,6 +6,11 @@ use App\Models\Note;
 
 class NoteObserver
 {
+  public function creating(Note $note): void
+  {
+    $note->code = getCode('note');
+  }
+
   /**
    * Handle the Note "created" event.
    */
