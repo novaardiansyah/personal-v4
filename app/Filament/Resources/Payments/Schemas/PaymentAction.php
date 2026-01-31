@@ -227,10 +227,10 @@ class PaymentAction
     };
 
     $messages = [
-      'daily'      => 'Daily report will be sent to your email.',
-      'monthly'    => 'Monthly report will be sent to your email.',
-      'date_range' => 'Custom report will be sent to your email.',
-      'default'    => 'You will receive a notification when the report is ready.',
+      'daily'      => 'Daily PDF report will be sent to your email.',
+      'monthly'    => 'Monthly PDF report will be sent to your email.',
+      'date_range' => 'Custom PDF report will be sent to your email.',
+      'default'    => 'You will receive a notification when the PDF report is ready.',
     ];
 
     if (!$send_to_email) {
@@ -240,7 +240,7 @@ class PaymentAction
     $action->success();
     $action->successNotification(
       Notification::make()
-        ->title('Report in process')
+        ->title('PDF report in process')
         ->body($messages[$data['report_type']])
         ->success()
     );
@@ -475,10 +475,10 @@ class PaymentAction
   public static function printPdf()
   {
     return Action::make('print_pdf')
-      ->label('Report')
+      ->label('PDF')
       ->color('primary')
       ->icon('heroicon-o-printer')
-      ->modalHeading('Generate Payment Report')
+      ->modalHeading('Generate PDF Report')
       ->modalDescription('Select report type and configure options.')
       ->modalWidth(Width::Medium)
       ->schema(fn(Schema $form): Schema => self::printPdfSchema($form))
