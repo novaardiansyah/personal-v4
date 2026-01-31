@@ -250,6 +250,8 @@ function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
     $changes = is_array($changes) ? $changes : $changes->toArray();
   }
 
+  unset($data['model']);
+
   return ActivityLog::create(array_merge([
     'log_name' => 'Resource',
     'description' => "{$model} {$event} by {$causer->name}",
