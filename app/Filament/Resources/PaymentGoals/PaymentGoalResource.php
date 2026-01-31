@@ -6,9 +6,12 @@ use BackedEnum;
 use UnitEnum;
 use Carbon\Carbon;
 use App\Filament\Resources\PaymentGoals\Pages\ActionPaymentGoals;
+use App\Filament\Resources\PaymentGoals\Pages\AddFundPaymentGoal;
+use App\Filament\Resources\PaymentGoals\Pages\AllocateFundPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\ManagePaymentGoals;
 use App\Models\PaymentGoal;
 use App\Models\PaymentGoalStatus;
+use Filament\Actions\Action;
 use Filament\Support\Enums\Width;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -302,8 +305,12 @@ class PaymentGoalResource extends Resource
           EditAction::make()
             ->modalWidth(Width::SixExtraLarge),
 
-          ActionPaymentGoals::fund()
-            ->visible(fn(PaymentGoal $record) => $record->progress_percent < 100),
+          Action::make('allocate_fund')
+            ->label('Allocate Fund')
+            ->icon('heroicon-o-banknotes')
+            ->color('success')
+            ->visible(fn(PaymentGoal $record) => $record->progress_percent < 100)
+            ->url(fn(PaymentGoal $record): string => static::getUrl('allocate-fund', ['record' => $record])),
 
           DeleteAction::make(),
           ForceDeleteAction::make(),
@@ -323,6 +330,7 @@ class PaymentGoalResource extends Resource
   {
     return [
       'index' => ManagePaymentGoals::route('/'),
+      'allocate-fund' => AllocateFundPaymentGoal::route('/{record}/allocate-fund'),
     ];
   }
 
