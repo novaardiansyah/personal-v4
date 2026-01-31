@@ -132,14 +132,19 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 function getCode(string $alias, bool $isNotPreview = true)
 {
   $genn = Generate::withTrashed()->where('alias', $alias)->first();
-
-  if (!$genn)
-    return 'ER-' . random_int(10000, 99999);
-
   $date = now()->translatedFormat('ymd');
+
+  if (!$genn) {
+    $queue = substr($date, 0, 4) . substr(time(), -4) . substr($date, 4, 2);
+    return 'ER-' . $queue;
+  }
+
   $separator = Carbon::createFromFormat('ymd', $genn->separator)->translatedFormat('ymd');
 
-  if ($genn->queue == 9999 || (substr($date, 0, 4) != substr($separator, 0, 4))) {
+  $diffMonthAndYear = substr($date, 0, 4) != substr($separator, 0, 4);
+  $maxLimitQueue = 9999;
+
+  if ((int) $genn->queue >= $maxLimitQueue || $diffMonthAndYear) {
     $genn->queue = 1;
     $genn->separator = $date;
   }
