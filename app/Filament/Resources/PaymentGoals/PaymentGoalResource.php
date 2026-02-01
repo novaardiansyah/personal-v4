@@ -242,42 +242,42 @@ class PaymentGoalResource extends Resource
         TextColumn::make('index')
           ->rowIndex()
           ->label('#'),
+        TextColumn::make('code')
+          ->label('Goal ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->sortable()
+          ->toggleable(),
         TextColumn::make('status.name')
           ->searchable()
           ->toggleable()
           ->badge()
           ->color(fn(PaymentGoal $record): string => $record->status->getBadgeColors()),
-        TextColumn::make('code')
-          ->searchable()
-          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('name')
           ->searchable()
           ->toggleable(),
         TextColumn::make('description')
           ->searchable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('amount')
-          ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0))
+          ->formatStateUsing(function (?string $state, PaymentGoal $record): string {
+            return toIndonesianCurrency($state ?? 0) . ' (' . $record->latest_progress_percent . '%)';
+          })
           ->sortable()
           ->toggleable(),
         TextColumn::make('target_amount')
           ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0))
           ->sortable()
           ->toggleable(),
-        TextColumn::make('progress_percent')
-          ->numeric()
-          ->suffix('%')
-          ->badge()
-          ->color(fn(PaymentGoal $record): string => $record->getProgressColor())
-          ->toggleable(),
         TextColumn::make('start_date')
           ->date()
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('target_date')
           ->date()
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
@@ -290,7 +290,7 @@ class PaymentGoalResource extends Resource
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->toggleable(),
       ])
       ->defaultSort('updated_at', 'desc')
       ->filters([

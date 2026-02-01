@@ -15,10 +15,12 @@ class PaymentGoal extends Model
 
   protected $fillable = ['user_id', 'status_id', 'code', 'name', 'description', 'amount', 'target_amount', 'progress_percent', 'start_date', 'target_date'];
 
+  protected $appends = ['latest_progress_percent'];
+
   protected $casts = [
     'amount'           => 'integer',
     'target_amount'    => 'integer',
-    'progress_percent' => 'integer',
+    'progress_percent' => 'float',
     'start_date'       => 'date',
     'target_date'      => 'date',
   ];
@@ -28,9 +30,17 @@ class PaymentGoal extends Model
     return $this->belongsTo(PaymentGoalStatus::class);
   }
 
+  public function getLatestProgressPercentAttribute()
+  {
+    $target = $this->target_amount;
+    $current = $this->amount;
+    $percent = round(($current / $target) * 100, 2);
+    return $percent;
+  }
+
   public function getProgressColor()
   {
-    $progress = $this->progress_percent;
+    $progress = $this->latest_progress_percent;
     $color    = 'danger';
 
     if ($progress >= 100) {
