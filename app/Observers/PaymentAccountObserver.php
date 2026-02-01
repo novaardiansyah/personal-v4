@@ -25,16 +25,23 @@ class PaymentAccountObserver
 {
   public function saving(PaymentAccount $paymentAccount): void
   {
+    if (!$paymentAccount->user_id) {
+      $paymentAccount->user_id = getUser()->id;
+    }
+
     $isImageChange = $paymentAccount->isDirty('logo');
     $currentImage = $paymentAccount->logo;
 
     if ($isImageChange && $currentImage) {
-      $exist = Gallery::where('subject_type', PaymentAccount::class)->where('subject_id', $paymentAccount->id)->first();
+      $this->_deleteImage($paymentAccount);
+    }
+  }
 
-      if ($exist) {
-        app(CdnService::class)->deleteByGroupCode($exist->group_code);
-      }
+  public function saved(PaymentAccount $paymentAccount): void
+  {
+    $currentImage = $paymentAccount->logo;
 
+    if ($currentImage) {
       $req = app(CdnService::class)->upload(
         $currentImage,
         subjectType: PaymentAccount::class,
@@ -70,6 +77,7 @@ class PaymentAccountObserver
   public function deleted(PaymentAccount $paymentAccount): void
   {
     $this->_log('Deleted', $paymentAccount);
+    $this->_deleteImage($paymentAccount);
   }
 
   /**
@@ -86,6 +94,15 @@ class PaymentAccountObserver
   public function forceDeleted(PaymentAccount $paymentAccount): void
   {
     $this->_log('Force Deleted', $paymentAccount);
+  }
+
+  private function _deleteImage(PaymentAccount $paymentAccount): void
+  {
+    $exist = Gallery::where('subject_type', PaymentAccount::class)->where('subject_id', $paymentAccount->id)->first();
+
+    if ($exist) {
+      app(CdnService::class)->deleteByGroupCode($exist->group_code);
+    }
   }
 
   private function _log(string $event, PaymentAccount $paymentAccount): void
