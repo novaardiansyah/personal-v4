@@ -35,6 +35,16 @@ class AllocateFundPaymentGoal extends EditRecord
     ];
   }
 
+  public function getBreadcrumb(): string
+  {
+    return 'Allocate Fund';
+  }
+
+  public function getTitle(): string
+  {
+    return 'Allocate Fund ' . $this->getRecordTitle();
+  }
+
   public function form(Schema $schema): Schema
   {
     return $schema
