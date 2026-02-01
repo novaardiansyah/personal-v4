@@ -8,7 +8,8 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\User;
 use App\Services\PaymentResource\PaymentService;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Mail;

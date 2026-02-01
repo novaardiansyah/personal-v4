@@ -2,7 +2,8 @@
 
 namespace App\Mail\BlogSubscriberResource;
 
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -19,7 +20,7 @@ class VerifySubscriberMail extends Mailable implements ShouldQueue
   {
     $url = getSetting('nova_blog_url');
     $token = $this->data['token'];
-    
+
     $this->data = array_merge($this->data, [
       'subject'    => 'Verifikasi Langganan Nova Blog (' . carbonTranslatedFormat(Carbon::now(), 'd M Y, H:i', 'id') . ')',
       'verify_url' => "{$url}/verify-subscriber/{$token}",

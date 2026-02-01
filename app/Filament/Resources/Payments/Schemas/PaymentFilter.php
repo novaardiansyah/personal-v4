@@ -2,7 +2,8 @@
 
 namespace App\Filament\Resources\Payments\Schemas;
 
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Filters\Filter;
 use Illuminate\Database\Eloquent\Builder;

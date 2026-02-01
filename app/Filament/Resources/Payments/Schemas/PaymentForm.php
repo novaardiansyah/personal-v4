@@ -5,7 +5,8 @@ namespace App\Filament\Resources\Payments\Schemas;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -43,7 +44,7 @@ class PaymentForm
                     $set('type_id', 1);
                   }
                 }),
-                
+
               Toggle::make('is_scheduled')
                 ->label('Scheduled')
                 ->disabledOn('edit'),
@@ -52,7 +53,7 @@ class PaymentForm
                 ->label('Draft')
                 ->disabledOn('edit'),
             ]),
-          
+
           TextInput::make('amount')
             ->label('Amount')
             ->required()
@@ -124,7 +125,7 @@ class PaymentForm
             ->native(false)
             ->required()
             ->default(PaymentAccount::TUNAI)
-            ->hint(function(?string $state) {
+            ->hint(function (?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
             })
@@ -140,7 +141,7 @@ class PaymentForm
             ->label('Payment To')
             ->options(function (Get $get) {
               if (!$get('payment_account_id')) return [];
-              
+
               if ($get('type_id') == PaymentType::WITHDRAWAL) {
                 return PaymentAccount::where('id', PaymentAccount::TUNAI)
                   ->pluck('name', 'id');
@@ -154,7 +155,7 @@ class PaymentForm
             ->default(PaymentAccount::DANA)
             ->required(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
             ->visible(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
-            ->hint(function(?string $state) {
+            ->hint(function (?string $state) {
               $payment = PaymentAccount::find($state ?? -1);
               return toIndonesianCurrency($payment->deposit ?? 0);
             })

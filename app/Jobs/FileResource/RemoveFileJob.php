@@ -9,7 +9,8 @@ use App\Models\EmailTemplate;
 use App\Models\File;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
@@ -49,7 +50,7 @@ class RemoveFileJob implements ShouldQueue
     ];
 
     $startLog = saveActivityLog($defaultLog);
-    
+
     File::where('scheduled_deletion_time', '<=', $now)->chunk(10, function (Collection $records) use (&$count) {
       foreach ($records as $record) {
         Log::info("3556 --> RemoveFileJob: Deleting file ID {$record->id}");
@@ -59,7 +60,7 @@ class RemoveFileJob implements ShouldQueue
     });
 
     $template = null;
-    
+
     if ($count > 0) {
       $template = EmailTemplate::where('alias', 'clean_scheduled_files')->first();
     } else {
@@ -75,11 +76,11 @@ class RemoveFileJob implements ShouldQueue
       ]);
 
       $message = $template->message;
-  
+
       foreach ($placeholders as $key => $value) {
         $message = str_replace('{' . $key . '}', $value, $message);
       }
-  
+
       $default = [
         'name'    => $author_name,
         'email'   => $author_email,
@@ -87,9 +88,9 @@ class RemoveFileJob implements ShouldQueue
         'message' => $message,
         'status'  => EmailStatus::Draft,
       ];
-  
+
       $email = Email::create($default);
-  
+
       (new EmailService())->sendOrPreview($email);
     }
 

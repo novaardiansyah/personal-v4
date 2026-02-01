@@ -8,7 +8,8 @@ use App\Models\Email;
 use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Laravel\Sanctum\PersonalAccessToken;
@@ -48,7 +49,7 @@ class CleanExpiredTokens implements ShouldQueue
     $deletedCount = PersonalAccessToken::where('expires_at', '<', $now)->delete();
 
     $template = null;
-    
+
     if ((int) $deletedCount > 0) {
       $template = EmailTemplate::where('alias', 'clean_scheduled_token')->first();
     } else {
@@ -64,11 +65,11 @@ class CleanExpiredTokens implements ShouldQueue
       ]);
 
       $message = $template->message;
-  
+
       foreach ($placeholders as $key => $value) {
         $message = str_replace('{' . $key . '}', $value, $message);
       }
-  
+
       $default = [
         'name'    => $author_name,
         'email'   => $author_email,
@@ -76,9 +77,9 @@ class CleanExpiredTokens implements ShouldQueue
         'message' => $message,
         'status'  => EmailStatus::Draft,
       ];
-  
+
       $email = Email::create($default);
-  
+
       (new EmailService())->sendOrPreview($email);
     }
 

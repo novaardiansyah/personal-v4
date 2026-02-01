@@ -8,7 +8,8 @@ use App\Models\Email;
 use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
-use Carbon\Carbon;
+use Illuminate\Support\Carbon;;
+
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Log;
 
@@ -41,7 +42,7 @@ class LogUserLogin
     $user       = getUser($user_id);
 
     if (!$user) return;
-    
+
     $referer    = $event->guard === 'api' ? url('/api/auth/login') : url('admin/login');
     $ip_address = request()->ip();
     $user_agent = request()->userAgent();
@@ -127,7 +128,7 @@ class LogUserLogin
       ]);
 
       $message = $template->message;
-  
+
       foreach ($placeholders as $key => $value) {
         $message = str_replace('{' . $key . '}', $value, $message);
       }
@@ -139,9 +140,9 @@ class LogUserLogin
         'message' => $message,
         'status'  => EmailStatus::Draft,
       ];
-  
+
       $email = Email::create($default);
-  
+
       (new EmailService())->sendOrPreview($email, false, $device_info);
     }
   }
