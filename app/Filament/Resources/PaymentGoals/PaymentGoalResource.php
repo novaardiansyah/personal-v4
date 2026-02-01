@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Filament\Resources\PaymentGoals\Pages\ActionPaymentGoals;
 use App\Filament\Resources\PaymentGoals\Pages\AddFundPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\AllocateFundPaymentGoal;
+use App\Filament\Resources\PaymentGoals\Pages\EditPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\ManagePaymentGoals;
 use App\Models\PaymentGoal;
 use App\Models\PaymentGoalStatus;
@@ -57,7 +58,58 @@ class PaymentGoalResource extends Resource
   {
     return $schema
       ->components([
-        Section::make('')
+        Section::make()
+          ->description('Goal Details')
+          ->collapsible()
+          ->columns(2)
+          ->columnSpan(2)
+          ->schema([
+            DatePicker::make('start_date')
+              ->label('Start Date')
+              ->required()
+              ->native(false)
+              ->closeOnDateSelection()
+              ->displayFormat('M d, Y')
+              ->default(Carbon::now()->firstOfMonth()),
+
+            DatePicker::make('target_date')
+              ->label('Target Date')
+              ->required()
+              ->native(false)
+              ->closeOnDateSelection()
+              ->displayFormat('M d, Y')
+              ->default(Carbon::now()->endOfMonth())
+              ->after('start_date'),
+
+            TextInput::make('target_amount')
+              ->label('Target Amount')
+              ->required()
+              ->numeric()
+              ->prefix('Rp')
+              ->placeholder('0')
+              ->live(onBlur: true)
+              ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+
+            TextInput::make('amount')
+              ->label('Current Amount')
+              ->required()
+              ->numeric()
+              ->prefix('Rp')
+              ->default(0)
+              ->placeholder('0')
+              ->live(onBlur: true)
+              ->hint(function (Get $get, ?string $state) {
+                $target   = (float) $get('target_amount');
+                $amount   = (float) $state;
+                $progress = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
+
+                return toIndonesianCurrency($state ?? 0) . ' (' . $progress . '%)';
+              }),
+          ]),
+
+        Section::make()
+          ->description('Goal Information')
+          ->collapsible()
           ->schema([
             TextInput::make('name')
               ->label('Goal Name')
@@ -71,90 +123,8 @@ class PaymentGoalResource extends Resource
               ->placeholder('Describe your goal in detail')
               ->columnSpanFull(),
           ]),
-
-        Section::make('Settings')
-          ->schema([
-            Select::make('status_id')
-              ->label('Status')
-              ->relationship('status', 'name')
-              ->required()
-              ->default(PaymentGoalStatus::ONGOING)
-              ->native(false),
-
-            TextInput::make('progress_percent')
-              ->label('Progress')
-              ->required()
-              ->numeric()
-              ->suffix('%')
-              ->minValue(0)
-              ->maxValue(100)
-              ->default(0)
-              ->readOnly()
-              ->hint(fn(Get $get) => toIndonesianCurrency($get('amount') ?? 0) . ' / ' . toIndonesianCurrency($get('target_amount') ?? 0)),
-          ])
-          ->columnSpan(1),
-
-        Section::make('Financial Details')
-          ->schema([
-            Grid::make(2)
-              ->schema([
-                TextInput::make('target_amount')
-                  ->label('Target Amount')
-                  ->required()
-                  ->numeric()
-                  ->prefix('Rp')
-                  ->placeholder('0')
-                  ->live(onBlur: true)
-                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0))
-                  ->afterStateUpdated(function (Set $set, Get $get) {
-                    $target = (float) $get('target_amount');
-                    $amount = (float) $get('amount');
-                    $progress = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
-                    $set('progress_percent', $progress);
-                  }),
-
-                TextInput::make('amount')
-                  ->label('Current Amount')
-                  ->required()
-                  ->numeric()
-                  ->prefix('Rp')
-                  ->default(0)
-                  ->placeholder('0')
-                  ->live(onBlur: true)
-                  ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0))
-                  ->afterStateUpdated(function (Set $set, Get $get) {
-                    $target = (float) $get('target_amount');
-                    $amount = (float) $get('amount');
-                    $progress = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
-                    $set('progress_percent', $progress);
-                  }),
-              ]),
-          ]),
-
-        Section::make('Timeline')
-          ->schema([
-            Grid::make(2)
-              ->schema([
-                DatePicker::make('start_date')
-                  ->label('Start Date')
-                  ->required()
-                  ->native(false)
-                  ->closeOnDateSelection()
-                  ->displayFormat('M d, Y')
-                  ->default(Carbon::now()->firstOfMonth()),
-
-                DatePicker::make('target_date')
-                  ->label('Target Date')
-                  ->required()
-                  ->native(false)
-                  ->closeOnDateSelection()
-                  ->displayFormat('M d, Y')
-                  ->default(Carbon::now()->endOfMonth())
-                  ->after('start_date'),
-              ]),
-          ]),
       ])
-      ->columns(2);
+      ->columns(3);
   }
 
   public static function infolist(Schema $schema): Schema
@@ -296,8 +266,7 @@ class PaymentGoalResource extends Resource
             ->modalHeading('Payment Goal Details')
             ->slideOver(),
 
-          EditAction::make()
-            ->modalWidth(Width::SixExtraLarge),
+          EditAction::make(),
 
           Action::make('allocate_fund')
             ->label('Allocate Fund')
@@ -323,7 +292,8 @@ class PaymentGoalResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index' => ManagePaymentGoals::route('/'),
+      'index'         => ManagePaymentGoals::route('/'),
+      'edit'          => EditPaymentGoal::route('/{record}/edit'),
       'allocate-fund' => AllocateFundPaymentGoal::route('/{record}/allocate-fund'),
     ];
   }
