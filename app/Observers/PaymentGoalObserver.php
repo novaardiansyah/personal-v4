@@ -3,13 +3,15 @@
 namespace App\Observers;
 
 use App\Models\PaymentGoal;
+use App\Models\PaymentGoalStatus;
 
 class PaymentGoalObserver
 {
   public function creating(PaymentGoal $paymentGoal)
   {
-    $paymentGoal->code = getCode('payment_goals');
-    $paymentGoal->user_id = auth()->id();
+    $paymentGoal->code      = getCode('payment_goals');
+    $paymentGoal->user_id   = auth()->id();
+    $paymentGoal->status_id = PaymentGoalStatus::ONGOING;
   }
 
   /**

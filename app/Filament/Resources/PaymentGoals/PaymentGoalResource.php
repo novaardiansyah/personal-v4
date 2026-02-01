@@ -8,6 +8,7 @@ use Carbon\Carbon;
 use App\Filament\Resources\PaymentGoals\Pages\ActionPaymentGoals;
 use App\Filament\Resources\PaymentGoals\Pages\AddFundPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\AllocateFundPaymentGoal;
+use App\Filament\Resources\PaymentGoals\Pages\CreatePaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\EditPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\ManagePaymentGoals;
 use App\Models\PaymentGoal;
@@ -293,6 +294,7 @@ class PaymentGoalResource extends Resource
   {
     return [
       'index'         => ManagePaymentGoals::route('/'),
+      'create'        => CreatePaymentGoal::route('/create'),
       'edit'          => EditPaymentGoal::route('/{record}/edit'),
       'allocate-fund' => AllocateFundPaymentGoal::route('/{record}/allocate-fund'),
     ];
