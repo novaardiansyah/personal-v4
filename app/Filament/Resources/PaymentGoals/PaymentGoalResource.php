@@ -161,77 +161,69 @@ class PaymentGoalResource extends Resource
   {
     return $schema
       ->components([
-        Section::make('Goal Overview')
+        Section::make()
+          ->description('Goal Overview')
+          ->collapsible()
+          ->columns(3)
           ->schema([
-            Grid::make(3)
-              ->schema([
-                TextEntry::make('code')
-                  ->label('Goal Code'),
+            TextEntry::make('code')
+              ->label('Goal ID')
+              ->badge()
+              ->copyable(),
 
-                TextEntry::make('name')
-                  ->label('Goal Name')
-                  ->columns(2),
+            TextEntry::make('name')
+              ->label('Goal Name')
+              ->columnSpan(2),
 
-                TextEntry::make('description')
-                  ->label('Description')
-                  ->columnSpanFull(),
-              ]),
+            TextEntry::make('amount')
+              ->label('Current Amount')
+              ->formatStateUsing(function (?string $state, PaymentGoal $record): string {
+                return toIndonesianCurrency($state ?? 0) . ' (' . $record->latest_progress_percent . '%)';
+              }),
+
+            TextEntry::make('target_amount')
+              ->label('Target Amount')
+              ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0)),
+
+            TextEntry::make('status.name')
+              ->label('Status')
+              ->badge()
+              ->color(fn(PaymentGoal $record): string => $record->status->getBadgeColors()),
+
+            TextEntry::make('description')
+              ->label('Description')
+              ->columnSpanFull(),
           ]),
 
-        Section::make('Financial Information')
+        Section::make()
+          ->description('Timestamp')
+          ->collapsible()
+          ->columns(3)
           ->schema([
-            Grid::make(2)
-              ->schema([
-                TextEntry::make('target_amount')
-                  ->label('Target Amount')
-                  ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0)),
+            TextEntry::make('start_date')
+              ->label('Start Date')
+              ->date('M d, Y')
+              ->sinceTooltip(),
 
-                TextEntry::make('amount')
-                  ->label('Current Amount')
-                  ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0)),
+            TextEntry::make('target_date')
+              ->label('Target Date')
+              ->date('M d, Y')
+              ->sinceTooltip()
+              ->columnSpan(2),
 
-                TextEntry::make('progress_percent')
-                  ->label('Progress')
-                  ->formatStateUsing(fn(?string $state): string => $state . '%')
-                  ->badge()
-                  ->color(fn(PaymentGoal $record): string => $record->getProgressColor()),
+            TextEntry::make('created_at')
+              ->dateTime('M d, Y H:i')
+              ->sinceTooltip(),
 
-                TextEntry::make('status.name')
-                  ->label('Status')
-                  ->badge()
-                  ->color(fn(PaymentGoal $record): string => $record->status->getBadgeColors()),
-              ]),
+            TextEntry::make('updated_at')
+              ->dateTime('M d, Y H:i')
+              ->sinceTooltip(),
+
+            TextEntry::make('deleted_at')
+              ->dateTime('M d, Y H:i')
+              ->sinceTooltip(),
           ]),
-
-        Section::make('Timeline')
-          ->schema([
-            Grid::make(3)
-              ->schema([
-                TextEntry::make('start_date')
-                  ->label('Start Date')
-                  ->date('M d, Y'),
-
-                TextEntry::make('target_date')
-                  ->label('Target Date')
-                  ->date('M d, Y'),
-              ]),
-          ]),
-
-        Section::make('System Information')
-          ->schema([
-            Grid::make(3)
-              ->schema([
-                TextEntry::make('created_at')
-                  ->label('Created')
-                  ->dateTime('M d, Y H:i'),
-
-                TextEntry::make('updated_at')
-                  ->label('Last Updated')
-                  ->dateTime('M d, Y H:i')
-                  ->sinceTooltip(),
-              ]),
-          ]),
-      ]);
+      ])->columns(1);
   }
 
   public static function table(Table $table): Table
@@ -300,7 +292,9 @@ class PaymentGoalResource extends Resource
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
-            ->modalWidth(Width::SixExtraLarge),
+            ->modalWidth(Width::ThreeExtraLarge)
+            ->modalHeading('Payment Goal Details')
+            ->slideOver(),
 
           EditAction::make()
             ->modalWidth(Width::SixExtraLarge),
