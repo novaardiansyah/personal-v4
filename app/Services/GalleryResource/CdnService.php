@@ -61,10 +61,13 @@ class CdnService
     return $response;
   }
 
-  public function upload(string $filePath, ?string $description = null, bool $isPrivate = false, ?string $subjectType = null, ?int $subjectId = null, ?string $dir = 'gallery'): Response
+  public function upload(string $filePath, ?string $description = null, bool $isPrivate = false, ?string $subjectType = null, ?int $subjectId = null, ?string $dir = 'gallery'): Response|null
   {
     $disk = Storage::disk('public');
     $fileContent = $disk->get($filePath);
+
+    if ($fileContent === null) return null;
+
     $mimeType = $disk->mimeType($filePath);
     $fileName = basename($filePath);
 

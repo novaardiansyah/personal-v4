@@ -49,7 +49,7 @@ class PaymentAccountObserver
         dir: 'payment-account'
       );
 
-      if ($req->successful()) {
+      if ($req && $req->successful()) {
         Storage::disk('public')->delete($currentImage);
       }
     }
