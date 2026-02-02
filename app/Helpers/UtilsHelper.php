@@ -65,9 +65,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   $filepath                 = "{$directory}/{$filename}";
   $fullpath                 = storage_path("app/{$filepath}");
 
-  if (!Storage::exists($directory)) {
-    Storage::makeDirectory($directory);
-  }
+  Storage::disk('public')->makeDirectory('attachments');
 
   $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
 
