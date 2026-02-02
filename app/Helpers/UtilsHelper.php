@@ -58,12 +58,16 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 {
   $user ??= getUser();
 
-  $extension = 'pdf';
-  $directory = 'public/attachments';
+  $extension                = 'pdf';
+  $directory                = 'public/attachments';
   $filenameWithoutExtension = Str::orderedUuid()->toString();
-  $filename = "{$filenameWithoutExtension}.{$extension}";
-  $filepath = "{$directory}/{$filename}";
-  $fullpath = storage_path("app/{$filepath}");
+  $filename                 = "{$filenameWithoutExtension}.{$extension}";
+  $filepath                 = "{$directory}/{$filename}";
+  $fullpath                 = storage_path("app/{$filepath}");
+
+  if (!Storage::exists($directory)) {
+    Storage::makeDirectory($directory);
+  }
 
   $end_tbody = $auto_close_tbody ? '</tbody><tfoot><tr></tr></tfoot>' : '';
 
