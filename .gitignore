@@ -28,4 +28,4 @@ Thumbs.db
 .factory/
 docker-compose.override.yml
 /deploy
-
+setup.sh
