@@ -74,7 +74,8 @@ class ShortUrl extends Model
         ->setData($short_code)
         ->generate();
 
-      // Delete existing QR code if it exists
+      Storage::disk('public')->makeDirectory('qrcodes/short-urls');
+
       if ($this->qrcode && Storage::disk('public')->exists($this->qrcode)) {
         Storage::disk('public')->delete($this->qrcode);
       }
