@@ -9,7 +9,7 @@ use App\Models\EmailTemplate;
 use App\Models\File;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;

@@ -8,7 +8,7 @@ use App\Models\Email;
 use App\Models\EmailTemplate;
 use App\Models\User;
 use App\Services\EmailResource\EmailService;
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

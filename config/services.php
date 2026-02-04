@@ -46,6 +46,11 @@ return [
     ],
   ],
 
+  'telegram' => [
+    'token' => env('TELEGRAM_TOKEN'),
+    'chat_id' => env('TELEGRAM_CHAT_ID'),
+  ],
+
   'self' => [
     'short_url_token' => env('SHORTURL_TOKEN'),
     'cdn_api_url'     => env('CDN_API_URL'),

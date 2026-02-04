@@ -2,7 +2,7 @@
 
 namespace App\Mail\BlogSubscriberResource;
 
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;

@@ -31,7 +31,7 @@ use App\Jobs\PaymentResource\PaymentReportPdf;
 use Illuminate\Validation\ValidationException;
 
 use App\Services\PaymentResource\PaymentService;
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;

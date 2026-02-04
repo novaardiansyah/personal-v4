@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\EmailTemplates\Schemas;
 
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\RichEditor;

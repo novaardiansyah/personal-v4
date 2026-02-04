@@ -7,11 +7,9 @@ use App\Models\PushNotification;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\ExpoNotificationService;
-use Illuminate\Support\Carbon;;
-
+use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
-use Ramsey\Uuid\Uuid;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Database\Eloquent\Model;
@@ -216,24 +214,6 @@ function textLower($text)
 {
   return trim(strtolower($text));
 }
-
-// function sendTelegramNotification($message = null, $location = null, $chat_id = null)
-// {
-//   $chat_id = $chat_id ?? config('services.telegram-bot-api.chat_id');
-
-//   if ($message) {
-//     NotificationFacade::route('telegram', $chat_id)->notify(new TelegramNotification([
-//       'message' => $message
-//     ]));
-
-//     \Log::info('673 --> Telegram message notification sent');
-//   }
-
-//   if ($location) {
-//     NotificationFacade::route('telegram', $chat_id)->notify(new TelegramLocationNotification($location));
-//     \Log::info('674 --> Telegram location notification sent');
-//   }
-// }
 
 function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
 {

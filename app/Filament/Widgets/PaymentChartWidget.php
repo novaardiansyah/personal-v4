@@ -3,7 +3,7 @@
 namespace App\Filament\Widgets;
 
 use App\Models\Payment;
-use Illuminate\Support\Carbon;;
+use Illuminate\Support\Carbon;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Schema;

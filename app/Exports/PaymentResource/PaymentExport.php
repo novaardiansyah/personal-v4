@@ -4,8 +4,7 @@ namespace App\Exports\PaymentResource;
 
 use App\Models\Payment;
 use App\Models\PaymentType;
-use Illuminate\Support\Carbon;;
-
+use Illuminate\Support\Carbon;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithColumnFormatting;

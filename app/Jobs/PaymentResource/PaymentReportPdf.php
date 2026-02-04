@@ -6,8 +6,7 @@ use App\Mail\PaymentResource\CustomReportMail;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Services\PaymentResource\PaymentService;
-use Illuminate\Support\Carbon;;
-
+use Illuminate\Support\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
