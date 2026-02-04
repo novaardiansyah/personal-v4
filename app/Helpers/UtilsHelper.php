@@ -7,6 +7,7 @@ use App\Models\PushNotification;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\ExpoNotificationService;
+use App\Services\TelegramService;
 use Illuminate\Support\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Storage;
@@ -373,6 +374,13 @@ function sendPushNotification(User $user, PushNotification $record): array
   }
 
   return $result;
+}
+
+function sendTelegramNotification(string $message): void
+{
+  $user = (object) ['telegram_id' => config('services.telegram-bot-api.chat_id')];
+  $telegramService = app(TelegramService::class);
+  $telegramService->toTelegram($user)->content($message)->send();
 }
 
 function processBase64Image(?string $base64Data, string $storagePath): ?string

@@ -45,6 +45,11 @@ Route::middleware('auth:sanctum')->group(function () {
   Route::prefix('notifications')->group(function () {
     Route::put('/settings', [NotificationController::class, 'updateNotificationSettings']);
     Route::post('/test', [NotificationController::class, 'testNotification']);
+
+    Route::prefix('/telegram')->group(function () {
+      Route::post('/testing', [NotificationController::class, 'testingTelegram']);
+      Route::post('/send', [NotificationController::class, 'sendTelegram']);
+    });
   });
 
   Route::prefix('generates')->group(function () {
@@ -65,4 +70,3 @@ Route::middleware('auth:sanctum')->group(function () {
 
   require __DIR__ . '/api/gallery.php';
 });
-

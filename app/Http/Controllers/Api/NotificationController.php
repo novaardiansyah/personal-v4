@@ -76,4 +76,36 @@ class NotificationController extends Controller
 
     return response()->json($result, 200);
   }
+
+  public function testingTelegram(Request $request)
+  {
+    sendTelegramNotification('Hello there!');
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Notification sent successfully',
+    ]);
+  }
+
+  public function sendTelegram(Request $request)
+  {
+    $validator = Validator::make($request->all(), [
+      'message' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    sendTelegramNotification($request->message);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Notification sent successfully',
+    ]);
+  }
 }
