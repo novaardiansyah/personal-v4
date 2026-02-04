@@ -29,3 +29,4 @@ Thumbs.db
 docker-compose.override.yml
 /deploy
 setup.sh
+Makefile

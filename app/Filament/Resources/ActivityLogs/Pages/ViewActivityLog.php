@@ -3,17 +3,17 @@
 namespace App\Filament\Resources\ActivityLogs\Pages;
 
 use App\Filament\Resources\ActivityLogs\ActivityLogResource;
-use Filament\Actions\CreateAction;
-use Filament\Resources\Pages\ManageRecords;
+use Filament\Actions\EditAction;
+use Filament\Resources\Pages\ViewRecord;
 
-class ManageActivityLogs extends ManageRecords
+class ViewActivityLog extends ViewRecord
 {
     protected static string $resource = ActivityLogResource::class;
 
     protected function getHeaderActions(): array
     {
         return [
-            // CreateAction::make(),
+            EditAction::make(),
         ];
     }
 }
