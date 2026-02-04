@@ -56,5 +56,6 @@ return [
     'cdn_api_url'     => env('CDN_API_URL'),
     'cdn_api_key'     => env('CDN_API_KEY'),
     'cdn_url'         => env('CDN_URL'),
+    'webhook_secret'  => env('WEBHOOK_SECRET'),
   ],
 ];
