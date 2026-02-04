@@ -55,4 +55,43 @@ class WebhookController extends Controller
       'message' => 'Webhook testing successful',
     ]);
   }
+
+  public function telegram(Request $request)
+  {
+    $signature = $request->header('X-Signature');
+
+    if (!$signature) {
+      return response()->json(['message' => 'Missing signature'], 422);
+    }
+
+    $validator = Validator::make($request->all(), [
+      'timestamp' => ['required', Rule::date()->format('Y-m-d H:i:s')],
+      'message' => 'required|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors' => $validator->errors()
+      ], 422);
+    }
+
+    $validated = $validator->validated();
+    $expectedSignature = hash_hmac('sha256', $validated['timestamp'], config('services.self.webhook_secret'));
+
+    if ($expectedSignature !== $signature) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Invalid signature',
+      ], 422);
+    }
+
+    sendTelegramNotification($validated['message']);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Webhook execution successful',
+    ]);
+  }
 }

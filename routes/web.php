@@ -39,4 +39,8 @@ Route::get('admin/email-templates/{emailTemplate}/preview', [EmailTemplateContro
 
 Route::prefix('webhook')->group(function () {
   Route::post('/testing', [WebhookController::class, 'testing']);
+
+  Route::prefix('notifications')->group(function () {
+    Route::post('/telegram', [WebhookController::class, 'telegram']);
+  });
 });
