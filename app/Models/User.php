@@ -16,6 +16,7 @@ use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 #[ObservedBy([UserObserver::class])]
 class User extends Authenticatable implements FilamentUser, MustVerifyEmail, HasAppAuthentication, HasEmailAuthentication, HasAvatar
@@ -75,7 +76,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
 
   public function getFilamentAvatarUrl(): ?string
   {
-    return $this->avatar_url ? Storage::url($this->avatar_url) : null;
+    $avatar = $this->avatar_url ?? null;
+
+    if (Str::contains($avatar, 'https')) {
+      return $avatar;
+    }
+
+    return Storage::url($avatar);
   }
 
   public function getAppAuthenticationSecret(): ?string
