@@ -21,6 +21,8 @@ use \Illuminate\Http\UploadedFile;
 use Spatie\Image\Image;
 use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 use \Mpdf\Mpdf;
+use App\Events\TelegramNotificationEvent;
+use \GuzzleHttp\Psr7\Response;
 
 function getSetting(string $key, $default = null)
 {
@@ -380,7 +382,17 @@ function sendTelegramNotification(string $message): void
 {
   $user = (object) ['telegram_id' => config('services.telegram-bot-api.chat_id')];
   $telegramService = app(TelegramService::class);
-  $telegramService->toTelegram($user)->content($message)->send();
+
+  try {
+    $response = $telegramService->toTelegram($user)->content($message)->send();
+    $body = [];
+    if ($response instanceof Response) {
+      $body = json_decode($response->getBody()->getContents(), true) ?? [];
+    }
+    event(new TelegramNotificationEvent($message, 'Sent', $body));
+  } catch (\Throwable $e) {
+    event(new TelegramNotificationEvent($message, 'Failed', ['error' => $e->getMessage()]));
+  }
 }
 
 function processBase64Image(?string $base64Data, string $storagePath): ?string
