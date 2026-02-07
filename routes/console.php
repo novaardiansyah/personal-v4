@@ -4,6 +4,7 @@ use App\Jobs\CleanExpiredTokens;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
+use App\Jobs\UptimeMonitorResource\UptimeMonitorJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -28,3 +29,7 @@ Schedule::job(new RemoveFileJob())
 // ! Clean Expired Tokens
 Schedule::job(new CleanExpiredTokens())
   ->dailyAt('23:59');
+
+// ! Uptime Monitor Check
+Schedule::job(new UptimeMonitorJob())
+  ->everyThirtySeconds();
