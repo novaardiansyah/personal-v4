@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitors\Tables;
 
+use App\Models\UptimeMonitor;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -57,6 +58,7 @@ class UptimeMonitorsTable
           ->limit(25)
           ->tooltip(fn(?string $state): ?string => $state)
           ->copyable()
+          ->copyableState(fn(UptimeMonitor $record): string => $record->url)
           ->toggleable(),
         TextColumn::make('interval')
           ->label('Interval')
@@ -130,9 +132,12 @@ class UptimeMonitorsTable
           ->searchable(),
       ])
       ->recordUrl(null)
+      ->recordAction(null)
       ->recordActions([
         ActionGroup::make([
-          ViewAction::make(),
+          ViewAction::make()
+            ->slideOver(),
+
           EditAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),

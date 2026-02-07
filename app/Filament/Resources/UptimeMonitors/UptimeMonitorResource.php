@@ -68,8 +68,8 @@ class UptimeMonitorResource extends Resource
     return [
       'index'  => ListUptimeMonitors::route('/'),
       'create' => CreateUptimeMonitor::route('/create'),
-      'view'   => ViewUptimeMonitor::route('/{record}'),
       'edit'   => EditUptimeMonitor::route('/{record}/edit'),
+      // 'view'   => ViewUptimeMonitor::route('/{record}'),
     ];
   }
 
