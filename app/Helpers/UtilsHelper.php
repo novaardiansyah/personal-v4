@@ -487,3 +487,33 @@ function sizeFormat(float $size): string
   $i = floor(log($size, 1024));
   return round($size / pow(1024, $i), 2) . ' ' . $units[$i];
 }
+
+function secondsToHumanReadable(?int $seconds): string
+{
+  if (!$seconds) {
+    return '';
+  }
+
+  $days = (int) ($seconds / 86400);
+  $hours = (int) (($seconds % 86400) / 3600);
+  $minutes = (int) (($seconds % 3600) / 60);
+  $secs = $seconds % 60;
+
+  $parts = [];
+
+  if ($days >= 1) {
+    $parts[] = "{$days} " . ($days === 1 ? 'day' : 'days');
+  }
+
+  if ($hours >= 1 || $days >= 1) {
+    $parts[] = "{$hours} " . ($hours === 1 ? 'hour' : 'hours');
+  }
+
+  if ($minutes >= 1 || $hours >= 1 || $days >= 1) {
+    $parts[] = "{$minutes} " . ($minutes === 1 ? 'minute' : 'minutes');
+  }
+
+  $parts[] = "{$secs} " . ($secs === 1 ? 'second' : 'seconds');
+
+  return implode(', ', $parts);
+}
