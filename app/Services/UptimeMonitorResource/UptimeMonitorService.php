@@ -31,6 +31,7 @@ class UptimeMonitorService
 
     $monitor->total_checks = ($monitor->total_checks ?? 0) + 1;
     $monitor->last_checked_at = now();
+    $monitor->next_check_at = now()->addSeconds($monitor->interval);
 
     $isHealthy
       ? $monitor->healthy_checks = ($monitor->healthy_checks ?? 0) + 1
@@ -56,8 +57,8 @@ class UptimeMonitorService
     UptimeMonitor::query()
       ->where('is_active', true)
       ->where(function ($query) {
-        $query->whereNull('last_checked_at')
-          ->orWhereRaw('TIMESTAMPDIFF(SECOND, last_checked_at, NOW()) >= `interval`');
+        $query->whereNull('next_check_at')
+          ->orWhere('next_check_at', '<=', now());
       })
       ->chunkById(50, function ($monitors) use (&$results) {
         foreach ($monitors as $monitor) {

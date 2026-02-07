@@ -4,11 +4,11 @@
  * Project Name: personal-v4
  * File: UptimeMonitorsTable.php
  * Created Date: Saturday February 7th 2026
- * 
+ *
  * Author: Nova Ardiansyah admin@novaardiansyah.id
  * Website: https://novaardiansyah.id
  * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
- * 
+ *
  * Copyright (c) 2026 Nova Ardiansyah, Org
  */
 
@@ -54,7 +54,7 @@ class UptimeMonitorsTable
         TextColumn::make('url')
           ->label('URL')
           ->searchable()
-          ->limit(30)
+          ->limit(25)
           ->tooltip(fn(?string $state): ?string => $state)
           ->copyable()
           ->toggleable(),
@@ -70,7 +70,13 @@ class UptimeMonitorsTable
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
+        TextColumn::make('next_check_at')
+          ->label('Next Check')
+          ->dateTime()
+          ->sortable()
+          ->sinceTooltip()
+          ->toggleable(),
         TextColumn::make('last_healthy_at')
           ->label('Last Healthy')
           ->dateTime()
@@ -110,7 +116,7 @@ class UptimeMonitorsTable
           ->dateTime()
           ->sortable()
           ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()

@@ -29,35 +29,21 @@ class UptimeMonitorJob implements ShouldQueue
 
   public function handle(): void
   {
-    $now    = Carbon::now()->toDateTimeString();
-    $causer = getUser();
+    $causer  = getUser();
+    $results = app(UptimeMonitorService::class)->runScheduledChecks();
 
     $defaultLog = [
       'log_name'    => 'Console',
       'event'       => 'Scheduled',
-      'description' => 'UptimeMonitorJob() Executed by ' . $causer->name,
+      'description' => 'UptimeMonitorJob() Successfully Executed by ' . $causer->name,
       'causer_type' => User::class,
       'causer_id'   => $causer->id,
       'properties'  => [
-        'now' => $now,
-      ],
-    ];
-
-    $startLog = saveActivityLog($defaultLog);
-
-    $service = new UptimeMonitorService();
-    $results = $service->runScheduledChecks();
-
-    $defaultLog = array_merge($defaultLog, [
-      'description'  => 'UptimeMonitorJob() Successfully Executed by ' . $causer->name,
-      'subject_type' => ActivityLog::class,
-      'subject_id'   => $startLog->id,
-      'properties'   => array_merge($defaultLog['properties'], [
         'total_checked'   => $results['total'],
         'healthy_count'   => $results['healthy'],
         'unhealthy_count' => $results['unhealthy'],
-      ]),
-    ]);
+      ],
+    ];
 
     saveActivityLog($defaultLog);
   }
