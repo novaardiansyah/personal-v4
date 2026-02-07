@@ -513,7 +513,9 @@ function secondsToHumanReadable(?int $seconds): string
     $parts[] = "{$minutes} " . ($minutes === 1 ? 'minute' : 'minutes');
   }
 
-  $parts[] = "{$secs} " . ($secs === 1 ? 'second' : 'seconds');
+  if ($secs > 0) {
+    $parts[] = "{$secs} " . ($secs === 1 ? 'second' : 'seconds');
+  }
 
   return implode(', ', $parts);
 }

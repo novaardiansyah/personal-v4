@@ -16,7 +16,6 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitors\Schemas;
 
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
@@ -49,9 +48,9 @@ class UptimeMonitorForm
             TextInput::make('interval')
               ->required()
               ->numeric()
-              ->default(5)
+              ->default(60)
               ->suffix('seconds')
-              ->minValue(5)
+              ->minValue(30)
               ->live(onBlur: true)
               ->hint(fn(?string $state): string => secondsToHumanReadable((int) $state)),
             Toggle::make('is_active')
