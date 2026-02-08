@@ -29,20 +29,20 @@ class UptimeMonitorService
     $errorMessage  = null;
     $isHealthy     = false;
 
-    try {
-      $startTime = microtime(true);
-      $response  = Http::timeout(30)->get($monitor->url);
-      $endTime   = microtime(true);
+    $startTime = microtime(true);
 
-      $responseTime = (int) round(($endTime - $startTime) * 1000);
-      $statusCode   = $response->status();
-      $isHealthy    = $response->successful();
+    try {
+      $response  = Http::timeout(30)->get($monitor->url);
+      $statusCode = $response->status();
+      $isHealthy  = $response->successful();
     } catch (ConnectionException $e) {
       $statusCode   = 408;
       $errorMessage = $e->getMessage();
     } catch (\Throwable $e) {
       $statusCode   = 500;
       $errorMessage = $e->getMessage();
+    } finally {
+      $responseTime = (int) round((microtime(true) - $startTime) * 1000);
     }
 
     $monitor->logs()->create([
