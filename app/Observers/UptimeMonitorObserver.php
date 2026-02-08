@@ -32,6 +32,14 @@ class UptimeMonitorObserver
 
   public function updated(UptimeMonitor $uptimeMonitor): void
   {
+    $userEditableFields = ['url', 'name', 'interval', 'is_active'];
+    $changedFields = array_keys($uptimeMonitor->getDirty());
+    $hasUserEditableChanges = !empty(array_intersect($changedFields, $userEditableFields));
+
+    if (!$hasUserEditableChanges) {
+      return;
+    }
+
     $this->_log('Updated', $uptimeMonitor);
   }
 

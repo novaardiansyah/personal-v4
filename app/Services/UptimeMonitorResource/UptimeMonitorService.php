@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Services\UptimeMonitorResource;
 
+use App\Models\HttpStatus;
 use App\Models\UptimeMonitor;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
@@ -29,10 +30,11 @@ class UptimeMonitorService
   {
     $result = $this->performHttpCheck($monitor->url);
     $result = $this->evaluateSlowResponse($result);
+    $result = $this->generateErrorMessage($result);
 
     $this->createLog($monitor, $result);
     $this->updateMonitorStats($monitor, $result['is_healthy']);
-    $this->sendStatusNotification($monitor, $result['is_healthy'], $result['status_code'], $result['error_message']);
+    $this->sendStatusNotification($monitor, $result['is_healthy'], $result['error_message']);
 
     $monitor->save();
 
@@ -53,11 +55,9 @@ class UptimeMonitorService
       $statusCode = $response->status();
       $isHealthy  = $response->successful();
     } catch (ConnectionException $e) {
-      $statusCode   = 408;
-      $errorMessage = $e->getMessage();
+      $statusCode = 408;
     } catch (\Throwable $e) {
-      $statusCode   = 500;
-      $errorMessage = $e->getMessage();
+      $statusCode = 500;
     } finally {
       $responseTime = (int) round((microtime(true) - $startTime) * 1000);
     }
@@ -68,17 +68,34 @@ class UptimeMonitorService
   private function evaluateSlowResponse(array $result): array
   {
     if ($result['isHealthy'] && $result['responseTime'] > self::SLOW_RESPONSE_THRESHOLD_MS) {
-      $result['isHealthy']    = false;
-      $result['statusCode']   = 503;
-      $result['errorMessage'] = 'Service degraded: Response time exceeded acceptable threshold (' . $result['responseTime'] . 'ms). Performance optimization required.';
+      $result['isHealthy']  = false;
+      $result['statusCode'] = 503;
     }
 
     return [
       'status_code'      => $result['statusCode'],
       'response_time_ms' => $result['responseTime'],
-      'error_message'    => $result['errorMessage'],
       'is_healthy'       => $result['isHealthy'],
     ];
+  }
+
+  private function generateErrorMessage(array $result): array
+  {
+    if ($result['is_healthy']) {
+      $result['error_message'] = null;
+      return $result;
+    }
+
+    $statusCode = $result['status_code'];
+    $httpStatus = HttpStatus::where('name', $statusCode)->first();
+    $errorMessage = "HTTP {$statusCode}";
+
+    if ($httpStatus) {
+      $errorMessage .= " {$httpStatus->message} ({$httpStatus->description})";
+    }
+
+    $result['error_message'] = $errorMessage;
+    return $result;
   }
 
   private function createLog(UptimeMonitor $monitor, array $result): void
@@ -107,12 +124,12 @@ class UptimeMonitorService
       : $monitor->last_unhealthy_at = now();
   }
 
-  private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?int $statusCode, ?string $errorMessage): void
+  private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage): void
   {
     $wasUnhealthy = $monitor->getOriginal('last_unhealthy_at') > $monitor->getOriginal('last_healthy_at');
 
     if (!$isHealthy && !$wasUnhealthy) {
-      $this->sendDownNotification($monitor, $statusCode, $errorMessage);
+      $this->sendDownNotification($monitor, $errorMessage);
     }
 
     if ($isHealthy && $wasUnhealthy) {
@@ -120,12 +137,13 @@ class UptimeMonitorService
     }
   }
 
-  private function sendDownNotification(UptimeMonitor $monitor, ?int $statusCode, ?string $errorMessage): void
+  private function sendDownNotification(UptimeMonitor $monitor, ?string $errorMessage): void
   {
     $message = "🔴 {$monitor->name} is now DOWN\n";
     $message .= "Target: {$monitor->url}\n";
     $message .= "Noticed at: " . now()->format('M j, Y H:i:s') . "\n";
-    $message .= "Encountered errors: " . ($errorMessage ?? "HTTP {$statusCode}");
+    $message .= "Encountered errors: " . $errorMessage;
+
     sendTelegramNotification($message);
   }
 
