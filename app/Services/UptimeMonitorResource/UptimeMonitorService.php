@@ -18,6 +18,7 @@ namespace App\Services\UptimeMonitorResource;
 
 use App\Models\UptimeMonitor;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Http\Client\ConnectionException;
 
 class UptimeMonitorService
 {
@@ -36,7 +37,11 @@ class UptimeMonitorService
       $responseTime = (int) round(($endTime - $startTime) * 1000);
       $statusCode   = $response->status();
       $isHealthy    = $response->successful();
+    } catch (ConnectionException $e) {
+      $statusCode   = 408;
+      $errorMessage = $e->getMessage();
     } catch (\Throwable $e) {
+      $statusCode   = 500;
       $errorMessage = $e->getMessage();
     }
 
