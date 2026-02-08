@@ -23,11 +23,30 @@ class UptimeMonitorService
 {
   public function check(UptimeMonitor $monitor): bool
   {
+    $statusCode    = null;
+    $responseTime  = 0;
+    $errorMessage  = null;
+    $isHealthy     = false;
+
     try {
-      $isHealthy = Http::timeout(30)->get($monitor->url)->successful();
+      $startTime = microtime(true);
+      $response  = Http::timeout(30)->get($monitor->url);
+      $endTime   = microtime(true);
+
+      $responseTime = (int) round(($endTime - $startTime) * 1000);
+      $statusCode   = $response->status();
+      $isHealthy    = $response->successful();
     } catch (\Throwable $e) {
-      $isHealthy = false;
+      $errorMessage = $e->getMessage();
     }
+
+    $monitor->logs()->create([
+      'status_code'      => $statusCode,
+      'response_time_ms' => $responseTime,
+      'is_healthy'       => $isHealthy,
+      'error_message'    => $errorMessage,
+      'checked_at'       => now(),
+    ]);
 
     $monitor->total_checks = ($monitor->total_checks ?? 0) + 1;
     $monitor->last_checked_at = now();

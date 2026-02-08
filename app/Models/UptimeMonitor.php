@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Observers\UptimeMonitorObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy(UptimeMonitorObserver::class)]
@@ -23,4 +24,9 @@ class UptimeMonitor extends Model
     'last_unhealthy_at' => 'datetime',
     'next_check_at'     => 'datetime',
   ];
+
+  public function logs(): HasMany
+  {
+    return $this->hasMany(UptimeMonitorLog::class, 'uptime_monitor_id');
+  }
 }

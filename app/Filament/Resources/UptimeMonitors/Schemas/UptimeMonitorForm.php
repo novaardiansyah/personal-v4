@@ -50,7 +50,7 @@ class UptimeMonitorForm
               ->numeric()
               ->default(60)
               ->suffix('seconds')
-              ->minValue(30)
+              ->minValue(60)
               ->live(onBlur: true)
               ->hint(fn(?string $state): string => secondsToHumanReadable((int) $state)),
             Toggle::make('is_active')

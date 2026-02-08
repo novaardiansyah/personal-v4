@@ -32,4 +32,4 @@ Schedule::job(new CleanExpiredTokens())
 
 // ! Uptime Monitor Check
 Schedule::job(new UptimeMonitorJob())
-  ->everyThirtySeconds();
+  ->everyMinute();
