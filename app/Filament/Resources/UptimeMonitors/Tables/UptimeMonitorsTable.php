@@ -16,7 +16,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitors\Tables;
 
-use App\Filament\Resources\UptimeMonitors\Actions\UptimeMonitorAction;
+use App\Filament\Resources\UptimeMonitors\Actions\UptimeMonitorActions;
 use App\Models\UptimeMonitor;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -138,7 +138,7 @@ class UptimeMonitorsTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
-          UptimeMonitorAction::log(),
+          UptimeMonitorActions::log(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),

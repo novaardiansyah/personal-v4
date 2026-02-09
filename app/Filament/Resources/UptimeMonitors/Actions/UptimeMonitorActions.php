@@ -5,7 +5,7 @@ namespace App\Filament\Resources\UptimeMonitors\Actions;
 use App\Models\UptimeMonitor;
 use Filament\Actions\Action;
 
-class UptimeMonitorAction
+class UptimeMonitorActions
 {
   public static function log()
   {
