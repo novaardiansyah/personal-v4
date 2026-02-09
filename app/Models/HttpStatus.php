@@ -10,5 +10,13 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 class HttpStatus extends Model
 {
   protected $table = 'http_statuses';
+
   protected $fillable = ['name', 'message', 'description'];
+
+  protected $appends = ['label'];
+
+  public function getLabelAttribute(): string
+  {
+    return "{$this->name} ({$this->message})";
+  }
 }

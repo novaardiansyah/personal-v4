@@ -16,18 +16,13 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitorLogs\Tables;
 
+use App\Models\HttpStatus;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
-use Filament\Actions\DeleteAction;
-use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
-use Filament\Actions\ForceDeleteAction;
-use Filament\Actions\ForceDeleteBulkAction;
-use Filament\Actions\RestoreAction;
-use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 
@@ -97,6 +92,12 @@ class UptimeMonitorLogsTable
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
+        SelectFilter::make('status_code')
+          ->label('Status Code')
+          ->options(fn() => HttpStatus::all()->pluck('label', 'name')->toArray())
+          ->native(false)
+          ->preload()
+          ->searchable(),
         TrashedFilter::make()
           ->native(false)
           ->preload()
