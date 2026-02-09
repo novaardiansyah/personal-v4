@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Filament\Resources\UptimeMonitorLogs\Tables;
 
 use App\Models\HttpStatus;
+use App\Models\UptimeMonitor;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\ViewAction;
@@ -92,6 +93,12 @@ class UptimeMonitorLogsTable
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
+        SelectFilter::make('uptime_monitor_id')
+          ->label('Monitor')
+          ->options(fn() => UptimeMonitor::pluck('name', 'id')->toArray())
+          ->native(false)
+          ->preload()
+          ->searchable(),
         SelectFilter::make('status_code')
           ->label('Status Code')
           ->options(fn() => HttpStatus::all()->pluck('label', 'name')->toArray())

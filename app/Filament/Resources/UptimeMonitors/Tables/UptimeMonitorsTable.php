@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitors\Tables;
 
+use App\Filament\Resources\UptimeMonitors\Actions\UptimeMonitorAction;
 use App\Models\UptimeMonitor;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
@@ -135,10 +136,9 @@ class UptimeMonitorsTable
       ->recordAction(null)
       ->recordActions([
         ActionGroup::make([
-          ViewAction::make()
-            ->slideOver(),
-
+          ViewAction::make(),
           EditAction::make(),
+          UptimeMonitorAction::log(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),

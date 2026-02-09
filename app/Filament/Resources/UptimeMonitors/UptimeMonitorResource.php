@@ -6,6 +6,7 @@ use App\Filament\Resources\UptimeMonitors\Pages\CreateUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\Pages\EditUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\Pages\ListUptimeMonitors;
 use App\Filament\Resources\UptimeMonitors\Pages\ViewUptimeMonitor;
+use App\Filament\Resources\UptimeMonitors\RelationManagers\LogsRelationManager;
 use App\Filament\Resources\UptimeMonitors\Schemas\UptimeMonitorForm;
 use App\Filament\Resources\UptimeMonitors\Schemas\UptimeMonitorInfolist;
 use App\Filament\Resources\UptimeMonitors\Tables\UptimeMonitorsTable;
@@ -59,7 +60,7 @@ class UptimeMonitorResource extends Resource
   public static function getRelations(): array
   {
     return [
-      //
+      LogsRelationManager::class,
     ];
   }
 
@@ -69,7 +70,7 @@ class UptimeMonitorResource extends Resource
       'index'  => ListUptimeMonitors::route('/'),
       'create' => CreateUptimeMonitor::route('/create'),
       'edit'   => EditUptimeMonitor::route('/{record}/edit'),
-      // 'view'   => ViewUptimeMonitor::route('/{record}'),
+      'view'   => ViewUptimeMonitor::route('/{record}'),
     ];
   }
 
