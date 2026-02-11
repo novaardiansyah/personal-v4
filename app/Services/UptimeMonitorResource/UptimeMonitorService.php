@@ -23,7 +23,7 @@ use Illuminate\Support\Facades\Http;
 
 class UptimeMonitorService
 {
-  private const SLOW_RESPONSE_THRESHOLD_MS = 3000;
+  private const SLOW_RESPONSE_THRESHOLD_MS = 60000;
   private const HTTP_TIMEOUT_SECONDS = 30;
 
   public function check(UptimeMonitor $monitor): bool
@@ -68,8 +68,7 @@ class UptimeMonitorService
   private function evaluateSlowResponse(array $result): array
   {
     if ($result['isHealthy'] && $result['responseTime'] > self::SLOW_RESPONSE_THRESHOLD_MS) {
-      $result['isHealthy']  = false;
-      $result['statusCode'] = 503;
+      // ! Slow respon, do something here
     }
 
     return [
