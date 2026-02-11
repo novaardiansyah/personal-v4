@@ -2,10 +2,10 @@
 
 namespace App\Filament\Resources\UptimeMonitors\Widgets;
 
+use App\Models\HttpStatus;
 use App\Models\UptimeMonitor;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Carbon;
 
 class StatusCodeChart extends ChartWidget
 {
@@ -25,14 +25,15 @@ class StatusCodeChart extends ChartWidget
       return ['datasets' => [], 'labels' => []];
     }
 
-    $statusCodes = $record->logs()
+    $statusCodesData = $record->logs()
       ->where('checked_at', '>=', now()->subDays(7))
       ->selectRaw('status_code, COUNT(*) as count')
       ->groupBy('status_code')
       ->orderBy('status_code')
-      ->pluck('count', 'status_code');
+      ->get();
 
-    $colors = $statusCodes->keys()->map(function ($code) {
+    $colors = $statusCodesData->map(function ($item) {
+      $code = $item->status_code;
       return match (true) {
         $code >= 200 && $code < 300 => 'rgba(34, 197, 94, 0.8)',
         $code >= 300 && $code < 400 => 'rgba(234, 179, 8, 0.8)',
@@ -42,15 +43,24 @@ class StatusCodeChart extends ChartWidget
       };
     });
 
+    $labels = $statusCodesData->map(function ($item) {
+      $status = HttpStatus::where('name', $item->status_code)->first();
+      return $status ? $status->label : (string) $item->status_code;
+    });
+
+    $datasets = $statusCodesData->map(function ($item, $index) use ($colors, $labels) {
+      return [
+        'label'           => $labels[$index],
+        'data'            => [$item->count],
+        'backgroundColor' => $colors[$index],
+        'borderColor'     => $colors[$index],
+        'borderWidth'     => 1,
+      ];
+    })->toArray();
+
     return [
-      'datasets' => [
-        [
-          'data'            => $statusCodes->values()->toArray(),
-          'backgroundColor' => $colors->toArray(),
-          'borderWidth'     => 1,
-        ],
-      ],
-      'labels' => $statusCodes->keys()->map(fn($code) => (string) $code)->toArray(),
+      'datasets' => $datasets,
+      'labels'   => ['Status Distribution'],
     ];
   }
 
