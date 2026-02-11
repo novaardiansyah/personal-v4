@@ -145,6 +145,7 @@ class UptimeMonitorsTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
+          UptimeMonitorActions::statistics(),
           UptimeMonitorActions::log(),
           DeleteAction::make(),
           ForceDeleteAction::make(),

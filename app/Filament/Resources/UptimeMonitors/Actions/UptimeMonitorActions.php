@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\UptimeMonitors\Actions;
 
+use App\Filament\Resources\UptimeMonitors\Pages\StatisticsUptimeMonitor;
+use App\Filament\Resources\UptimeMonitors\UptimeMonitorResource;
 use App\Models\UptimeMonitor;
 use Filament\Actions\Action;
 
@@ -20,5 +22,14 @@ class UptimeMonitorActions
           ],
         ],
       ]), true);
+  }
+
+  public static function statistics()
+  {
+    return Action::make('statistics')
+      ->label('Statistics')
+      ->color('info')
+      ->icon('heroicon-o-chart-bar')
+      ->url(fn(UptimeMonitor $record): string => UptimeMonitorResource::getUrl('statistics', ['record' => $record]));
   }
 }

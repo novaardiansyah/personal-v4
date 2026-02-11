@@ -5,6 +5,7 @@ namespace App\Filament\Resources\UptimeMonitors;
 use App\Filament\Resources\UptimeMonitors\Pages\CreateUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\Pages\EditUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\Pages\ListUptimeMonitors;
+use App\Filament\Resources\UptimeMonitors\Pages\StatisticsUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\Pages\ViewUptimeMonitor;
 use App\Filament\Resources\UptimeMonitors\RelationManagers\LogsRelationManager;
 use App\Filament\Resources\UptimeMonitors\Schemas\UptimeMonitorForm;
@@ -67,10 +68,11 @@ class UptimeMonitorResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index'  => ListUptimeMonitors::route('/'),
-      'create' => CreateUptimeMonitor::route('/create'),
-      'edit'   => EditUptimeMonitor::route('/{record}/edit'),
-      'view'   => ViewUptimeMonitor::route('/{record}'),
+      'index'      => ListUptimeMonitors::route('/'),
+      'create'     => CreateUptimeMonitor::route('/create'),
+      'edit'       => EditUptimeMonitor::route('/{record}/edit'),
+      'view'       => ViewUptimeMonitor::route('/{record}'),
+      'statistics' => StatisticsUptimeMonitor::route('/{record}/statistics'),
     ];
   }
 
