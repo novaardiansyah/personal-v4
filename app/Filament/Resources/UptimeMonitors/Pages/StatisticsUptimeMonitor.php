@@ -27,7 +27,7 @@ class StatisticsUptimeMonitor extends Page
 
   public function getTitle(): string
   {
-    return $this->getRecord()->name . ' - Statistics';
+    return 'Statistics';
   }
 
   protected function getHeaderWidgets(): array
