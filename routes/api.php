@@ -11,6 +11,13 @@ use App\Http\Controllers\Api\ShortUrlController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PushNotificationController;
 
+Route::get('/health', function () {
+  return response()->json([
+    'status'    => 'ok',
+    'timestamp' => now()->toDateTimeString(),
+  ]);
+});
+
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {

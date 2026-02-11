@@ -29,6 +29,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -75,6 +76,10 @@ class UptimeMonitorsTable
           ->color(fn(UptimeMonitor $record): string => $record->status->getColor())
           ->formatStateUsing(fn(UptimeMonitor $record): string => $record->status->getLabel())
           ->toggleable(),
+        IconColumn::make('is_active')
+          ->label('Active')
+          ->boolean()
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('last_checked_at')
           ->label('Last Checked')
           ->dateTime()

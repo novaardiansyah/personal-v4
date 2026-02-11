@@ -51,6 +51,7 @@ class UptimeMonitorInfolist
 
         Section::make([
           IconEntry::make('is_active')
+            ->label('Active')
             ->boolean(),
 
           TextEntry::make('last_checked_at')

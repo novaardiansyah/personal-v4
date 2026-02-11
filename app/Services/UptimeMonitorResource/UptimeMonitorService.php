@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Http;
 
 class UptimeMonitorService
 {
-  private const SLOW_RESPONSE_THRESHOLD_MS = 60000;
+  private const SLOW_RESPONSE_THRESHOLD_MS = 300;
   private const HTTP_TIMEOUT_SECONDS = 30;
 
   public function check(UptimeMonitor $monitor): bool
@@ -133,6 +133,7 @@ class UptimeMonitorService
   private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage): void
   {
     $wasUnhealthy = $monitor->getOriginal('last_unhealthy_at') > $monitor->getOriginal('last_healthy_at');
+    $previousStatus = $monitor->getOriginal('status');
 
     if (!$isHealthy && !$wasUnhealthy) {
       $this->sendDownNotification($monitor, $errorMessage);
@@ -140,6 +141,12 @@ class UptimeMonitorService
 
     if ($isHealthy && $wasUnhealthy) {
       $this->sendUpNotification($monitor);
+    }
+
+    $isSlowResponse = !!($monitor->status === UptimeMonitorStatus::SLOW && $previousStatus !== UptimeMonitorStatus::SLOW->value);
+
+    if ($isSlowResponse) {
+      $this->sendSlowNotification($monitor);
     }
   }
 
@@ -160,6 +167,17 @@ class UptimeMonitorService
     $message .= "Downtime: {$downtime}\n";
     $message .= "Target: {$monitor->url}\n";
     $message .= "Noticed at: " . now()->format('M j, Y H:i:s');
+    sendTelegramNotification($message);
+  }
+
+  private function sendSlowNotification(UptimeMonitor $monitor): void
+  {
+    $message = "🟡 {$monitor->name} is SLOW\n";
+    $message .= "Target: {$monitor->url}\n";
+    $message .= "Response Time: {$monitor->logs()->latest('checked_at')->first()?->response_time_ms} ms\n";
+    $message .= "Threshold: " . self::SLOW_RESPONSE_THRESHOLD_MS . " ms\n";
+    $message .= "Noticed at: " . now()->format('M j, Y H:i:s');
+
     sendTelegramNotification($message);
   }
 
