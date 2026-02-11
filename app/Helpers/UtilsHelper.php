@@ -378,13 +378,16 @@ function sendPushNotification(User $user, PushNotification $record): array
   return $result;
 }
 
-function sendTelegramNotification(string $message): void
+function sendTelegramNotification(string $message, array $options = []): void
 {
   $user = (object) ['telegram_id' => config('services.telegram-bot-api.chat_id')];
   $telegramService = app(TelegramService::class);
 
+  $defaultOptions = ['disable_web_page_preview' => true];
+  $options = array_merge($defaultOptions, $options);
+
   try {
-    $response = $telegramService->toTelegram($user)->content($message)->send();
+    $response = $telegramService->toTelegram($user)->content($message)->options($options)->send();
     $body = [];
     if ($response instanceof Response) {
       $body = json_decode($response->getBody()->getContents(), true) ?? [];
