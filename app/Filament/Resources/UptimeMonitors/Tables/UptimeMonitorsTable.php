@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\UptimeMonitors\Tables;
 
+use App\Enums\UptimeMonitorStatus;
 use App\Filament\Resources\UptimeMonitors\Actions\UptimeMonitorActions;
 use App\Models\UptimeMonitor;
 use Filament\Actions\ActionGroup;
@@ -68,6 +69,12 @@ class UptimeMonitorsTable
           ->sortable()
           ->toggleable()
           ->formatStateUsing(fn(?string $state): string => secondsToHumanReadable((int) $state)),
+        TextColumn::make('status')
+          ->label('Status')
+          ->badge()
+          ->color(fn(UptimeMonitor $record): string => $record->status->getColor())
+          ->formatStateUsing(fn(UptimeMonitor $record): string => $record->status->getLabel())
+          ->toggleable(),
         TextColumn::make('last_checked_at')
           ->label('Last Checked')
           ->dateTime()

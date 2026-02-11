@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Services\UptimeMonitorResource;
 
+use App\Enums\UptimeMonitorStatus;
 use App\Models\HttpStatus;
 use App\Models\UptimeMonitor;
 use Illuminate\Http\Client\ConnectionException;
@@ -33,7 +34,7 @@ class UptimeMonitorService
     $result = $this->generateErrorMessage($result);
 
     $this->createLog($monitor, $result);
-    $this->updateMonitorStats($monitor, $result['is_healthy']);
+    $this->updateMonitorStats($monitor, $result['is_healthy'], $result['status']);
     $this->sendStatusNotification($monitor, $result['is_healthy'], $result['error_message']);
 
     $monitor->save();
@@ -67,14 +68,19 @@ class UptimeMonitorService
 
   private function evaluateSlowResponse(array $result): array
   {
+    $status = UptimeMonitorStatus::UP;
+
     if ($result['isHealthy'] && $result['responseTime'] > self::SLOW_RESPONSE_THRESHOLD_MS) {
-      // ! Slow respon, do something here
+      $status = UptimeMonitorStatus::SLOW;
+    } elseif (!$result['isHealthy']) {
+      $status = UptimeMonitorStatus::DOWN;
     }
 
     return [
       'status_code'      => $result['statusCode'],
       'response_time_ms' => $result['responseTime'],
       'is_healthy'       => $result['isHealthy'],
+      'status'           => $status,
     ];
   }
 
@@ -108,8 +114,9 @@ class UptimeMonitorService
     ]);
   }
 
-  private function updateMonitorStats(UptimeMonitor $monitor, bool $isHealthy): void
+  private function updateMonitorStats(UptimeMonitor $monitor, bool $isHealthy, UptimeMonitorStatus $status): void
   {
+    $monitor->status           = $status;
     $monitor->total_checks     = ($monitor->total_checks ?? 0) + 1;
     $monitor->last_checked_at  = now();
     $monitor->next_check_at    = now()->addSeconds($monitor->interval);

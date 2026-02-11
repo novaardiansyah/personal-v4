@@ -82,6 +82,12 @@ class UptimeMonitorInfolist
           ->columns(3),
 
         Section::make([
+          TextEntry::make('status')
+            ->label('Status')
+            ->badge()
+            ->color(fn(UptimeMonitor $record): string => $record->status->getColor())
+            ->formatStateUsing(fn(UptimeMonitor $record): string => $record->status->getLabel()),
+
           TextEntry::make('total_checks')
             ->label('Total Checks')
             ->badge()
@@ -99,7 +105,7 @@ class UptimeMonitorInfolist
         ])
           ->description('Statistics')
           ->collapsible()
-          ->columns(3),
+          ->columns(4),
 
         Section::make([
           TextEntry::make('created_at')

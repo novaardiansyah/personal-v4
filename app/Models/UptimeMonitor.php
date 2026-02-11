@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\UptimeMonitorStatus;
 use App\Observers\UptimeMonitorObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -15,7 +16,7 @@ class UptimeMonitor extends Model
 
   protected $table = 'uptime_monitors';
 
-  protected $fillable = ['code', 'url', 'name', 'interval', 'is_active', 'last_checked_at', 'last_healthy_at', 'last_unhealthy_at', 'total_checks', 'healthy_checks', 'unhealthy_checks', 'next_check_at'];
+  protected $fillable = ['code', 'url', 'name', 'interval', 'is_active', 'last_checked_at', 'last_healthy_at', 'last_unhealthy_at', 'total_checks', 'healthy_checks', 'unhealthy_checks', 'next_check_at', 'status'];
 
   protected $casts = [
     'is_active'         => 'boolean',
@@ -23,6 +24,7 @@ class UptimeMonitor extends Model
     'last_healthy_at'   => 'datetime',
     'last_unhealthy_at' => 'datetime',
     'next_check_at'     => 'datetime',
+    'status'            => UptimeMonitorStatus::class,
   ];
 
   public function logs(): HasMany
