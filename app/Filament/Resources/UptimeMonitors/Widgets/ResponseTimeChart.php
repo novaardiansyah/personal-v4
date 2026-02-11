@@ -28,9 +28,12 @@ class ResponseTimeChart extends ChartWidget
     }
 
     $logs = $record->logs()
-      ->orderBy('checked_at', 'asc')
-      ->where('checked_at', '>=', now()->subDays(7))
-      ->get();
+      ->where('checked_at', '>=', now()->subDay())
+      ->orderBy('checked_at', 'desc')
+      ->limit(50)
+      ->get()
+      ->reverse()
+      ->values();
 
     $labels = $logs->map(fn($log) => Carbon::parse($log->checked_at)->format('M j, H:i'));
 

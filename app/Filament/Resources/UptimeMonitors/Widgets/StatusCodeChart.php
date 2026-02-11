@@ -43,8 +43,10 @@ class StatusCodeChart extends ChartWidget
       };
     });
 
-    $labels = $statusCodesData->map(function ($item) {
-      $status = HttpStatus::where('name', $item->status_code)->first();
+    $httpStatuses = HttpStatus::whereIn('name', $statusCodesData->pluck('status_code'))->get()->keyBy('name');
+
+    $labels = $statusCodesData->map(function ($item) use ($httpStatuses) {
+      $status = $httpStatuses->get($item->status_code);
       return $status ? $status->label : (string) $item->status_code;
     });
 
