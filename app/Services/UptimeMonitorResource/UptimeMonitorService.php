@@ -133,18 +133,20 @@ class UptimeMonitorService
   private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage): void
   {
     $previousStatus = $monitor->getOriginal('status');
-    $wasDown = $previousStatus === UptimeMonitorStatus::DOWN->value;
+    $wasDown        = $previousStatus === UptimeMonitorStatus::DOWN->value;
+    $wasSlow        = $previousStatus === UptimeMonitorStatus::SLOW->value;
 
     if (!$isHealthy && !$wasDown) {
       $this->sendDownNotification($monitor, $errorMessage);
     }
 
-    if ($isHealthy && $wasDown) {
+    $wasSlowOrDown = $wasSlow || $wasDown;
+
+    if ($isHealthy && $wasSlowOrDown) {
       $this->sendUpNotification($monitor);
     }
 
-    $wasNotSlow = $previousStatus !== UptimeMonitorStatus::SLOW->value;
-    $isSlowResponse = !!($monitor->status === UptimeMonitorStatus::SLOW && $wasNotSlow);
+    $isSlowResponse = !!($monitor->status === UptimeMonitorStatus::SLOW && !$wasSlow);
 
     if ($isSlowResponse) {
       $this->sendSlowNotification($monitor);
