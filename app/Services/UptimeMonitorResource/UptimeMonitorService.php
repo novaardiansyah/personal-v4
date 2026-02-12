@@ -129,6 +129,10 @@ class UptimeMonitorService
     $isHealthy
       ? $monitor->last_healthy_at = now()
       : $monitor->last_unhealthy_at = now();
+
+    if ($status === UptimeMonitorStatus::SLOW) {
+      $monitor->last_unhealthy_at = now();
+    }
   }
 
   private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage, $originalLastUnhealthyAt): void
