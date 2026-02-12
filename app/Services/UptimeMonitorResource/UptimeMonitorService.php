@@ -34,8 +34,9 @@ class UptimeMonitorService
     $result = $this->generateErrorMessage($result);
 
     $this->createLog($monitor, $result);
+    $originalLastUnhealthyAt = $monitor->last_unhealthy_at;
     $this->updateMonitorStats($monitor, $result['is_healthy'], $result['status']);
-    $this->sendStatusNotification($monitor, $result['is_healthy'], $result['error_message']);
+    $this->sendStatusNotification($monitor, $result['is_healthy'], $result['error_message'], $originalLastUnhealthyAt);
 
     $monitor->save();
 
@@ -130,7 +131,7 @@ class UptimeMonitorService
       : $monitor->last_unhealthy_at = now();
   }
 
-  private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage): void
+  private function sendStatusNotification(UptimeMonitor $monitor, bool $isHealthy, ?string $errorMessage, $originalLastUnhealthyAt): void
   {
     $previousStatus = $monitor->getOriginal('status');
     $previousValue  = $previousStatus instanceof UptimeMonitorStatus ? $previousStatus->value : $previousStatus;
@@ -147,7 +148,7 @@ class UptimeMonitorService
     }
 
     if ($isUp && ($wasDown || $wasSlow)) {
-      $this->sendUpNotification($monitor);
+      $this->sendUpNotification($monitor, $originalLastUnhealthyAt);
     }
 
     if ($isSlow && !$wasSlow) {
@@ -165,9 +166,9 @@ class UptimeMonitorService
     sendTelegramNotification($message);
   }
 
-  private function sendUpNotification(UptimeMonitor $monitor): void
+  private function sendUpNotification(UptimeMonitor $monitor, $originalLastUnhealthyAt): void
   {
-    $downtime = $monitor->last_unhealthy_at->diffForHumans(now(), ['parts' => 2, 'short' => true]);
+    $downtime = $originalLastUnhealthyAt?->diffForHumans(now(), ['parts' => 2, 'short' => true]) ?? 'unknown';
     $message = "🟢 {$monitor->name} is now UP\n";
     $message .= "Downtime: {$downtime}\n";
     $message .= "Target: {$monitor->url}\n";
