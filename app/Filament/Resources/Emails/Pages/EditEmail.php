@@ -6,6 +6,7 @@ use App\Filament\Resources\Emails\EmailResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
+use app\Filament\Resources\Emails\Pages\ActionEmail;
 
 class EditEmail extends EditRecord
 {
@@ -16,6 +17,7 @@ class EditEmail extends EditRecord
     return [
       ViewAction::make()
         ->color('primary'),
+      ActionEmail::preview(),
       DeleteAction::make(),
     ];
   }

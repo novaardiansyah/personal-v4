@@ -15,10 +15,15 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 class Email extends Model
 {
   use SoftDeletes;
+
   protected $table = 'emails';
-  protected $fillable = ['uid', 'name', 'email', 'subject', 'message', 'status', 'url_attachment'];
+  
+  protected $fillable = ['uid', 'name', 'email', 'subject', 'message', 'status', 'url_attachment', 'has_header', 'has_footer'];
+  
   protected $casts = [
-    'status' => EmailStatus::class,
+    'status'     => EmailStatus::class,
+    'has_header' => 'boolean',
+    'has_footer' => 'boolean',
   ];
 
   public function emailTemplate(): BelongsTo

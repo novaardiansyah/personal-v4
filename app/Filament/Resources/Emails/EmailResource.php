@@ -26,8 +26,10 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -50,45 +52,82 @@ class EmailResource extends Resource
   {
     return $schema
       ->components([
-        TextInput::make('name')
-          ->default(null),
-        TextInput::make('email')
-          ->label('Email address')
-          ->email()
-          ->required(),
-        TextInput::make('subject')
-          ->default(null)
-          ->required(),
-        Select::make('status')
-          ->options(EmailStatus::class)
-          ->default('draft')
-          ->required()
-          ->native(false)
-          ->disabledOn('edit'),
-        RichEditor::make('message')
-          ->toolbarButtons([
-            ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
-            ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
-            ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
-          ])
-          ->floatingToolbars([
-            'paragraph' => [
-              'bold',
-              'italic',
-              'underline',
-              'strike',
-              'subscript',
-              'superscript',
-            ],
-          ])
-          ->columnSpanFull()
-          ->required(),
+        Grid::make(1)
+          ->columnSpan(2)
+          ->schema([
+            Section::make()
+              ->description('General information')
+              ->collapsible()
+              ->schema([
+                TextInput::make('email')
+                  ->label('Email address')
+                  ->email()
+                  ->required()
+                  ->live(onBlur: true)
+                  ->afterStateUpdated(function (?string $state, callable $set) {
+                    if ($state && str_contains($state, '@')) {
+                      $set('name', explode('@', $state)[0]);
+                    }
+                  }),
+                TextInput::make('name')
+                  ->default(null),
+              ]),
 
-        TextInput::make('url_attachment')
-          ->label('Attachment URL')
-          ->default(null)
-          ->columnSpan(1),
-      ]);
+            Section::make()
+              ->description('Content information')
+              ->collapsible()
+              ->schema([
+                TextInput::make('subject')
+                  ->default(null)
+                  ->required(),
+
+                RichEditor::make('message')
+                  ->toolbarButtons([
+                    ['bold', 'italic', 'underline', 'strike', 'subscript', 'superscript', 'link'],
+                    ['h2', 'h3', 'alignStart', 'alignCenter', 'alignEnd'],
+                    ['blockquote', 'codeBlock', 'bulletList', 'orderedList'],
+                  ])
+                  ->floatingToolbars([
+                    'paragraph' => [
+                      'bold',
+                      'italic',
+                      'underline',
+                      'strike',
+                      'subscript',
+                      'superscript',
+                    ],
+                  ])
+                  ->columnSpanFull()
+                  ->required(),
+              ]),
+          ]),
+
+        Section::make()
+          ->description('Settings information')
+          ->collapsible()
+          ->schema([
+            Select::make('status')
+              ->options(EmailStatus::class)
+              ->default('draft')
+              ->required()
+              ->native(false)
+              ->disabledOn('edit'),
+            TextInput::make('url_attachment')
+              ->label('Attachment URL')
+              ->default(null)
+              ->columnSpan(1),
+
+            Grid::make(2)
+              ->schema([
+                Toggle::make('has_header')
+                  ->label('Has Header')
+                  ->default(false),
+                Toggle::make('has_footer')
+                  ->label('Has Footer')
+                  ->default(false),
+              ]),
+          ]),
+      ])->columns(3);
   }
 
   public static function infolist(Schema $schema): Schema
