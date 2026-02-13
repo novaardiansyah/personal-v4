@@ -30,3 +30,5 @@ docker-compose.override.yml
 /deploy
 setup.sh
 Makefile
+AGENTS.md
+.opencode/

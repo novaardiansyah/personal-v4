@@ -81,6 +81,21 @@ class LogUserLogin
       ],
     ], $device_info));
 
+    $now_formatted = carbonTranslatedFormat($now, 'd M Y, H.i', 'id');
+
+    $tgMessage = view('notifications.telegram.login-notification', [
+      'user_email'  => $user->email,
+      'ip_address'  => $ip_address,
+      'address'     => $address,
+      'geolocation' => $geolocation,
+      'timezone'    => $timezone,
+      'user_agent'  => $user_agent,
+      'login_date'  => $now_formatted,
+      'referer'     => $referer,
+    ])->render();
+
+    sendTelegramNotification($tgMessage);
+
     // ! Check in ActivityLog by IP, if it already exists, no need to send the email again
     $interval = getSetting('interval_login_notification', '1 Hours');
     $interval = (int) preg_replace('/\D/', '', $interval);
@@ -114,7 +129,6 @@ class LogUserLogin
 
       $author_name   = getSetting('author_name');
       $author_email  = getSetting('login_email_notification');
-      $now_formatted = carbonTranslatedFormat($now, 'd M Y, H.i', 'id');
 
       $placeholders = array_merge($template->placeholders, [
         'user_email'  => $user->email,
