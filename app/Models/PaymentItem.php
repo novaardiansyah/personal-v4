@@ -2,21 +2,16 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Observers\PaymentItemObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class PaymentItem extends Model
+#[ObservedBy(PaymentItemObserver::class)]
+class PaymentItem extends Pivot
 {
-  protected $guarded = ['id'];
-  protected $table = 'payment_item';
+	protected $table = 'payment_item';
 
-  public function payment(): BelongsTo
-  {
-    return $this->belongsTo(Payment::class);
-  }
+	public $incrementing = true;
 
-  public function item(): BelongsTo
-  {
-    return $this->belongsTo(Item::class);
-  }
+	protected $guarded = ['id'];
 }

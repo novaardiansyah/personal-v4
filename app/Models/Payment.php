@@ -45,7 +45,7 @@ class Payment extends Model
 
   public function items(): BelongsToMany
   {
-    return $this->belongsToMany(Item::class, 'payment_item')->withPivot(['id', 'item_code', 'quantity', 'price', 'total'])->withTimestamps();
+    return $this->belongsToMany(Item::class, 'payment_item')->using(PaymentItem::class)->withPivot(['id', 'item_code', 'quantity', 'price', 'total'])->withTimestamps();
   }
 
   public function galleries(): MorphMany
