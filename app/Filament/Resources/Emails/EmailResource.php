@@ -27,6 +27,7 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Grid;
@@ -145,10 +146,16 @@ class EmailResource extends Resource
               ->color(fn(Email $record): string => $record->status->color())
               ->state(fn(Email $record): string => $record->status->label()),
             TextEntry::make('subject'),
+						IconEntry::make('has_header')
+							->label('Header')
+							->boolean(),
+						IconEntry::make('has_footer')
+							->label('Footer')
+							->boolean(),
             TextEntry::make('message')
               ->label('Message')
               ->html()
-              ->columnSpan(2),
+              ->columnSpanFull(),
           ])
           ->columns(3),
 

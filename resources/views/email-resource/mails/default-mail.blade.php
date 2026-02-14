@@ -1,12 +1,9 @@
-@extends('layout.mails.main-light')
+@extends('layout.mails.default')
 
 @section('title')
   {{ $data['subject'] }}
 @endsection
 
-@section('header')
-  Hai {{ explode(' ', $data['name'])[0] }},
-@endsection
 
 @section('content')
   {!! str($data['message'])->sanitizeHtml() !!}
