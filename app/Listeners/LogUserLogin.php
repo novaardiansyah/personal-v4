@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Enums\EmailStatus;
+use App\Jobs\SendTelegramNotificationJob;
 use App\Models\ActivityLog;
 use App\Models\Email;
 use App\Models\EmailTemplate;
@@ -94,7 +95,7 @@ class LogUserLogin
       'referer'     => $referer,
     ])->render();
 
-    sendTelegramNotification($tgMessage);
+    SendTelegramNotificationJob::dispatch($tgMessage);
 
     // ! Check in ActivityLog by IP, if it already exists, no need to send the email again
     $interval = getSetting('interval_login_notification', '1 Hours');
