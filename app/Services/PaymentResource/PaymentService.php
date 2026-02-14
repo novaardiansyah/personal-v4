@@ -28,11 +28,6 @@ class PaymentService
 	{
 		$item->update(['amount' => $data['price'], 'updated_at' => now()]);
 
-		PaymentItem::where('payment_id', $payment->id)
-			->where('item_id', $item->id)
-			->first()
-			?->touch();
-
 		$expense = $payment->amount + (int) $data['total'];
 		$note = trim(($payment->name ?? '') . ', ' . "{$item->name} (x{$data['quantity']})", ', ');
 

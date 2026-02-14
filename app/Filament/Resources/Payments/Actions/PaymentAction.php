@@ -12,7 +12,7 @@
  * Copyright (c) 2025-2026 Nova Ardiansyah, Org
  */
 
-namespace App\Filament\Resources\Payments\Schemas;
+namespace App\Filament\Resources\Payments\Actions;
 
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
@@ -25,9 +25,7 @@ use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use App\Services\PaymentResource\PaymentService;
 use Illuminate\Support\Carbon;
-
 use Filament\Actions\Action;
-use Filament\Actions\AttachAction;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
@@ -39,26 +37,12 @@ use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
-use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentAction
 {
-  private static function _afterItemAttach(array $data, Model $record, RelationManager $livewire, $action)
-  {
-    $owner = $livewire->getOwnerRecord();
-
-    PaymentService::afterItemAttach($owner, $record, [
-      'quantity' => $data['quantity'],
-      'price'    => $data['amount'],
-      'total'    => $data['total'],
-    ]);
-
-    $action->getLivewire()->dispatch('refreshForm');
-  }
-
   // ! ManageDraft
   public static function manageDraftSchema(Schema $schema): Schema
   {
@@ -323,7 +307,7 @@ class PaymentAction
         return $data;
       })
       ->after(function (array $data, Model $record, RelationManager $livewire, CreateAction $action): void {
-        self::_afterItemAttach($data, $record, $livewire, $action);
+        // self::_afterItemAttach($data, $record, $livewire, $action);
       });
   }
 
@@ -383,77 +367,6 @@ class PaymentAction
       ->action(function (array $data, Model $record, RelationManager $livewire, EditAction $action): void {
         PaymentService::updateItemPivot($livewire->getOwnerRecord(), $record, $data);
         $action->getLivewire()->dispatch('refreshForm');
-      });
-  }
-
-  public static function attachAction(): AttachAction
-  {
-    return AttachAction::make()
-      ->modalWidth(Width::ThreeExtraLarge)
-      ->form(function (Schema $schema): Schema {
-        return $schema
-          ->components([
-            Select::make('recordId')
-              ->label('Product / Service')
-              ->native(false)
-              ->options(function () {
-                return Item::latest('updated_at')->pluck('name', 'id');
-              })
-              ->preload()
-              ->required()
-              ->searchable()
-              ->live(onBlur: true)
-              ->afterStateUpdated(function (?string $state, Set $set, Get $get) {
-                if (!$state) return;
-
-                $item = Item::where('id', $state)->first();
-
-                if (!$item) return;
-
-                $set('amount', $item->amount);
-                $get('quantity') && $set('total', $item->amount * $get('quantity'));
-              }),
-
-            TextInput::make('amount')
-              ->required()
-              ->numeric()
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->afterStateUpdated(function ($state, $set, $get): void {
-                $get('quantity') && $set('total', $state * $get('quantity'));
-              })
-              ->hint(fn(?string $state) => toIndonesianCurrency(((float) $state ?? 0))),
-
-            TextInput::make('quantity')
-              ->label('Qty')
-              ->required()
-              ->numeric()
-              ->default(1)
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->afterStateUpdated(function ($state, $set, $get): void {
-                $get('amount') && $set('total', $state * $get('amount'));
-              })
-              ->hint(fn(?string $state) => number_format(((float) $state ?? 0), 0, ',', '.')),
-
-            TextInput::make('total')
-              ->label('Total')
-              ->required()
-              ->numeric()
-              ->minValue(0)
-              ->live(onBlur: true)
-              ->readOnly()
-              ->hint(fn(?string $state) => toIndonesianCurrency(((float) $state ?? 0))),
-          ])
-          ->columns(2);
-      })
-      ->mutateFormDataUsing(function (array $data): array {
-        $data['price'] = $data['amount'] ?? 0;
-        $data['item_code'] = getCode('payment_item');
-        return $data;
-      })
-      ->after(function (array $data, Model $record, RelationManager $livewire, AttachAction $action) {
-        self::_afterItemAttach($data, $record, $livewire, $action);
       });
   }
 

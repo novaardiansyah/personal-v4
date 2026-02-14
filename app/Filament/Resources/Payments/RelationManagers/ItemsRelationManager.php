@@ -15,7 +15,8 @@
 namespace App\Filament\Resources\Payments\RelationManagers;
 
 use App\Filament\Resources\Items\ItemResource;
-use App\Filament\Resources\Payments\Schemas\PaymentAction;
+use App\Filament\Resources\Payments\Actions\AttachAction;
+use App\Filament\Resources\Payments\Actions\PaymentAction;
 use App\Models\Item;
 use App\Models\ItemType;
 use App\Models\Setting;
@@ -92,7 +93,7 @@ class ItemsRelationManager extends RelationManager
       ->defaultSort('pivot_updated_at', 'desc')
       ->headerActions([
         PaymentAction::itemCreateAction(),
-        PaymentAction::attachAction(),
+        AttachAction::make(),
       ])
       ->actions([
         ActionGroup::make([

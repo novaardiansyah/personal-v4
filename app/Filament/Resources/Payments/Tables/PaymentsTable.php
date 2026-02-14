@@ -2,7 +2,7 @@
 
 namespace App\Filament\Resources\Payments\Tables;
 
-use App\Filament\Resources\Payments\Schemas\PaymentAction;
+use App\Filament\Resources\Payments\Actions\PaymentAction;
 use App\Filament\Resources\Payments\Schemas\PaymentFilter;
 use App\Models\Payment;
 use App\Models\PaymentType;
