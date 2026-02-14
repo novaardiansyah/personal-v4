@@ -14,7 +14,7 @@
     .container {
       max-width: 600px;
       margin: auto;
-      padding: 40px 20px;
+      padding: 25px 20px;
       border: 1px solid #e0e0e0;
       background-color: #ffffff;
     }
@@ -145,7 +145,7 @@
       </div>
     @endif
 
-    <div class="content" style="{{ !$has_header ? 'margin-top: -20px;' : '' }}">
+    <div class="content">
       @yield('content')
 
       @if ($has_footer)
