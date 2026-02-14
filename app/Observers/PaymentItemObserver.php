@@ -6,6 +6,11 @@ use App\Models\PaymentItem;
 
 class PaymentItemObserver
 {
+	public function creating(PaymentItem $paymentItem): void
+	{
+		$paymentItem->item_code = getCode('payment_item');
+	}
+
   public function created(PaymentItem $paymentItem): void
   {
     $this->_log('Created', $paymentItem);

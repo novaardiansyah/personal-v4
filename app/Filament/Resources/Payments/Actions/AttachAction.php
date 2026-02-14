@@ -105,7 +105,6 @@ class AttachAction
 		}
 
 		$record = PaymentItem::create([
-			'item_code'  => getCode('payment_item'),
 			'payment_id' => $owner->id,
 			'item_id'    => $recordId,
 			'price'      => $data['amount'],
@@ -113,7 +112,7 @@ class AttachAction
 			'total'      => $data['total'],
 		]);
 
-		self::set_owner_price($record);
+		PaymentAction::set_owner_price($record);
 		$action->getLivewire()->dispatch('refreshForm');
 
 		Notification::make()
@@ -123,24 +122,5 @@ class AttachAction
 			->send();
 
 		$action->success();
-	}
-
-	private static function set_owner_price(PaymentItem $record)
-	{
-		$owner = $record->payment;
-		$item = $record->item;
-
-		$item->update([
-			'amount'     => $record->price,
-			'updated_at' => now()
-		]);
-
-		$expense = $owner->amount + (int) $record->total;
-		$note    = trim(($owner->name ?? '') . ', ' . "{$item->name} (x{$record->quantity})", ', ');
-
-		$owner->update([
-			'amount' => $expense,
-			'name'   => $note
-		]);
 	}
 }

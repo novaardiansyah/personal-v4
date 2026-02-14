@@ -493,10 +493,9 @@ class PaymentController extends Controller
     $total = $data['price'] * $data['quantity'];
 
     $item = Item::create([
-      'name' => $data['name'],
+      'name'    => $data['name'],
       'type_id' => $data['type_id'],
-      'amount' => $data['price'],
-      'code' => getCode('item')
+      'amount'  => $data['price'],
     ]);
 
     $itemCode = getCode('payment_item');
@@ -575,10 +574,9 @@ class PaymentController extends Controller
           $item = $existingItem;
         } else {
           $item = Item::create([
-            'name' => $itemData['name'],
-            'amount' => $itemData['amount'],
+            'name'    => $itemData['name'],
+            'amount'  => $itemData['amount'],
             'type_id' => 1,
-            'code' => getCode('item')
           ]);
         }
 

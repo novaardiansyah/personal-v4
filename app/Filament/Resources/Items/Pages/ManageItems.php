@@ -30,7 +30,6 @@ class ManageItems extends ManageRecords
             $action->halt();
           }
 
-          $data['code'] = getCode('item');
           return $data;
         }),
     ];
