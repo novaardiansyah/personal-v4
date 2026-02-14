@@ -93,6 +93,7 @@
       font-size: 12px;
       color: #999;
       margin-top: 40px;
+			margin-bottom: 10px;
       text-decoration: none;
     }
 
