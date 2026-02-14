@@ -9,7 +9,6 @@ use App\Models\Setting;
 use Filament\Actions\ActionGroup;
 use Filament\Schemas\Components\Grid;
 use Filament\Support\Enums\Width;
-
 use App\Filament\Resources\Items\Pages\ManageItems;
 use App\Models\Item;
 use Filament\Actions\BulkActionGroup;
@@ -35,154 +34,169 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ItemResource extends Resource
 {
-  protected static ?string $model = Item::class;
+	protected static ?string $model = Item::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
+	protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedShoppingCart;
 
-  protected static ?int $navigationSort = 10;
-  
-  protected static string | UnitEnum | null $navigationGroup = 'Items';
+	protected static ?int $navigationSort = 10;
 
-  protected static ?string $recordTitleAttribute = 'name';
+	protected static string|UnitEnum|null $navigationGroup = 'Items';
 
-  public static function form(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        Select::make('type_id')
-          ->relationship('type', 'name')
-          ->default(ItemType::PRODUCT)
-          ->native(false)
-          ->preload()
-          ->required(),
-        TextInput::make('name')
-          ->required()
-          ->maxLength(255),
-        TextInput::make('amount')
-          ->required()
-          ->numeric()
-          ->integer()
-          ->default(0),
-      ])
-        ->columns(1);
-  }
+	protected static ?string $recordTitleAttribute = 'name';
 
-  public static function infolist(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        TextEntry::make('code'),
-        TextEntry::make('type_id')
-          ->label('Type')
-          ->badge()
-          ->color(fn (string $state): string => match ((int) $state) {
-              ItemType::PRODUCT => 'primary',
-              ItemType::SERVICE => 'info',
-              default => 'primary'
-          })
-          ->formatStateUsing(fn (Item $record) => $record->type->name ?? 'Unknown'),
-        TextEntry::make('name'),
-        TextEntry::make('amount')
-          ->numeric()
-          ->formatStateUsing(fn (string $state) => toIndonesianCurrency((int) $state ?? 0)),
+	public static function form(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				Select::make('type_id')
+					->relationship('type', 'name')
+					->default(ItemType::PRODUCT)
+					->native(false)
+					->preload()
+					->required(),
+				TextInput::make('name')
+					->required()
+					->maxLength(255),
+				TextInput::make('amount')
+					->required()
+					->numeric()
+					->integer()
+					->default(0),
+			])
+			->columns(1);
+	}
 
-        Grid::make([
-          'default' => 3
-        ])
-          ->schema([
-            TextEntry::make('created_at')
-              ->dateTime(),
-            TextEntry::make('updated_at')
-              ->sinceTooltip()
-              ->dateTime(),
-            TextEntry::make('deleted_at')
-              ->dateTime(),
-          ])
-          ->columnSpanFull()
-      ])
-        ->columns(3);
-  }
+	public static function infolist(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				TextEntry::make('code')
+					->label('Item ID')
+					->badge()
+					->copyable(),
+				TextEntry::make('type_id')
+					->label('Type')
+					->badge()
+					->color(fn(string $state): string => match ((int) $state) {
+						ItemType::PRODUCT => 'primary',
+						ItemType::SERVICE => 'info',
+						default => 'primary'
+					})
+					->formatStateUsing(fn(Item $record) => $record->type->name ?? 'Unknown'),
+				TextEntry::make('name'),
+				TextEntry::make('amount')
+					->numeric()
+					->formatStateUsing(fn(string $state) => toIndonesianCurrency((int) $state ?? 0)),
 
-  public static function table(Table $table): Table
-  {
-    return $table
-      ->recordTitleAttribute('name')
-      ->columns([
-        TextColumn::make('index')
-          ->label('#')
-          ->rowIndex(),
-        TextColumn::make('code')
-          ->label('Item ID')
-          ->searchable()
-          ->toggleable(),
-        TextColumn::make('type_id')
-          ->label('Type')
-          ->toggleable()
-          ->badge()
-          ->color(fn (string $state): string => match ((int) $state) {
-              ItemType::PRODUCT => 'primary',
-              ItemType::SERVICE => 'info',
-              default => 'primary'
-          })
-          ->formatStateUsing(fn (Item $record) => $record->type->name ?? 'Unknown'),
-        TextColumn::make('name')
-          ->searchable()
-          ->toggleable(),
-        TextColumn::make('amount')
-          ->numeric()
-          ->sortable()
-          ->toggleable()
-          ->formatStateUsing(fn (string $state) => toIndonesianCurrency((int) $state ?? 0, showCurrency: Setting::showPaymentCurrency())),
-        TextColumn::make('deleted_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('created_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('updated_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-      ])
-      ->filters([
-        TrashedFilter::make()
-          ->native(false),
-      ])
-      ->recordActions([
-        ActionGroup::make([
-          ViewAction::make(),
+				Grid::make([
+					'default' => 3
+				])
+					->schema([
+						TextEntry::make('created_at')
+							->dateTime()
+							->sinceTooltip(),
+						TextEntry::make('updated_at')
+							->sinceTooltip()
+							->dateTime(),
+						TextEntry::make('deleted_at')
+							->dateTime()
+							->sinceTooltip(),
+					])
+					->columnSpanFull()
+			])
+			->columns(3);
+	}
 
-          EditAction::make()
-            ->modalWidth(Width::Medium),
+	public static function table(Table $table): Table
+	{
+		return $table
+			->recordTitleAttribute('name')
+			->columns([
+				TextColumn::make('index')
+					->label('#')
+					->rowIndex(),
+				TextColumn::make('code')
+					->label('Item ID')
+					->badge()
+					->copyable()
+					->searchable()
+					->toggleable(),
+				TextColumn::make('type_id')
+					->label('Type')
+					->toggleable()
+					->badge()
+					->color(fn(string $state): string => match ((int) $state) {
+						ItemType::PRODUCT => 'primary',
+						ItemType::SERVICE => 'info',
+						default => 'primary'
+					})
+					->formatStateUsing(fn(Item $record) => $record->type->name ?? 'Unknown'),
+				TextColumn::make('name')
+					->searchable()
+					->toggleable(),
+				TextColumn::make('amount')
+					->numeric()
+					->sortable()
+					->toggleable()
+					->formatStateUsing(fn(string $state) => toIndonesianCurrency((int) $state ?? 0, showCurrency: Setting::showPaymentCurrency())),
+				TextColumn::make('deleted_at')
+					->dateTime()
+					->sortable()
+					->sinceTooltip()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('created_at')
+					->dateTime()
+					->sortable()
+					->sinceTooltip()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('updated_at')
+					->dateTime()
+					->sortable()
+					->sinceTooltip()
+					->toggleable(isToggledHiddenByDefault: false),
+			])
+			->recordAction(null)
+			->recordUrl(null)
+			->defaultSort('updated_at', 'desc')
+			->filters([
+				TrashedFilter::make()
+					->preload()
+					->searchable()
+					->native(false),
+			])
+			->recordActions([
+				ActionGroup::make([
+					ViewAction::make(),
 
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
-          RestoreAction::make(),
-        ])
-      ])
-      ->toolbarActions([
-        BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
-          RestoreBulkAction::make(),
-        ]),
-      ]);
-  }
+					EditAction::make()
+						->modalWidth(Width::Medium),
 
-  public static function getPages(): array
-  {
-    return [
-      'index' => ManageItems::route('/'),
-    ];
-  }
+					DeleteAction::make(),
+					ForceDeleteAction::make(),
+					RestoreAction::make(),
+				])
+			])
+			->toolbarActions([
+				BulkActionGroup::make([
+					DeleteBulkAction::make(),
+					ForceDeleteBulkAction::make(),
+					RestoreBulkAction::make(),
+				]),
+			]);
+	}
 
-  public static function getRecordRouteBindingEloquentQuery(): Builder
-  {
-    return parent::getRecordRouteBindingEloquentQuery()
-      ->withoutGlobalScopes([
-        SoftDeletingScope::class,
-      ]);
-  }
+	public static function getPages(): array
+	{
+		return [
+			'index' => ManageItems::route('/'),
+		];
+	}
+
+	public static function getRecordRouteBindingEloquentQuery(): Builder
+	{
+		return parent::getRecordRouteBindingEloquentQuery()
+			->withoutGlobalScopes([
+				SoftDeletingScope::class,
+			]);
+	}
 }

@@ -3,10 +3,9 @@
 namespace App\Filament\Resources\ItemTypes;
 
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Support\Enums\Width;
-use UnitEnum;
-
 use App\Filament\Resources\ItemTypes\Pages\ManageItemTypes;
 use App\Models\ItemType;
 use Filament\Actions\BulkActionGroup;
@@ -31,104 +30,107 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class ItemTypeResource extends Resource
 {
-  protected static ?string $model = ItemType::class;
+	protected static ?string $model = ItemType::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
+	protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
-  protected static ?string $recordTitleAttribute = 'name';
+	protected static ?string $recordTitleAttribute = 'name';
 
-  protected static string | UnitEnum | null $navigationGroup = 'Items';
-  protected static ?int $navigationSort = 100;
+	protected static string|UnitEnum|null $navigationGroup = 'Items';
 
-  public static function form(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        TextInput::make('name')
-          ->required(),
-      ])
-        ->columns(1);
-  }
+	protected static ?string $navigationParentItem = 'Items';
 
-  public static function infolist(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        TextEntry::make('name')
-          ->columnSpanFull(),
-        
-        TextEntry::make('created_at')
-          ->dateTime(),
-        TextEntry::make('updated_at')
-          ->sinceTooltip()
-          ->dateTime(),
-        TextEntry::make('deleted_at')
-          ->dateTime(),
-      ])
-        ->columns(3);
-  }
+	protected static ?int $navigationSort = 100;
 
-  public static function table(Table $table): Table
-  {
-    return $table
-      ->recordTitleAttribute('name')
-      ->columns([
-        TextColumn::make('index')
-          ->label('#')
-          ->rowIndex(),
-        TextColumn::make('name')
-          ->searchable(),
-        TextColumn::make('deleted_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('created_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('updated_at')
-          ->dateTime()
-          ->sortable()
-          ->sinceTooltip()
-          ->toggleable(isToggledHiddenByDefault: false),
-      ])
-      ->filters([
-        TrashedFilter::make()
-          ->native(false),
-      ])
-      ->recordActions([
-        ActionGroup::make([
-          ViewAction::make(),
+	public static function form(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				TextInput::make('name')
+					->required(),
+			])
+			->columns(1);
+	}
 
-          EditAction::make()
-            ->modalWidth(Width::Medium),
+	public static function infolist(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				TextEntry::make('name')
+					->columnSpanFull(),
 
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
-          RestoreAction::make(),
-        ])
-      ])
-      ->toolbarActions([
-        BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
-          RestoreBulkAction::make(),
-        ]),
-      ]);
-  }
+				TextEntry::make('created_at')
+					->dateTime(),
+				TextEntry::make('updated_at')
+					->sinceTooltip()
+					->dateTime(),
+				TextEntry::make('deleted_at')
+					->dateTime(),
+			])
+			->columns(3);
+	}
 
-  public static function getPages(): array
-  {
-    return [
-      'index' => ManageItemTypes::route('/'),
-    ];
-  }
+	public static function table(Table $table): Table
+	{
+		return $table
+			->recordTitleAttribute('name')
+			->columns([
+				TextColumn::make('index')
+					->label('#')
+					->rowIndex(),
+				TextColumn::make('name')
+					->searchable(),
+				TextColumn::make('deleted_at')
+					->dateTime()
+					->sortable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('created_at')
+					->dateTime()
+					->sortable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('updated_at')
+					->dateTime()
+					->sortable()
+					->sinceTooltip()
+					->toggleable(isToggledHiddenByDefault: false),
+			])
+			->filters([
+				TrashedFilter::make()
+					->native(false),
+			])
+			->recordActions([
+				ActionGroup::make([
+					ViewAction::make(),
 
-  public static function getRecordRouteBindingEloquentQuery(): Builder
-  {
-    return parent::getRecordRouteBindingEloquentQuery()
-      ->withoutGlobalScopes([
-        SoftDeletingScope::class,
-      ]);
-  }
+					EditAction::make()
+						->modalWidth(Width::Medium),
+
+					DeleteAction::make(),
+					ForceDeleteAction::make(),
+					RestoreAction::make(),
+				])
+			])
+			->toolbarActions([
+				BulkActionGroup::make([
+					DeleteBulkAction::make(),
+					ForceDeleteBulkAction::make(),
+					RestoreBulkAction::make(),
+				]),
+			]);
+	}
+
+	public static function getPages(): array
+	{
+		return [
+			'index' => ManageItemTypes::route('/'),
+		];
+	}
+
+	public static function getRecordRouteBindingEloquentQuery(): Builder
+	{
+		return parent::getRecordRouteBindingEloquentQuery()
+			->withoutGlobalScopes([
+				SoftDeletingScope::class,
+			]);
+	}
 }
