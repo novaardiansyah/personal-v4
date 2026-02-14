@@ -33,7 +33,7 @@ class PaymentAccountObserver
     $currentImage = $paymentAccount->logo;
 
     if ($isImageChange && $currentImage) {
-      $this->_deleteImage($paymentAccount);
+      $this->_delete_image_from_cdn($paymentAccount);
     }
   }
 
@@ -42,17 +42,37 @@ class PaymentAccountObserver
     $currentImage = $paymentAccount->logo;
 
     if ($currentImage) {
-      $req = app(CdnService::class)->upload(
-        $currentImage,
-        subjectType: PaymentAccount::class,
-        subjectId: $paymentAccount->id,
-        dir: 'payment-account'
-      );
+      $this->_upload_image_to_cdn($paymentAccount);
+    }
+  }
 
-      if ($req && $req->successful()) {
-        Storage::disk('public')->delete($currentImage);
+  private function _upload_image_to_cdn(PaymentAccount $paymentAccount)
+  {
+    $currentImage = $paymentAccount->logo;
+
+    $req = app(CdnService::class)->upload(
+      $currentImage,
+      subjectType: PaymentAccount::class,
+      subjectId: $paymentAccount->id,
+      dir: 'payment-account'
+    );
+
+    if ($req && $req->successful()) {
+      $res = $req->json();
+      $largeImage = collect($res['data'] ?? [])->firstWhere('size', 'large');
+
+      if ($largeImage && isset($largeImage['file_path'])) {
+        $this->_set_image_path($paymentAccount, $largeImage['file_path']);
       }
     }
+  }
+
+  private function _set_image_path(PaymentAccount $paymentAccount, string $file_path): void
+  {
+    Storage::disk('public')->delete($paymentAccount->logo);
+
+    $paymentAccount->logo = str_replace('\\', '/', $file_path);
+    $paymentAccount->saveQuietly();
   }
 
   /**
@@ -77,7 +97,7 @@ class PaymentAccountObserver
   public function deleted(PaymentAccount $paymentAccount): void
   {
     $this->_log('Deleted', $paymentAccount);
-    $this->_deleteImage($paymentAccount);
+    $this->_delete_image_from_cdn($paymentAccount);
   }
 
   /**
@@ -96,7 +116,7 @@ class PaymentAccountObserver
     $this->_log('Force Deleted', $paymentAccount);
   }
 
-  private function _deleteImage(PaymentAccount $paymentAccount): void
+  private function _delete_image_from_cdn(PaymentAccount $paymentAccount): void
   {
     $exist = Gallery::where('subject_type', PaymentAccount::class)->where('subject_id', $paymentAccount->id)->first();
 

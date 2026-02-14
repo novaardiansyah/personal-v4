@@ -83,11 +83,15 @@ class CdnService
 
     $postData['dir'] = $dir;
 
-    /** @var \Illuminate\Http\Client\Response $response */
-    $response = Http::withToken($this->apiKey)
-      ->attach('file', $fileContent, $fileName, ['Content-Type' => $mimeType])
-      ->post("{$this->baseUrl}/upload", $postData);
+    try {
+      /** @var \Illuminate\Http\Client\Response $response */
+      $response = Http::withToken($this->apiKey)
+        ->attach('file', $fileContent, $fileName, ['Content-Type' => $mimeType])
+        ->post("{$this->baseUrl}/upload", $postData);
 
-    return $response;
+      return $response;
+    } catch (\Exception $e) {
+      return null;
+    }
   }
 }

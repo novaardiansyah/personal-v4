@@ -34,12 +34,7 @@ class PaymentAccount extends Model
 
   public function getLogoUrlAttribute(): string|null
   {
-    $gallery = Gallery::where('subject_type', PaymentAccount::class)
-      ->where('subject_id', $this->id)
-      ->where('size', GallerySize::Large)
-      ->first();
-
-    return $gallery ? config('services.self.cdn_url') . '/' . $gallery->file_path : $this->logo;
+    return $this->logo ? config('services.self.cdn_url') . '/' .  $this->logo : null;
   }
 
   public function payments(): HasMany
