@@ -149,11 +149,13 @@ class LogUserLogin
       }
 
       $default = [
-        'name'    => $author_name,
-        'email'   => $author_email,
-        'subject' => $template->subject . ' (' . $now_formatted . ')',
-        'message' => $message,
-        'status'  => EmailStatus::Draft,
+				'name'       => $author_name,
+				'email'      => $author_email,
+				'subject'    => $template->subject . ' (' . $now_formatted . ')',
+				'message'    => $message,
+				'status'     => EmailStatus::Draft,
+				'has_header' => true,
+				'has_footer' => true,
       ];
 
       $email = Email::create($default);
