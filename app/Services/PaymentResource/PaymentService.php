@@ -61,19 +61,18 @@ class PaymentService
 	public static function updateItemPivot(Payment $payment, Item $item, array $data): array
 	{
 		$oldQuantity = (int) $item->pivot->quantity;
-		$oldTotal = (int) $item->pivot->total;
-		$oldPrice = (int) $item->pivot->price;
+		$oldTotal    = (int) $item->pivot->total;
 
 		$newQuantity = (int) $data['quantity'];
-		$newPrice = (int) $data['amount'];
-		$newTotal = $newQuantity * $newPrice;
+		$newPrice    = (int) $data['amount'];
+		$newTotal    = $newQuantity * $newPrice;
 
-		$totalDiff = $newTotal - $oldTotal;
+		$totalDiff        = $newTotal - $oldTotal;
 		$newPaymentAmount = $payment->amount + $totalDiff;
 
 		$oldItemName = $item->name . ' (x' . $oldQuantity . ')';
 		$newItemName = $item->name . ' (x' . $newQuantity . ')';
-		$note = str_replace($oldItemName, $newItemName, $payment->name ?? '');
+		$note        = str_replace($oldItemName, $newItemName, $payment->name ?? '');
 
 		$payment->update(['amount' => $newPaymentAmount, 'name' => $note]);
 		$item->update(['amount' => $newPrice]);
