@@ -243,14 +243,22 @@ function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
 
   unset($data['model']);
 
+	if (isset($data['prev_properties'])) {
+		$data['prev_properties'] = array_merge($oldValue, $data['prev_properties']);
+	}
+
+	if (isset($data['properties'])) {
+		$data['properties'] = array_merge($changes, $data['properties']);
+	}
+
   return ActivityLog::create(array_merge([
-    'log_name' => 'Resource',
-    'description' => "{$model} {$event} by {$causer->name}",
-    'event' => $event,
-    'causer_type' => User::class,
-    'causer_id' => $causer->id,
+    'log_name'        => 'Resource',
+    'description'     => "{$model} {$event} by {$causer->name}",
+    'event'           => $event,
+    'causer_type'     => User::class,
+    'causer_id'       => $causer->id,
     'prev_properties' => $oldValue,
-    'properties' => $changes,
+    'properties'      => $changes,
   ], $data));
 }
 
