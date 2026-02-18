@@ -20,6 +20,7 @@
     "laravel/tinker": "^2.10.1",
     "maatwebsite/excel": "^3.1",
     "mpdf/mpdf": "^8.2",
+    "predis/predis": "^3.4",
     "spatie/image": "^3.8",
     "spatie/laravel-image-optimizer": "^1.8"
   },
