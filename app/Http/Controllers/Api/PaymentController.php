@@ -889,16 +889,16 @@ class PaymentController extends Controller
   {
     $validator = Validator::make($request->all(), [
       'report_type' => 'required|in:daily,monthly,date_range',
-      'start_date' => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d',
-      'end_date' => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d|after_or_equal:start_date',
-      'periode' => 'exclude_unless:report_type,monthly|required|date_format:Y-m',
+      'start_date'  => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d',
+      'end_date'    => 'exclude_unless:report_type,date_range|required|date_format:Y-m-d|after_or_equal:start_date',
+      'periode'     => 'exclude_unless:report_type,monthly|required|date_format:Y-m',
     ]);
 
     $validator->setCustomMessages([
-      'start_date.required' => 'The start date is required for custom date range report.',
-      'end_date.required' => 'The end date is required for custom date range report.',
+      'start_date.required'     => 'The start date is required for custom date range report.',
+      'end_date.required'       => 'The end date is required for custom date range report.',
       'end_date.after_or_equal' => 'The end date must be after or equal to start date.',
-      'periode.required' => 'The periode (month) is required for monthly report.',
+      'periode.required'        => 'The periode (month) is required for monthly report.',
     ]);
 
     if ($validator->fails()) {
@@ -909,27 +909,30 @@ class PaymentController extends Controller
       ], 422);
     }
 
-    $user = $request->user();
-    $validated = $validator->validated();
-
+    $user       = $request->user();
+    $validated  = $validator->validated();
     $reportType = $validated['report_type'];
 
     match ($reportType) {
-      'daily' => DailyReportJob::dispatch(),
+      'daily' => DailyReportJob::dispatch([
+				'send_to_email' => true,
+			]),
       'monthly' => MonthlyReportJob::dispatch([
-        'periode' => $validated['periode'],
-        'user' => $user,
+				'periode'       => $validated['periode'],
+				'user'          => $user,
+				'send_to_email' => true,
       ]),
       default => PaymentReportPdf::dispatch([
-        'start_date' => $validated['start_date'],
-        'end_date' => $validated['end_date'],
-        'user' => $user,
+				'start_date'    => $validated['start_date'],
+				'end_date'      => $validated['end_date'],
+				'user'          => $user,
+				'send_to_email' => true,
       ]),
     };
 
     $messages = [
-      'daily' => 'Daily report will be sent to your email.',
-      'monthly' => 'Monthly report will be sent to your email.',
+      'daily'      => 'Daily report will be sent to your email.',
+      'monthly'    => 'Monthly report will be sent to your email.',
       'date_range' => 'Custom report will be sent to your email.',
     ];
 

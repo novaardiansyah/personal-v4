@@ -1,10 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\Api\PaymentTypeController;
-use App\Http\Controllers\Api\ItemTypeController;
-use App\Http\Controllers\Api\PaymentGoalController;
-use App\Http\Controllers\Api\PaymentGoalStatusController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('payments')->group(function () {
