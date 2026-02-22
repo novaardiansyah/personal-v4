@@ -14,7 +14,7 @@ class Item extends Model
 {
   use SoftDeletes;
   
-  protected $guarded = ['id'];
+	protected $fillable = ['type_id', 'code', 'name', 'amount'];
 
   public function type(): BelongsTo
   {

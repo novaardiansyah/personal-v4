@@ -48,6 +48,11 @@ Route::middleware('auth:sanctum')->group(function () {
   });
 
   require __DIR__ . '/api/payment.php';
+  require __DIR__ . '/api/payment-account.php';
+  require __DIR__ . '/api/payment-type.php';
+  require __DIR__ . '/api/payment-goal.php';
+  require __DIR__ . '/api/payment-goal-status.php';
+  require __DIR__ . '/api/item-type.php';
 
   Route::prefix('notifications')->group(function () {
     Route::put('/settings', [NotificationController::class, 'updateNotificationSettings']);

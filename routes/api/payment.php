@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\PaymentController;
-use App\Http\Controllers\Api\PaymentAccountController;
 use App\Http\Controllers\Api\PaymentTypeController;
 use App\Http\Controllers\Api\ItemTypeController;
 use App\Http\Controllers\Api\PaymentGoalController;
@@ -38,40 +37,4 @@ Route::prefix('payments')->group(function () {
   Route::delete('/{payment}/items/{pivotId}', [PaymentController::class, 'detachItem']);
 
   Route::post('/{code}/manage-draft', [PaymentController::class, 'manageDraft']);
-});
-
-Route::prefix('payment-accounts')->group(function () {
-  Route::get('/', [PaymentAccountController::class, 'index']);
-  Route::get('/{paymentAccount}', [PaymentAccountController::class, 'show']);
-  Route::post('/', [PaymentAccountController::class, 'store']);
-  Route::put('/{id}', [PaymentAccountController::class, 'update']);
-  Route::delete('/{paymentAccount}', [PaymentAccountController::class, 'destroy']);
-  Route::post('/{paymentAccount}/audit', [PaymentAccountController::class, 'audit']);
-
-  Route::post('/report-monthly', [PaymentAccountController::class, 'reportMonthly']);
-});
-
-Route::prefix('payment-types')->group(function () {
-  Route::get('/', [PaymentTypeController::class, 'index']);
-});
-
-Route::prefix('item-types')->group(function () {
-  Route::get('/', [ItemTypeController::class, 'index']);
-});
-
-Route::prefix('payment-goals')->group(function () {
-  Route::get('/', [PaymentGoalController::class, 'index']);
-  Route::get('/overview', [PaymentGoalController::class, 'overview']);
-  Route::get('/statistics', [PaymentGoalController::class, 'statistics']);
-  Route::post('/', [PaymentGoalController::class, 'store']);
-  Route::get('/{paymentGoal}', [PaymentGoalController::class, 'show']);
-  Route::put('/{paymentGoal}', [PaymentGoalController::class, 'update']);
-  Route::delete('/{paymentGoal}', [PaymentGoalController::class, 'destroy']);
-  Route::post('/{paymentGoal}/restore', [PaymentGoalController::class, 'restore']);
-  Route::delete('/{paymentGoal}/force', [PaymentGoalController::class, 'forceDestroy']);
-  Route::put('/{paymentGoal}/progress', [PaymentGoalController::class, 'updateProgress']);
-});
-
-Route::prefix('payment-goal-statuses')->group(function () {
-  Route::get('/', [PaymentGoalStatusController::class, 'index']);
 });

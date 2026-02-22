@@ -14,7 +14,7 @@ class PaymentItem extends Pivot
 
 	public $incrementing = true;
 
-	protected $guarded = ['id'];
+	protected $fillable = ['item_code', 'payment_id', 'item_id', 'price', 'quantity', 'total'];
 
 	public function payment(): BelongsTo
 	{
