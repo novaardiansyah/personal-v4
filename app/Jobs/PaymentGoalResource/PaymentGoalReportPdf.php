@@ -27,8 +27,11 @@ use Mpdf\Output\Destination as MpdfDestination;
 use Illuminate\Support\Facades\URL;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Actions\Action as FilamentAction;
-use App\Mail\PaymentGoalResource\PaymentGoalReportMail;
-use Illuminate\Support\Facades\Mail;
+use App\Enums\EmailStatus;
+use App\Models\Email;
+use App\Models\EmailTemplate;
+use App\Models\File;
+use App\Services\EmailResource\EmailService;
 
 class PaymentGoalReportPdf implements ShouldQueue
 {
@@ -176,29 +179,39 @@ class PaymentGoalReportPdf implements ShouldQueue
 		$authorName = getSetting('author_name');
 		$now        = Carbon::now()->toDateTimeString();
 
-		$data = [
-			'log_name'    => 'payment_goal_notification',
-			'email'       => $email,
-			'author_name' => $authorName,
-			'subject'     => 'Notifikasi: Laporan Target Pembayaran (' . carbonTranslatedFormat($now, 'd M Y, H.i', 'id') . ')',
-			'created_at'  => $now,
-			'attachments' => [$fullPath],
-		];
+		$template = EmailTemplate::where('alias', 'payment_goals_report')->first();
 
-		$mail = new PaymentGoalReportMail($data);
-		Mail::to($email)->queue($mail);
-		$html = $mail->render();
+		if ($template) {
+			$placeholders = array_merge($template->placeholders ?? [], [
+				'now' => carbonTranslatedFormat($now, 'd M Y, H.i', 'id'),
+			]);
 
-		saveActivityLog([
-			'log_name'    => 'Notification',
-			'description' => 'Payment Goal Report by ' . $user->name,
-			'event'       => 'Mail Notification',
-			'properties' => [
-				'email'       => $data['email'],
-				'subject'     => $data['subject'],
-				'attachments' => $data['attachments'],
-				'html'        => $html,
-			],
-		]);
+			$message = $template->message;
+			foreach ($placeholders as $key => $value) {
+				$message = str_replace('{' . $key . '}', (string) $value, $message);
+			}
+
+			$emailModel = Email::create([
+				'name'    => $authorName,
+				'email'   => $email,
+				'subject' => $template->subject . ' (' . carbonTranslatedFormat($now, 'd M Y, H.i', 'id') . ')',
+				'message' => $message,
+				'status'  => EmailStatus::Draft,
+			]);
+
+			$relativePath = str_replace(storage_path('app/public/'), '', $fullPath);
+
+			File::create([
+				'user_id'      => $user->id,
+				'file_name'    => basename($fullPath),
+				'file_path'    => $relativePath,
+				'subject_type' => Email::class,
+				'subject_id'   => $emailModel->id,
+			]);
+
+			(new EmailService())->sendOrPreview($emailModel, false, [
+				'description' => 'Payment Goal Report by ' . $user->name,
+			]);
+		}
 	}
 }
