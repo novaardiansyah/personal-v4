@@ -46,9 +46,9 @@ class PrintPdfAction
 				Select::make('report_type')
 					->label('Report Type')
 					->options([
-						'all' => 'All Goals',
-						'active' => 'Active Goals',
-						'completed' => 'Completed Goals',
+						'all'        => 'All Goals',
+						'active'     => 'Active Goals',
+						'completed'  => 'Completed Goals',
 						'date_range' => 'Custom Date Range',
 					])
 					->default('all')
@@ -80,26 +80,28 @@ class PrintPdfAction
 
 		$sendTo = [
 			'send_to_email' => $send_to_email,
-			'user' => $user,
-			'notification' => true,
+			'user'          => $user,
+			'notification'  => true,
 		];
 
-		match ($data['report_type']) {
-			'active' => PaymentGoalReportPdf::dispatch(array_merge($sendTo, ['status' => 'active'])),
-			'completed' => PaymentGoalReportPdf::dispatch(array_merge($sendTo, ['status' => 'completed'])),
-			'date_range' => PaymentGoalReportPdf::dispatch(array_merge($sendTo, [
+		$params = match ($data['report_type']) {
+			'active'    => ['status' => 'active'],
+			'completed' => ['status' => 'completed'],
+			'date_range' => [
 				'start_date' => $data['start_date'],
-				'end_date' => $data['end_date'],
-			])),
-			default => PaymentGoalReportPdf::dispatch(array_merge($sendTo, ['status' => 'all'])),
+				'end_date'   => $data['end_date'],
+			],
+			default => ['status' => 'all'],
 		};
 
+		PaymentGoalReportPdf::dispatch(array_merge($sendTo, $params));
+
 		$messages = [
-			'all' => 'All goals PDF report will be sent to your email.',
-			'active' => 'Active goals PDF report will be sent to your email.',
-			'completed' => 'Completed goals PDF report will be sent to your email.',
+			'all'        => 'All goals PDF report will be sent to your email.',
+			'active'     => 'Active goals PDF report will be sent to your email.',
+			'completed'  => 'Completed goals PDF report will be sent to your email.',
 			'date_range' => 'Custom PDF report will be sent to your email.',
-			'default' => 'PDF report is being generated.',
+			'default'    => 'PDF report is being generated.',
 		];
 
 		if (!$send_to_email) {

@@ -1,5 +1,19 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentGoalReportPdf.php
+ * Created Date: Tuesday February 24th 2026
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
+declare(strict_types=1);
+
 namespace App\Jobs\PaymentGoalResource;
 
 use App\Models\PaymentGoal;
@@ -8,6 +22,13 @@ use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Mpdf\Mpdf;
+use Illuminate\Support\Str;
+use Mpdf\Output\Destination as MpdfDestination;
+use Illuminate\Support\Facades\URL;
+use Filament\Notifications\Notification as FilamentNotification;
+use Filament\Actions\Action as FilamentAction;
+use App\Mail\PaymentGoalResource\PaymentGoalReportMail;
+use Illuminate\Support\Facades\Mail;
 
 class PaymentGoalReportPdf implements ShouldQueue
 {
@@ -20,45 +41,45 @@ class PaymentGoalReportPdf implements ShouldQueue
 		Log::info('4200 --> PaymentGoalReportPdf: Started.');
 
 		$user = $this->data['user'] ?? getUser();
-		$now = Carbon::now()->toDateTimeString();
+		$now  = Carbon::now()->toDateTimeString();
 
 		$goals = $this->getGoals();
 
-		$totalTarget = $goals->sum('target_amount');
-		$totalAmount = $goals->sum('amount');
+		$totalTarget    = $goals->sum('target_amount');
+		$totalAmount    = $goals->sum('amount');
 		$completedCount = $goals->filter(fn($g) => $g->progress_percent >= 100)->count();
-		$activeCount = $goals->filter(fn($g) => $g->progress_percent < 100)->count();
+		$activeCount    = $goals->filter(fn($g) => $g->progress_percent < 100)->count();
 
 		Carbon::setLocale('id');
 
 		$title = 'Laporan Target Pembayaran';
 		$reportType = match ($this->data['status'] ?? 'all') {
-			'active' => 'Target Aktif',
-			'completed' => 'Target Selesai',
+			'active'     => 'Target Aktif',
+			'completed'  => 'Target Selesai',
 			'date_range' => 'Custom Date Range',
-			default => 'Semua Target',
+			default      => 'Semua Target',
 		};
 
 		$periode = $reportType;
 		if (isset($this->data['start_date']) && isset($this->data['end_date'])) {
-			$start = Carbon::parse($this->data['start_date']);
-			$end = Carbon::parse($this->data['end_date']);
+			$start   = Carbon::parse($this->data['start_date']);
+			$end     = Carbon::parse($this->data['end_date']);
 			$periode = $start->translatedFormat('d M Y') . ' - ' . $end->translatedFormat('d M Y');
 		}
 
 		$mpdf = new Mpdf();
 		$mpdf->WriteHTML(view('payment-goal-resource.make-pdf.header', [
-			'title' => $title,
-			'now' => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
+			'title'   => $title,
+			'now'     => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
 			'periode' => $periode,
-			'user' => $user,
+			'user'    => $user,
 		])->render());
 
 		$rowIndex = 1;
 		$goals->chunk(200)->each(function ($list) use ($mpdf, &$rowIndex) {
 			foreach ($list as $record) {
 				$view = view('payment-goal-resource.make-pdf.body', [
-					'record' => $record,
+					'record'    => $record,
 					'loopIndex' => $rowIndex++,
 				])->render();
 				$mpdf->WriteHTML($view);
@@ -66,13 +87,13 @@ class PaymentGoalReportPdf implements ShouldQueue
 		});
 
 		$mpdf->WriteHTML(view('payment-goal-resource.make-pdf.footer', [
-			'total_target' => $totalTarget,
-			'total_amount' => $totalAmount,
+			'total_target'    => $totalTarget,
+			'total_amount'    => $totalAmount,
 			'completed_count' => $completedCount,
-			'active_count' => $activeCount,
+			'active_count'    => $activeCount,
 		])->render());
 
-		$result = $this->savePdf($mpdf, $user);
+		$this->savePdf($mpdf, $user);
 
 		Log::info('4201 --> PaymentGoalReportPdf: Finished.');
 	}
@@ -98,21 +119,21 @@ class PaymentGoalReportPdf implements ShouldQueue
 
 	protected function savePdf(Mpdf $mpdf, $user): array
 	{
-		$extension = 'pdf';
-		$directory = 'public/attachments';
-		$filenameWithoutExtension = \Illuminate\Support\Str::orderedUuid()->toString();
-		$filename = "{$filenameWithoutExtension}.{$extension}";
-		$filepath = "{$directory}/{$filename}";
-		$fullPath = storage_path("app/{$filepath}");
+		$extension                = 'pdf';
+		$directory                = 'public/attachments';
+		$filenameWithoutExtension = Str::orderedUuid()->toString();
+		$filename                 = "{$filenameWithoutExtension}.{$extension}";
+		$filepath                 = "{$directory}/{$filename}";
+		$fullPath                 = storage_path("app/{$filepath}");
 
 		if (!file_exists(dirname($fullPath))) {
 			mkdir(dirname($fullPath), 0755, true);
 		}
 
-		$mpdf->Output($fullPath, \Mpdf\Output\Destination::FILE);
+		$mpdf->Output($fullPath, MpdfDestination::FILE);
 
 		$expiration = now()->addMonth();
-		$fileUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
+		$fileUrl = URL::temporarySignedRoute(
 			'download',
 			$expiration,
 			['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
@@ -121,13 +142,13 @@ class PaymentGoalReportPdf implements ShouldQueue
 		$notification = $this->data['notification'] ?? false;
 
 		if ($notification) {
-			\Filament\Notifications\Notification::make()
+			FilamentNotification::make()
 				->title('PDF file ready')
 				->body('Your payment goal report is ready to download')
 				->icon('heroicon-o-arrow-down-tray')
 				->iconColor('success')
 				->actions([
-					\Filament\Actions\Action::make('download')
+					FilamentAction::make('download')
 						->label('Download')
 						->url($fileUrl)
 						->openUrlInNewTab()
@@ -145,37 +166,38 @@ class PaymentGoalReportPdf implements ShouldQueue
 
 		return [
 			'fullpath' => $fullPath,
-			'url' => $fileUrl,
+			'url'      => $fileUrl,
 		];
 	}
 
 	protected function sendEmail(string $fullPath, $user): void
 	{
-		$email = getSetting('custom_payment_email');
+		$email      = getSetting('custom_payment_email');
 		$authorName = getSetting('author_name');
+		$now        = Carbon::now()->toDateTimeString();
 
 		$data = [
-			'log_name' => 'payment_goal_notification',
-			'email' => $email,
+			'log_name'    => 'payment_goal_notification',
+			'email'       => $email,
 			'author_name' => $authorName,
-			'subject' => 'Notifikasi: Laporan Target Pembayaran',
-			'created_at' => now()->toDateTimeString(),
+			'subject'     => 'Notifikasi: Laporan Target Pembayaran (' . carbonTranslatedFormat($now, 'd M Y, H.i', 'id') . ')',
+			'created_at'  => $now,
 			'attachments' => [$fullPath],
 		];
 
-		$mail = new \App\Mail\PaymentGoalResource\PaymentGoalReportMail($data);
-		\Illuminate\Support\Facades\Mail::to($email)->queue($mail);
+		$mail = new PaymentGoalReportMail($data);
+		Mail::to($email)->queue($mail);
 		$html = $mail->render();
 
 		saveActivityLog([
-			'log_name' => 'Notification',
+			'log_name'    => 'Notification',
 			'description' => 'Payment Goal Report by ' . $user->name,
-			'event' => 'Mail Notification',
+			'event'       => 'Mail Notification',
 			'properties' => [
-				'email' => $data['email'],
-				'subject' => $data['subject'],
+				'email'       => $data['email'],
+				'subject'     => $data['subject'],
 				'attachments' => $data['attachments'],
-				'html' => $html,
+				'html'        => $html,
 			],
 		]);
 	}

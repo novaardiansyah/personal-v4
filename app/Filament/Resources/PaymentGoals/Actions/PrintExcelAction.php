@@ -84,15 +84,17 @@ class PrintExcelAction
 			'notification' => true,
 		];
 
-		match ($data['report_type']) {
-			'active' => PaymentGoalReportExcelJob::dispatch(array_merge($sendTo, ['status' => 'active'])),
-			'completed' => PaymentGoalReportExcelJob::dispatch(array_merge($sendTo, ['status' => 'completed'])),
-			'date_range' => PaymentGoalReportExcelJob::dispatch(array_merge($sendTo, [
+		$params = match ($data['report_type']) {
+			'active'     => ['status' => 'active'],
+			'completed'  => ['status' => 'completed'],
+			'date_range' => [
 				'start_date' => $data['start_date'],
-				'end_date' => $data['end_date'],
-			])),
-			default => PaymentGoalReportExcelJob::dispatch(array_merge($sendTo, ['status' => 'all'])),
+				'end_date'   => $data['end_date'],
+			],
+			default      => ['status' => 'all'],
 		};
+
+		PaymentGoalReportExcelJob::dispatch(array_merge($sendTo, $params));
 
 		$messages = [
 			'all' => 'All goals Excel report will be sent to your email.',
