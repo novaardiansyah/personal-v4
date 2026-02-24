@@ -4,7 +4,9 @@ namespace App\Filament\Resources\PaymentGoals;
 
 use BackedEnum;
 use UnitEnum;
-use App\Filament\Resources\PaymentGoals\Actions\PaymentGoalAction;
+use App\Filament\Resources\PaymentGoals\Actions\AllocateFundAction;
+use App\Filament\Resources\PaymentGoals\Actions\PrintExcelAction;
+use App\Filament\Resources\PaymentGoals\Actions\PrintPdfAction;
 use App\Filament\Resources\PaymentGoals\Pages\AllocateFundPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\CreatePaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\EditPaymentGoal;
@@ -256,8 +258,8 @@ class PaymentGoalResource extends Resource
 					->native(false),
 			])
 			->headerActions([
-				PaymentGoalAction::printExcel(),
-				PaymentGoalAction::printPdf(),
+				PrintExcelAction::make(),
+				PrintPdfAction::make(),
 			])
 			->recordActions([
 				ActionGroup::make([
@@ -268,12 +270,7 @@ class PaymentGoalResource extends Resource
 
 					EditAction::make(),
 
-					Action::make('allocate_fund')
-						->label('Allocate Fund')
-						->icon('heroicon-o-banknotes')
-						->color('success')
-						->visible(fn(PaymentGoal $record) => $record->progress_percent < 100)
-						->url(fn(PaymentGoal $record): string => static::getUrl('allocate-fund', ['record' => $record])),
+					AllocateFundAction::make(),
 
 					DeleteAction::make(),
 					ForceDeleteAction::make(),
