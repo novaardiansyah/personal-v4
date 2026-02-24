@@ -87,6 +87,7 @@ class PaymentGoalAction
 			'active' => 'Active goals PDF report will be sent to your email.',
 			'completed' => 'Completed goals PDF report will be sent to your email.',
 			'date_range' => 'Custom PDF report will be sent to your email.',
+			'default' => 'PDF report is being generated.',
 		];
 
 		if (!$send_to_email) {
@@ -175,6 +176,7 @@ class PaymentGoalAction
 			'active' => 'Active goals Excel report will be sent to your email.',
 			'completed' => 'Completed goals Excel report will be sent to your email.',
 			'date_range' => 'Custom Excel report will be sent to your email.',
+			'default' => 'Excel report is being generated.',
 		];
 
 		if (!$send_to_email) {

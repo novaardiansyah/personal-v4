@@ -55,7 +55,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 		])->render());
 
 		$rowIndex = 1;
-		$goals->chunk(200, function ($list) use ($mpdf, &$rowIndex) {
+		$goals->chunk(200)->each(function ($list) use ($mpdf, &$rowIndex) {
 			foreach ($list as $record) {
 				$view = view('payment-goal-resource.make-pdf.body', [
 					'record' => $record,
@@ -93,7 +93,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 			default => $query,
 		};
 
-		return $query->orderBy('created_at', 'desc')->get();
+		return $query->orderBy('target_date', 'desc')->get();
 	}
 
 	protected function savePdf(Mpdf $mpdf, $user): array

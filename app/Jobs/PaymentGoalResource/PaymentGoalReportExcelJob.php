@@ -104,7 +104,7 @@ class PaymentGoalReportExcelJob implements ShouldQueue
 			default => $query,
 		};
 
-		return $query->orderBy('created_at', 'desc')->get();
+		return $query->orderBy('target_date', 'desc')->get();
 	}
 
 	protected function sendEmail(string $fullPath, $user): void
