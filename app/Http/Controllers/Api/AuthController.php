@@ -195,4 +195,16 @@ class AuthController extends Controller
       ]
     ]);
   }
+
+  public function loginNotification(Request $request)
+  {
+		$user = auth()->user();
+
+    event(new Login('api', $user, false));
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Login event triggered successfully',
+    ]);
+  }
 }

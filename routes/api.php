@@ -34,6 +34,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/change-password', [AuthController::class, 'changePassword']);
     Route::put('/profile', [AuthController::class, 'updateProfile']);
+    Route::post('/login/notification', [AuthController::class, 'loginNotification']);
   });
 
   Route::prefix('skills')->group(function () {

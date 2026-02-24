@@ -4,6 +4,7 @@ namespace App\Filament\Resources\PaymentGoals;
 
 use BackedEnum;
 use UnitEnum;
+use App\Filament\Resources\PaymentGoals\Actions\PaymentGoalAction;
 use App\Filament\Resources\PaymentGoals\Pages\AllocateFundPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\CreatePaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\EditPaymentGoal;
@@ -253,6 +254,10 @@ class PaymentGoalResource extends Resource
       ->filters([
         TrashedFilter::make()
           ->native(false),
+      ])
+      ->headerActions([
+        PaymentGoalAction::printExcel(),
+        PaymentGoalAction::printPdf(),
       ])
       ->recordActions([
         ActionGroup::make([
