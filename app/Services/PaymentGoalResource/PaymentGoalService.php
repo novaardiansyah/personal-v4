@@ -28,11 +28,48 @@ use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Mpdf\Mpdf;
 use Mpdf\Output\Destination as MpdfDestination;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PaymentGoalResource\PaymentGoalExport;
 use Filament\Notifications\Notification as FilamentNotification;
 use Filament\Actions\Action as FilamentAction;
 
 class PaymentGoalService
 {
+	public function generateReportExcel(array $data): array
+	{
+		Log::info('4202 --> PaymentGoalService::generateReportExcel: Started.');
+
+		$user      = $data['user'] ?? getUser();
+		$status    = $data['status'] ?? 'all';
+		$extension = 'xlsx';
+		$directory = 'public/attachments';
+
+		$filenameWithoutExtension = Str::orderedUuid()->toString();
+		$filename                 = "{$filenameWithoutExtension}.{$extension}";
+		$filepath                 = "{$directory}/{$filename}";
+
+		Excel::store(
+			new PaymentGoalExport($status, $data['start_date'] ?? null, $data['end_date'] ?? null),
+			"attachments/{$filename}",
+			'public'
+		);
+
+		$fullPath = storage_path("app/{$filepath}");
+
+		$result = $this->saveFile($fullPath, $user, $data, [
+			'extension'                => $extension,
+			'directory'                => $directory,
+			'filenameWithoutExtension' => $filenameWithoutExtension,
+			'filename'                 => $filename,
+			'filepath'                 => $filepath,
+			'type'                     => 'Excel',
+		]);
+
+		Log::info('4203 --> PaymentGoalService::generateReportExcel: Finished.');
+
+		return $result;
+	}
+
 	public function generateReportPdf(array $data): array
 	{
 		Log::info('4200 --> PaymentGoalService::generateReportPdf: Started.');
@@ -131,18 +168,34 @@ class PaymentGoalService
 
 		$mpdf->Output($fullPath, MpdfDestination::FILE);
 
+		return $this->saveFile($fullPath, $user, $data, [
+			'extension'                => $extension,
+			'directory'                => $directory,
+			'filenameWithoutExtension' => $filenameWithoutExtension,
+			'filename'                 => $filename,
+			'filepath'                 => $filepath,
+			'type'                     => 'PDF',
+		]);
+	}
+
+	protected function saveFile(string $fullPath, $user, array $data, array $fileMeta): array
+	{
 		$expiration = now()->addMonth();
 		$fileUrl = URL::temporarySignedRoute(
 			'download',
 			$expiration,
-			['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
+			[
+				'path'      => $fileMeta['filenameWithoutExtension'],
+				'extension' => $fileMeta['extension'],
+				'directory' => $fileMeta['directory']
+			]
 		);
 
 		$notification = $data['notification'] ?? false;
 
 		if ($notification) {
 			FilamentNotification::make()
-				->title('PDF file ready')
+				->title("{$fileMeta['type']} file ready")
 				->body('Your payment goal report is ready to download')
 				->icon('heroicon-o-arrow-down-tray')
 				->iconColor('success')
@@ -156,6 +209,14 @@ class PaymentGoalService
 				])
 				->sendToDatabase($user);
 		}
+
+		File::create([
+			'user_id'                 => $user->id,
+			'file_name'               => $fileMeta['filename'],
+			'file_path'               => $fileMeta['filepath'],
+			'download_url'            => $fileUrl,
+			'scheduled_deletion_time' => $expiration,
+		]);
 
 		$send_to_email = $data['send_to_email'] ?? false;
 
