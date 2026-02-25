@@ -2,7 +2,7 @@
 
 /*
  * Project Name: personal-v4
- * File: PaymentGoalReportPdf.php
+ * File: PaymentGoalService.php
  * Created Date: Tuesday February 24th 2026
  *
  * Author: Nova Ardiansyah admin@novaardiansyah.id
@@ -14,39 +14,33 @@
 
 declare(strict_types=1);
 
-namespace App\Jobs\PaymentGoalResource;
+namespace App\Services\PaymentGoalResource;
 
 use App\Models\PaymentGoal;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\Log;
-use Mpdf\Mpdf;
-use Illuminate\Support\Str;
-use Mpdf\Output\Destination as MpdfDestination;
-use Illuminate\Support\Facades\URL;
-use Filament\Notifications\Notification as FilamentNotification;
-use Filament\Actions\Action as FilamentAction;
-use App\Enums\EmailStatus;
 use App\Models\Email;
 use App\Models\EmailTemplate;
 use App\Models\File;
+use App\Enums\EmailStatus;
 use App\Services\EmailResource\EmailService;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
+use Mpdf\Mpdf;
+use Mpdf\Output\Destination as MpdfDestination;
+use Filament\Notifications\Notification as FilamentNotification;
+use Filament\Actions\Action as FilamentAction;
 
-class PaymentGoalReportPdf implements ShouldQueue
+class PaymentGoalService
 {
-	use Queueable;
-
-	public function __construct(public array $data = []) {}
-
-	public function handle(): void
+	public function generateReportPdf(array $data): array
 	{
-		Log::info('4200 --> PaymentGoalReportPdf: Started.');
+		Log::info('4200 --> PaymentGoalService::generateReportPdf: Started.');
 
-		$user = $this->data['user'] ?? getUser();
+		$user = $data['user'] ?? getUser();
 		$now  = Carbon::now()->toDateTimeString();
 
-		$goals = $this->getGoals();
+		$goals = $this->getGoals($data);
 
 		$totalTarget    = $goals->sum('target_amount');
 		$totalAmount    = $goals->sum('amount');
@@ -56,7 +50,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 		Carbon::setLocale('id');
 
 		$title = 'Laporan Target Pembayaran';
-		$reportType = match ($this->data['status'] ?? 'all') {
+		$reportType = match ($data['status'] ?? 'all') {
 			'active'     => 'Target Aktif',
 			'completed'  => 'Target Selesai',
 			'date_range' => 'Custom Date Range',
@@ -64,9 +58,9 @@ class PaymentGoalReportPdf implements ShouldQueue
 		};
 
 		$periode = $reportType;
-		if (isset($this->data['start_date']) && isset($this->data['end_date'])) {
-			$start   = Carbon::parse($this->data['start_date']);
-			$end     = Carbon::parse($this->data['end_date']);
+		if (isset($data['start_date']) && isset($data['end_date'])) {
+			$start   = Carbon::parse($data['start_date']);
+			$end     = Carbon::parse($data['end_date']);
 			$periode = $start->translatedFormat('d M Y') . ' - ' . $end->translatedFormat('d M Y');
 		}
 
@@ -96,23 +90,25 @@ class PaymentGoalReportPdf implements ShouldQueue
 			'active_count'    => $activeCount,
 		])->render());
 
-		$this->savePdf($mpdf, $user);
+		$result = $this->savePdf($mpdf, $user, $data);
 
-		Log::info('4201 --> PaymentGoalReportPdf: Finished.');
+		Log::info('4201 --> PaymentGoalService::generateReportPdf: Finished.');
+
+		return $result;
 	}
 
-	protected function getGoals()
+	protected function getGoals(array $data)
 	{
 		$query = PaymentGoal::query();
 
-		$status = $this->data['status'] ?? 'all';
+		$status = $data['status'] ?? 'all';
 
 		match ($status) {
 			'active' => $query->where('status_id', '!=', 3),
 			'completed' => $query->where('status_id', 3),
 			'date_range' => $query->whereBetween('created_at', [
-				$this->data['start_date'] ?? Carbon::now()->startOfYear(),
-				$this->data['end_date'] ?? Carbon::now()->endOfYear(),
+				$data['start_date'] ?? Carbon::now()->startOfYear(),
+				$data['end_date'] ?? Carbon::now()->endOfYear(),
 			]),
 			default => $query,
 		};
@@ -120,7 +116,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 		return $query->orderBy('target_date', 'desc')->get();
 	}
 
-	protected function savePdf(Mpdf $mpdf, $user): array
+	protected function savePdf(Mpdf $mpdf, $user, array $data): array
 	{
 		$extension                = 'pdf';
 		$directory                = 'public/attachments';
@@ -142,7 +138,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 			['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
 		);
 
-		$notification = $this->data['notification'] ?? false;
+		$notification = $data['notification'] ?? false;
 
 		if ($notification) {
 			FilamentNotification::make()
@@ -161,7 +157,7 @@ class PaymentGoalReportPdf implements ShouldQueue
 				->sendToDatabase($user);
 		}
 
-		$send_to_email = $this->data['send_to_email'] ?? false;
+		$send_to_email = $data['send_to_email'] ?? false;
 
 		if ($send_to_email) {
 			$this->sendEmail($fullPath, $user);

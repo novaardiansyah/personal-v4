@@ -14,7 +14,7 @@
 
 namespace App\Filament\Resources\PaymentGoals\Actions;
 
-use App\Jobs\PaymentGoalResource\PaymentGoalReportPdf;
+use App\Jobs\PaymentGoalResource\PaymentGoalReportPdfJob;
 use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -94,7 +94,7 @@ class PrintPdfAction
 			default => ['status' => 'all'],
 		};
 
-		PaymentGoalReportPdf::dispatch(array_merge($sendTo, $params));
+		PaymentGoalReportPdfJob::dispatch(array_merge($sendTo, $params));
 
 		$messages = [
 			'all'        => 'All goals PDF report will be sent to your email.',
