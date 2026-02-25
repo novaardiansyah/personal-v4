@@ -12,6 +12,7 @@ use App\Filament\Resources\PaymentGoals\Pages\CreatePaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\EditPaymentGoal;
 use App\Filament\Resources\PaymentGoals\Pages\ManagePaymentGoals;
 use App\Models\PaymentGoal;
+use App\Models\Setting;
 use Filament\Actions\Action;
 use Filament\Support\Enums\Width;
 use Filament\Actions\ActionGroup;
@@ -86,7 +87,7 @@ class PaymentGoalResource extends Resource
 							->prefix('Rp')
 							->placeholder('0')
 							->live(onBlur: true)
-							->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
+							->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency())),
 
 						TextInput::make('amount')
 							->label('Current Amount')
@@ -101,7 +102,7 @@ class PaymentGoalResource extends Resource
 								$amount   = (float) $state;
 								$progress = $target > 0 ? round(($amount / $target) * 100, 2) : 0;
 
-								return toIndonesianCurrency($state ?? 0) . ' (' . $progress . '%)';
+								return toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()) . ' (' . $progress . '%)';
 							}),
 					]),
 
@@ -146,12 +147,12 @@ class PaymentGoalResource extends Resource
 						TextEntry::make('amount')
 							->label('Current Amount')
 							->formatStateUsing(function (?string $state, PaymentGoal $record): string {
-								return toIndonesianCurrency($state ?? 0) . ' (' . $record->latest_progress_percent . '%)';
+								return toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()) . ' (' . $record->latest_progress_percent . '%)';
 							}),
 
 						TextEntry::make('target_amount')
 							->label('Target Amount')
-							->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0)),
+							->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency())),
 
 						TextEntry::make('status.name')
 							->label('Status')
@@ -222,12 +223,12 @@ class PaymentGoalResource extends Resource
 					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('amount')
 					->formatStateUsing(function (?string $state, PaymentGoal $record): string {
-						return toIndonesianCurrency($state ?? 0) . ' (' . $record->latest_progress_percent . '%)';
+						return toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()) . ' (' . $record->latest_progress_percent . '%)';
 					})
 					->sortable()
 					->toggleable(),
 				TextColumn::make('target_amount')
-					->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0))
+					->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
 					->sortable()
 					->toggleable(),
 				TextColumn::make('start_date')
