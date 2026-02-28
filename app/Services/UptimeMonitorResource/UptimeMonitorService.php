@@ -151,7 +151,7 @@ class UptimeMonitorService
       $this->sendDownNotification($monitor, $errorMessage);
     }
 
-    if ($isUp && ($wasDown || $wasSlow)) {
+    if ($isUp && $wasDown) {
       $this->sendUpNotification($monitor, $originalLastUnhealthyAt);
     }
 
