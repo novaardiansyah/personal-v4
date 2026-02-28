@@ -31,5 +31,5 @@ Schedule::job(new CleanExpiredTokens())
   ->dailyAt('23:59');
 
 // ! Uptime Monitor Check
-Schedule::job(new UptimeMonitorJob())
-  ->everyMinute();
+// Schedule::job(new UptimeMonitorJob())
+//   ->everyMinute();
