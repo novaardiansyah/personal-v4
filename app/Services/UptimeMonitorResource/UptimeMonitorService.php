@@ -156,7 +156,7 @@ class UptimeMonitorService
     }
 
     if ($isSlow && !$wasSlow) {
-      $this->sendSlowNotification($monitor);
+      // $this->sendSlowNotification($monitor);
     }
   }
 
