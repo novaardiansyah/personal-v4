@@ -35,6 +35,7 @@ class PaymentsTable
           ->label('Transaction ID')
           ->searchable()
           ->copyable()
+					->badge()
           ->toggleable(),
         TextColumn::make('amount')
           ->label('Nominal')
@@ -67,11 +68,11 @@ class PaymentsTable
         IconColumn::make('is_scheduled')
           ->label('Scheduled')
           ->boolean()
-          ->toggleable(),
+					->toggleable(isToggledHiddenByDefault: true),
         IconColumn::make('is_draft')
           ->label('Draft')
           ->boolean()
-          ->toggleable(),
+					->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('date')
           ->label('Date')
           ->date('M d, Y')
@@ -91,6 +92,8 @@ class PaymentsTable
           ->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: true),
       ])
+			->recordAction(null)
+			->recordUrl(null)
       ->defaultSort('date', 'desc')
       ->filters([
         TrashedFilter::make()
