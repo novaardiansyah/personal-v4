@@ -30,12 +30,18 @@ class Payment extends Model
 
   public function payment_account(): BelongsTo
   {
-    return $this->belongsTo(PaymentAccount::class, 'payment_account_id');
+    $user_id = auth()->id() ?? null;
+    return $this->belongsTo(PaymentAccount::class, 'payment_account_id')->when($user_id, function ($query) use ($user_id) {
+      $query->where('user_id', $user_id);
+    });
   }
 
   public function payment_account_to(): BelongsTo
   {
-    return $this->belongsTo(PaymentAccount::class, 'payment_account_to_id');
+    $user_id = auth()->id() ?? null;
+    return $this->belongsTo(PaymentAccount::class, 'payment_account_to_id')->when($user_id, function ($query) use ($user_id) {
+      $query->where('user_id', $user_id);
+    });
   }
 
   public function payment_type(): BelongsTo

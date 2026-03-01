@@ -16,6 +16,7 @@ namespace App\Filament\Resources\PaymentGoals\Actions;
 
 use App\Models\PaymentGoal;
 use Filament\Actions\Action;
+use App\Filament\Resources\PaymentGoals\PaymentGoalResource;
 
 class AllocateFundAction
 {
@@ -26,6 +27,6 @@ class AllocateFundAction
 			->icon('heroicon-o-banknotes')
 			->color('success')
 			->visible(fn(PaymentGoal $record) => $record->progress_percent < 100)
-			->url(fn(PaymentGoal $record): string => \App\Filament\Resources\PaymentGoals\PaymentGoalResource::getUrl('allocate-fund', ['record' => $record]));
+			->url(fn(PaymentGoal $record): string => PaymentGoalResource::getUrl('allocate-fund', ['record' => $record]));
 	}
 }

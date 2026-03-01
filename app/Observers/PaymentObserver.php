@@ -14,10 +14,15 @@ class PaymentObserver
 	public function creating(Payment $payment): void
 	{
 		DB::transaction(function () use ($payment) {
-			$payment->code = getCode('payment');
-			$payment->user_id = auth()->id();
-
 			$record = $payment;
+			$record->code = getCode('payment');
+			$record->user_id = auth()->id();
+
+			if ($record->payment_account_id == $record->payment_account_to_id) {
+				throw ValidationException::withMessages([
+					'data.payment_account_to_id' => ['Please select a different payment account.'],
+				]);
+			}
 
 			$is_draft = $record->is_draft;
 			$is_scheduled = $record->is_scheduled;
@@ -95,6 +100,12 @@ class PaymentObserver
 
 			$changes = collect($record->getDirty())->except($record->getHidden());
 			$oldValue = $changes->mapWithKeys(fn($value, $key) => [$key => $record->getOriginal($key)])->toArray();
+
+			if ($record->payment_account_id == $record->payment_account_to_id) {
+				throw ValidationException::withMessages([
+					'data.payment_account_to_id' => ['Please select a different payment account.'],
+				]);
+			}
 
 			$is_draft = $record->is_draft;
 			$is_scheduled = $record->is_scheduled;

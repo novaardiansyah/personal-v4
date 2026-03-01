@@ -2,14 +2,11 @@
 
 namespace App\Filament\Resources\Payments\Schemas;
 
-use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\FileUpload;
-use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
@@ -111,63 +108,27 @@ class PaymentForm
 
           Select::make('payment_account_id')
             ->label('Payment')
-            ->options(function (Get $get) {
-              if ($get('type_id') == PaymentType::WITHDRAWAL) {
-                return PaymentAccount::where('id', '!=', PaymentAccount::TUNAI)
-                  ->where('user_id', auth()->user()->id)
-                  ->pluck('name', 'id');
-              }
-
-              return PaymentAccount::where('id', '!=', $get('payment_account_to_id'))
-                ->where('user_id', auth()->user()->id)
-                ->pluck('name', 'id');
-            })
+            ->relationship('payment_account', 'name')
+						->getOptionLabelFromRecordUsing(function(PaymentAccount $record): string {
+							return $record->name . ' (' . toIndonesianCurrency($record->deposit) . ')';
+						})
             ->native(false)
+						->preload()
+						->searchable()
             ->required()
-            ->default(PaymentAccount::TUNAI)
-            ->hint(function (?string $state) {
-              $payment = PaymentAccount::find($state ?? -1);
-              return toIndonesianCurrency($payment->deposit ?? 0);
-            })
-            ->live(onBlur: true)
-            ->afterStateUpdated(function (Set $set, Get $get, ?string $state, string $operation) {
-              if ($get('type_id') == PaymentType::WITHDRAWAL) {
-                $paymentAccount = PaymentAccount::find($state ?? -1);
-                $set('name', 'Tarik Tunai dari ' . $paymentAccount?->name);
-              }
-            }),
+            ->default(PaymentAccount::TUNAI),
 
           Select::make('payment_account_to_id')
             ->label('Payment To')
-            ->options(function (Get $get) {
-              if (!$get('payment_account_id')) return [];
-
-              if ($get('type_id') == PaymentType::WITHDRAWAL) {
-                return PaymentAccount::where('id', PaymentAccount::TUNAI)
-                  ->pluck('name', 'id');
-              }
-
-              return PaymentAccount::where('id', '!=', $get('payment_account_id'))
-                ->where('user_id', auth()->user()->id)
-                ->pluck('name', 'id');
-            })
+            ->relationship('payment_account_to', 'name')
+            ->getOptionLabelFromRecordUsing(function(PaymentAccount $record): string {
+							return $record->name . ' (' . toIndonesianCurrency($record->deposit) . ')';
+						})
             ->native(false)
-            ->default(PaymentAccount::DANA)
-            ->required(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
-            ->visible(fn($get): bool => ($get('type_id') == 3 || $get('type_id') == 4))
-            ->hint(function (?string $state) {
-              $payment = PaymentAccount::find($state ?? -1);
-              return toIndonesianCurrency($payment->deposit ?? 0);
-            })
-            ->live(onBlur: true)
-            ->afterStateUpdated(function (Set $set, Get $get, ?string $state, string $operation) {
-              $paymentAccount = PaymentAccount::find($state ?? -1);
-              $type           = $get('type_id');
-
-              if ($type == PaymentType::TRANSFER) {
-                $set('name', 'Transfer ke ' . $paymentAccount?->name);
-              }
-            }),
+						->preload()
+						->searchable()
+            ->required(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL))
+            ->visible(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL)),
         ])
           ->description('Payment account details')
           ->columns(1)
