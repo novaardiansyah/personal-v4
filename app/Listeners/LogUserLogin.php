@@ -79,13 +79,8 @@ class LogUserLogin
 		$now_formatted = carbonTranslatedFormat($now, 'd M Y, H.i', 'id');
 
 		$context = [
-			'ip_address'    => $ip_address,
 			'address'       => $address,
-			'geolocation'   => $geolocation,
-			'timezone'      => $timezone,
-			'user_agent'    => $user_agent,
 			'now_formatted' => $now_formatted,
-			'referer'       => $referer,
 			'guard'         => $event->guard,
 			'device_info'   => $device_info,
 		];

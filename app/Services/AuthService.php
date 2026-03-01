@@ -34,13 +34,13 @@ class AuthService
 
 		$tgMessage = view('notifications.telegram.login-notification', [
 			'user_email'  => $user->email,
-			'ip_address'  => $context['ip_address'],
+			'ip_address'  => $context['device_info']['ip_address'] ?? '-',
 			'address'     => $context['address'],
-			'geolocation' => $context['geolocation'],
-			'timezone'    => $context['timezone'],
-			'user_agent'  => $context['user_agent'],
+			'geolocation' => $context['device_info']['geolocation'] ?? '-',
+			'timezone'    => $context['device_info']['timezone'] ?? '-',
+			'user_agent'  => $context['device_info']['user_agent'] ?? '-',
 			'login_date'  => $context['now_formatted'],
-			'referer'     => $context['referer'],
+			'referer'     => $context['device_info']['referer'] ?? '-',
 		])->render();
 
 		SendTelegramNotificationJob::dispatch($tgMessage);
@@ -51,10 +51,9 @@ class AuthService
 			'description'  => 'Telegram login notification sent to ' . $user->email,
 			'subject_id'   => $user->id,
 			'subject_type' => User::class,
-			'ip_address'   => $context['ip_address'],
 			'causer_id'    => $user->id,
 			'causer_type'  => User::class,
-		]);
+		], $context['device_info']);
 	}
 
 	public function sendLoginEmailNotification(User $user, array $context): void
@@ -94,13 +93,13 @@ class AuthService
 
 		$placeholders = array_merge($template->placeholders, [
 			'user_email'  => $user->email,
-			'ip_address'  => $context['ip_address'],
+			'ip_address'  => $context['device_info']['ip_address'] ?? '-',
 			'address'     => $context['address'],
-			'geolocation' => $context['geolocation'],
-			'timezone'    => $context['timezone'],
-			'user_agent'  => $context['user_agent'],
+			'geolocation' => $context['device_info']['geolocation'] ?? '-',
+			'timezone'    => $context['device_info']['timezone'] ?? '-',
+			'user_agent'  => $context['device_info']['user_agent'] ?? '-',
 			'login_date'  => $context['now_formatted'],
-			'referer'     => $context['referer'],
+			'referer'     => $context['device_info']['referer'] ?? '-',
 		]);
 
 		$message = $template->message;
@@ -123,15 +122,14 @@ class AuthService
 
 		(new EmailService())->sendOrPreview($email, false, $context['device_info']);
 
-		saveActivityLog([
+		saveActivityLog(array_merge([
 			'log_name'     => 'Notification',
 			'event'        => 'Mail Login Notification',
 			'description'  => 'Mail login notification sent to ' . $user->email,
 			'subject_id'   => $user->id,
 			'subject_type' => User::class,
-			'ip_address'   => $context['ip_address'],
 			'causer_id'    => $user->id,
 			'causer_type'  => User::class,
-		]);
+		], $context['device_info']));
 	}
 }
