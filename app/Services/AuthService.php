@@ -23,7 +23,7 @@ class AuthService
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
 		$existingLog = ActivityLog::where('ip_address', $context['ip_address'])
-			->where('event', 'Telegram Notification')
+			->where('event', 'Telegram Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
 			->where('causer_type', User::class)
@@ -67,7 +67,7 @@ class AuthService
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
 		$existingLog = ActivityLog::where('ip_address', $context['ip_address'])
-			->where('event', 'Mail Notification')
+			->where('event', 'Mail Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
 			->where('causer_type', User::class)

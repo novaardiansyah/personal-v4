@@ -2,8 +2,8 @@
 
 namespace App\Listeners;
 
+use App\Jobs\SendLoginNotificationJob;
 use App\Models\User;
-use App\Services\AuthService;
 use Illuminate\Support\Carbon;
 
 use Illuminate\Auth\Events\Login;
@@ -90,8 +90,6 @@ class LogUserLogin
 			'device_info'   => $device_info,
 		];
 
-		$authService = new AuthService();
-		$authService->sendLoginTelegramNotification($user, $context);
-		$authService->sendLoginEmailNotification($user, $context);
+		SendLoginNotificationJob::dispatch($user, $context);
 	}
 }
