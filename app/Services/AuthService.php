@@ -16,13 +16,14 @@ class AuthService
 	public function sendLoginTelegramNotification(User $user, array $context): void
 	{
 		$enableTelegram = textLower(getSetting('enable_login_telegram_notification', 'Yes')) === 'yes' ? true : false;
+		$ip_address = $context['device_info']['ip_address'] ?? null;
 
 		if (!$enableTelegram) return;
 
 		$interval = getSetting('interval_login_telegram_notification', '60 Minutes');
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
-		$existingLog = ActivityLog::where('ip_address', $context['ip_address'])
+		$existingLog = ActivityLog::where('ip_address', $ip_address)
 			->where('event', 'Telegram Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
@@ -34,7 +35,7 @@ class AuthService
 
 		$tgMessage = view('notifications.telegram.login-notification', [
 			'user_email'  => $user->email,
-			'ip_address'  => $context['device_info']['ip_address'] ?? '-',
+			'ip_address'  => $ip_address ?? '-',
 			'address'     => $context['address'],
 			'geolocation' => $context['device_info']['geolocation'] ?? '-',
 			'timezone'    => $context['device_info']['timezone'] ?? '-',
@@ -59,13 +60,14 @@ class AuthService
 	public function sendLoginEmailNotification(User $user, array $context): void
 	{
 		$enableEmail = textLower(getSetting('enable_login_email_notification', 'Yes')) === 'yes' ? true : false;
+		$ip_address = $context['device_info']['ip_address'] ?? null;
 
 		if (!$enableEmail) return;
 
 		$interval = getSetting('interval_login_email_notification', '60 Minutes');
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
-		$existingLog = ActivityLog::where('ip_address', $context['ip_address'])
+		$existingLog = ActivityLog::where('ip_address', $ip_address)
 			->where('event', 'Mail Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
@@ -93,7 +95,7 @@ class AuthService
 
 		$placeholders = array_merge($template->placeholders, [
 			'user_email'  => $user->email,
-			'ip_address'  => $context['device_info']['ip_address'] ?? '-',
+			'ip_address'  => $ip_address ?? '-',
 			'address'     => $context['address'],
 			'geolocation' => $context['device_info']['geolocation'] ?? '-',
 			'timezone'    => $context['device_info']['timezone'] ?? '-',
