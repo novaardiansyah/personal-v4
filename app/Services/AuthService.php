@@ -46,7 +46,7 @@ class AuthService
 
 		SendTelegramNotificationJob::dispatch($tgMessage);
 
-		saveActivityLog([
+		saveActivityLog(array_merge([
 			'log_name'     => 'Notification',
 			'event'        => 'Telegram Login Notification',
 			'description'  => 'Telegram login notification sent to ' . $user->email,
@@ -54,7 +54,7 @@ class AuthService
 			'subject_type' => User::class,
 			'causer_id'    => $user->id,
 			'causer_type'  => User::class,
-		], $context['device_info']);
+		], $context['device_info']));
 	}
 
 	public function sendLoginEmailNotification(User $user, array $context): void
