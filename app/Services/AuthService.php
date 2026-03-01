@@ -47,8 +47,8 @@ class AuthService
 
 		saveActivityLog([
 			'log_name'     => 'Notification',
+			'event'        => 'Telegram Login Notification',
 			'description'  => 'Telegram login notification sent to ' . $user->email,
-			'event'        => 'Telegram Notification',
 			'subject_id'   => $user->id,
 			'subject_type' => User::class,
 			'ip_address'   => $context['ip_address'],
@@ -122,5 +122,16 @@ class AuthService
 		$email = Email::create($default);
 
 		(new EmailService())->sendOrPreview($email, false, $context['device_info']);
+
+		saveActivityLog([
+			'log_name'     => 'Notification',
+			'event'        => 'Mail Login Notification',
+			'description'  => 'Mail login notification sent to ' . $user->email,
+			'subject_id'   => $user->id,
+			'subject_type' => User::class,
+			'ip_address'   => $context['ip_address'],
+			'causer_id'    => $user->id,
+			'causer_type'  => User::class,
+		]);
 	}
 }
