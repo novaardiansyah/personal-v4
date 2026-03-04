@@ -52,6 +52,8 @@ class ItemsRelationManager extends RelationManager
           ->rowIndex(),
         TextColumn::make('pivot.item_code')
           ->label('Transaction ID')
+					->copyable()
+					->badge()
           ->searchable()
           ->toggleable(),
         TextColumn::make('type_id')
