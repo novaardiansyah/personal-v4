@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Settings\Tables;
 use App\Filament\Resources\Settings\Actions\ChangeValueAction;
 use App\Filament\Resources\Settings\Actions\ReplicateAction;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\ViewAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -66,6 +67,8 @@ class SettingsTable
 			->recordUrl(null)
 			->recordActions([
 				ActionGroup::make([
+					ViewAction::make(),
+
 					EditAction::make()
 						->modalWidth(Width::Medium),
 
