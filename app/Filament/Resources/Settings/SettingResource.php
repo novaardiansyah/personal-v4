@@ -4,7 +4,6 @@ namespace App\Filament\Resources\Settings;
 
 use BackedEnum;
 use UnitEnum;
-
 use App\Filament\Resources\Settings\Pages\CreateSetting;
 use App\Filament\Resources\Settings\Pages\EditSetting;
 use App\Filament\Resources\Settings\Pages\ListSettings;
