@@ -31,10 +31,10 @@ class PaymentReportPdf implements ShouldQueue
   {
     Log::info('3246 --> PaymentReportPdf: Started.');
 
-    $startDate = $this->data['start_date'] ?? Carbon::now()->startOfMonth()->format('Y-m-d');
-    $endDate   = $this->data['end_date'] ?? Carbon::now()->endOfMonth()->format('Y-m-d');
-    $now       = Carbon::now()->toDateTimeString();
-    $causer    = $this->data['user'] ?? getUser();
+    $startDate          = $this->data['start_date'] ?? Carbon::now()->startOfMonth()->format('Y-m-d');
+    $endDate            = $this->data['end_date'] ?? Carbon::now()->endOfMonth()->format('Y-m-d');
+    $now                = Carbon::now()->toDateTimeString();
+    $causer             = $this->data['user'] ?? getUser();
     $payment_account_id = $this->data['payment_account_id'] ?? null;
 
     $send = array_merge([
@@ -95,7 +95,7 @@ class PaymentReportPdf implements ShouldQueue
         'email'            => getSetting('custom_payment_email'),
         'author_name'      => getSetting('author_name'),
         'subject'          => 'Notifikasi: Laporan Keuangan (' . $periode . ')',
-        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment_accounts' => PaymentAccount::where('user_id', $causer->id)->orderBy('deposit', 'desc')->get()->toArray(),
         'payment'          => $payment->toArray(),
         'periode'          => $periode,
         'created_at'       => $now,

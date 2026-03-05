@@ -120,7 +120,7 @@ class PaymentReportExcelJob implements ShouldQueue
         'email'            => getSetting('custom_payment_email'),
         'author_name'      => getSetting('author_name'),
         'subject'          => 'Notifikasi: Laporan Keuangan Excel (' . $periode . ')',
-        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment_accounts' => PaymentAccount::where('user_id', $causer->id)->orderBy('deposit', 'desc')->get()->toArray(),
         'payment'          => $payment->toArray(),
         'periode'          => $periode,
         'created_at'       => $now,
