@@ -93,7 +93,7 @@ class DailyReportJob implements ShouldQueue
         'email'            => getSetting('daily_payment_email'),
         'author_name'      => getSetting('author_name'),
         'subject'          => 'Notifikasi: Ringkasan Laporan Keuangan Harian (' . $date . ')',
-        'payment_accounts' => PaymentAccount::orderBy('deposit', 'desc')->get()->toArray(),
+        'payment_accounts' => PaymentAccount::where('user_id', $causer->id)->orderBy('deposit', 'desc')->get()->toArray(),
         'payment'          => $payment->toArray(),
         'date'             => $date,
         'created_at'       => $now,

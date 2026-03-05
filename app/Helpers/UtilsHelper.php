@@ -262,10 +262,14 @@ function saveActivityLog(array $data = [], $modelMorp = null): ActivityLog
   ], $data));
 }
 
-function getUser(?int $userId = null): Collection|User|null
+function getUser(?int $userId = null, ?string $userCode = null): Collection|User|null
 {
   if ($userId) {
     return User::find($userId);
+  }
+
+  if ($userCode) {
+    return User::where('code', $userCode)->first();
   }
 
   $user_code = getSetting('default_system_user');
