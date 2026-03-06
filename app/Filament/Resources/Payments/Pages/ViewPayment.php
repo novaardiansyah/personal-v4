@@ -6,6 +6,7 @@ use App\Filament\Resources\Payments\PaymentResource;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
+use Filament\Actions\CreateAction;
 use Filament\Actions\EditAction;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -21,6 +22,7 @@ class ViewPayment extends ViewRecord
   protected function getHeaderActions(): array
   {
     return [
+			CreateAction::make(),
       EditAction::make(),
     ];
   }

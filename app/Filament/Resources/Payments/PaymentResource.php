@@ -24,8 +24,11 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class PaymentResource extends Resource
 {
   protected static ?string $model = Payment::class;
+	
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
+
   protected static string|UnitEnum|null $navigationGroup = 'Payments';
+
   protected static ?int $navigationSort = 9;
 
   protected static ?string $recordTitleAttribute = 'name';
