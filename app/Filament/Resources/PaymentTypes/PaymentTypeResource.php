@@ -1,12 +1,23 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentTypeResource.php
+ * Created Date: Thursday December 11th 2025
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\PaymentTypes;
 
 use BackedEnum;
+use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Support\Enums\Width;
-use UnitEnum;
-
 use App\Filament\Resources\PaymentTypes\Pages\ManagePaymentTypes;
 use App\Models\PaymentType;
 use Filament\Actions\BulkActionGroup;
@@ -31,102 +42,105 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentTypeResource extends Resource
 {
-  protected static ?string $model = PaymentType::class;
+	protected static ?string $model = PaymentType::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
-  protected static string | UnitEnum | null $navigationGroup = 'Payments';
-  protected static ?int $navigationSort = 100;
+	protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleGroup;
 
-  protected static ?string $recordTitleAttribute = 'name';
+	protected static string|UnitEnum|null $navigationGroup = 'Payments';
 
-  public static function form(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        TextInput::make('name')
-          ->required(),
-      ])
-      ->columns(1);
-  }
+	protected static ?string $navigationParentItem = 'Payments';
 
-  public static function infolist(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        TextEntry::make('name')
-          ->columnSpanFull(),
-        
-        TextEntry::make('created_at')
-          ->dateTime(),
-        TextEntry::make('updated_at')
-          ->sinceTooltip()
-          ->dateTime(),
-        TextEntry::make('deleted_at')
-          ->dateTime(),
-      ])
-      ->columns(3);
-  }
+	protected static ?int $navigationSort = 100;
 
-  public static function table(Table $table): Table
-  {
-    return $table
-      ->recordTitleAttribute('name')
-      ->columns([
-        TextColumn::make('index')
-          ->label('#')
-          ->rowIndex(),
-        TextColumn::make('name')
-          ->searchable(),
-        TextColumn::make('deleted_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('created_at')
-          ->dateTime()
-          ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('updated_at')
-          ->dateTime()
-          ->sortable()
-          ->sinceTooltip()
-          ->toggleable(),
-      ])
-      ->filters([
-        TrashedFilter::make(),
-      ])
-      ->recordActions([
-        ActionGroup::make([
-          ViewAction::make(),
+	protected static ?string $recordTitleAttribute = 'name';
 
-          EditAction::make()
-            ->modalWidth(Width::Medium),
+	public static function form(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				TextInput::make('name')
+					->required(),
+			])
+			->columns(1);
+	}
 
-          DeleteAction::make(),
-          ForceDeleteAction::make(),
-          RestoreAction::make(),
-        ])
-      ])
-      ->toolbarActions([
-        BulkActionGroup::make([
-          DeleteBulkAction::make(),
-          ForceDeleteBulkAction::make(),
-          RestoreBulkAction::make(),
-        ]),
-      ]);
-  }
+	public static function infolist(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				TextEntry::make('name')
+					->columnSpanFull(),
+				TextEntry::make('created_at')
+					->dateTime(),
+				TextEntry::make('updated_at')
+					->sinceTooltip()
+					->dateTime(),
+				TextEntry::make('deleted_at')
+					->dateTime(),
+			])
+			->columns(3);
+	}
 
-  public static function getPages(): array
-  {
-    return [
-      'index' => ManagePaymentTypes::route('/'),
-    ];
-  }
+	public static function table(Table $table): Table
+	{
+		return $table
+			->recordTitleAttribute('name')
+			->columns([
+				TextColumn::make('index')
+					->label('#')
+					->rowIndex(),
+				TextColumn::make('name')
+					->searchable(),
+				TextColumn::make('deleted_at')
+					->dateTime()
+					->sortable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('created_at')
+					->dateTime()
+					->sortable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('updated_at')
+					->dateTime()
+					->sortable()
+					->sinceTooltip()
+					->toggleable(),
+			])
+			->filters([
+				TrashedFilter::make(),
+			])
+			->recordActions([
+				ActionGroup::make([
+					ViewAction::make(),
 
-  public static function getRecordRouteBindingEloquentQuery(): Builder
-  {
-    return parent::getRecordRouteBindingEloquentQuery()
-      ->withoutGlobalScopes([
-        SoftDeletingScope::class,
-      ]);
-  }
+					EditAction::make()
+						->modalWidth(Width::Medium),
+
+					DeleteAction::make(),
+					ForceDeleteAction::make(),
+					RestoreAction::make(),
+				])
+			])
+			->toolbarActions([
+				BulkActionGroup::make([
+					DeleteBulkAction::make(),
+					ForceDeleteBulkAction::make(),
+					RestoreBulkAction::make(),
+				]),
+			]);
+	}
+
+	public static function getPages(): array
+	{
+		return [
+			'index' => ManagePaymentTypes::route('/'),
+		];
+	}
+
+	public static function getRecordRouteBindingEloquentQuery(): Builder
+	{
+		return parent::getRecordRouteBindingEloquentQuery()
+			->withoutGlobalScopes([
+				SoftDeletingScope::class,
+			]);
+	}
 }

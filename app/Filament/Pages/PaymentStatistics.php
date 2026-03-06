@@ -32,6 +32,8 @@ class PaymentStatistics extends Page
 
 	protected static string|UnitEnum|null $navigationGroup = 'Payments';
 
+	protected static ?string $navigationParentItem = 'Payments';
+
 	protected static ?int $navigationSort = 11;
 
 	protected function getHeaderWidgets(): array
