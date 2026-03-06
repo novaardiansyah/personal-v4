@@ -2,14 +2,16 @@
 
 Hi Future Developer,
 
-Welcome to the **Personal Filament v4 Admin Panel**! This project is an open-source admin panel built with the latest Laravel 12 and Filament PHP 4, designed for personal utility management and more.
+Welcome to the **Personal Filament v5 Admin Panel**! This project is an open-source admin panel built with the latest Laravel 12 and Filament PHP 5, designed for personal utility management and more.
 
-This repository is the public evolution of my previous public admin panel project (originally developed with Laravel 12 and Filament PHP 3). Here, I’ve upgraded to Filament 4 and made the core features available for the community ideal for learning, collaboration, or as a starting point for your own admin panel. To support public usage, user roles and permissions have been carefully separated and managed.
+This repository is the public evolution of my previous public admin panel project (originally developed with Laravel 12 and Filament PHP 3). Here, I’ve upgraded to Filament 5 and made the core features available for the community ideal for learning, collaboration, or as a starting point for your own admin panel. To support public usage, user roles and permissions have been carefully separated and managed.
+
+> **Note:** This repository was originally built using Filament PHP v4 and has been successfully upgraded to Filament PHP v5.
 
 ## Dazzling Tech Stack
 
 - [Laravel 12](https://laravel.com/) - Backend PHP Framework
-- [Filament PHP 4](https://filamentphp.com/) - TALL Stack Admin Panel
+- [Filament PHP 5](https://filamentphp.com/) - TALL Stack Admin Panel
 - [PHP 8.2+](https://www.php.net/) - Server-side language
 - [MySQL](https://www.mysql.com/) - Database Management
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
@@ -64,7 +66,7 @@ Need to chat? Feel free to drop me a line via [Email](mailto:novaardiansyah78@gm
 
 ![stages](https://img.shields.io/badge/stages-development-informational)
 ![Laravel](https://img.shields.io/badge/Laravel-12-blue)
-![Filament](https://img.shields.io/badge/Filament-4-blue)
+![Filament](https://img.shields.io/badge/Filament-5-blue)
 ![PHP](https://img.shields.io/badge/PHP-^8.2-blue)
 ![MySQL](https://img.shields.io/badge/MySQL-^8.0-blue)
 [![information](https://img.shields.io/badge/information-references-informational)](references.json)
