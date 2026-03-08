@@ -308,6 +308,21 @@ class PaymentAction
       });
   }
 
+  public static function manageDraft()
+  {
+    return Action::make('manage_draft')
+      ->label('Kelola Draft')
+      ->color('success')
+      ->icon('heroicon-o-document-text')
+      ->visible(fn(Payment $record): bool => $record->is_draft === true)
+      ->modalHeading('Kelola Draft')
+      ->modalDescription('Edit transaksi draft dan tentukan statusnya.')
+      ->modalWidth(Width::Large)
+      ->schema(fn(Schema $form): Schema => self::manageDraftSchema($form))
+      ->fillForm(fn(Payment $record): array => self::manageDraftFillForm($record))
+      ->action(fn(Action $action, Payment $record, array $data) => self::manageDraftAction($action, $record, $data));
+  }
+
   public static function printPdf()
   {
     return Action::make('print_pdf')
@@ -434,22 +449,22 @@ class PaymentAction
       ->action(fn(Action $action, array $data) => self::printExcelAction($action, $data));
   }
 
-	public static function set_owner_price(PaymentItem $record)
-	{
-		$owner = $record->payment;
-		$item = $record->item;
+  public static function set_owner_price(PaymentItem $record)
+  {
+    $owner = $record->payment;
+    $item = $record->item;
 
-		$item->update([
-			'amount'     => $record->price,
-			'updated_at' => now()
-		]);
+    $item->update([
+      'amount'     => $record->price,
+      'updated_at' => now()
+    ]);
 
-		$expense = $owner->amount + (int) $record->total;
-		$note    = trim(($owner->name ?? '') . ', ' . "{$item->name} (x{$record->quantity})", ', ');
+    $expense = $owner->amount + (int) $record->total;
+    $note    = trim(($owner->name ?? '') . ', ' . "{$item->name} (x{$record->quantity})", ', ');
 
-		$owner->update([
-			'amount' => $expense,
-			'name'   => $note
-		]);
-	}
+    $owner->update([
+      'amount' => $expense,
+      'name'   => $note
+    ]);
+  }
 }
