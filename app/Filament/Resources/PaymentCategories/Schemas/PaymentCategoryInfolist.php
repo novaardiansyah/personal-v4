@@ -16,8 +16,8 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\PaymentCategories\Schemas;
 
-use App\Models\PaymentCategory;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class PaymentCategoryInfolist
@@ -26,19 +26,33 @@ class PaymentCategoryInfolist
 	{
 		return $schema
 			->components([
-				TextEntry::make('user.name')
-					->label('User')
-					->placeholder('-'),
-				TextEntry::make('name'),
-				TextEntry::make('deleted_at')
-					->dateTime()
-					->visible(fn(PaymentCategory $record): bool => $record->trashed()),
-				TextEntry::make('created_at')
-					->dateTime()
-					->placeholder('-'),
-				TextEntry::make('updated_at')
-					->dateTime()
-					->placeholder('-'),
-			]);
+				Section::make([
+					TextEntry::make('user.name')
+						->label('Owner')
+						->placeholder('-'),
+					TextEntry::make('name')
+						->label('Category'),
+				])
+				->description('General information')
+				->collapsible()
+				->columns(3),
+
+				Section::make([
+					TextEntry::make('created_at')
+						->dateTime()
+						->sinceTooltip(),
+					TextEntry::make('updated_at')
+						->dateTime()
+						->sinceTooltip(),
+					TextEntry::make('deleted_at')
+						->dateTime()
+						->sinceTooltip()
+						->placeholder('-'),
+				])
+				->description('Timestamp information')
+				->collapsible()
+				->columns(3),
+			])
+			->columns(1);
 	}
 }
