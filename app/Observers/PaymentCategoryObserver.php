@@ -25,6 +25,10 @@ class PaymentCategoryObserver
 		if (!$paymentCategory->user_id) {
 			$paymentCategory->user_id = getUser();
 		}
+
+		if (!$paymentCategory->code) {
+			$paymentCategory->code = getCode('payment_category');
+		}
 	}
 
 	public function created(PaymentCategory $paymentCategory): void

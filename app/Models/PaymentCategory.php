@@ -30,7 +30,7 @@ class PaymentCategory extends Model
 
 	protected $table = 'payment_categories';
 
-	protected $fillable = ['name', 'user_id'];
+	protected $fillable = ['name', 'user_id', 'code'];
 
 	public function user(): BelongsTo
 	{

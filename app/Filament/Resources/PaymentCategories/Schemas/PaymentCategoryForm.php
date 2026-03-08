@@ -19,6 +19,7 @@ namespace App\Filament\Resources\PaymentCategories\Schemas;
 use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -29,6 +30,13 @@ class PaymentCategoryForm
 		return $schema
 			->components([
 				Section::make([
+					TextInput::make('code')
+						->label('Category ID')
+						->readOnly()
+						->saved(false)
+						->copyable()
+						->visibleOn('edit'),
+
 					Select::make('user_id')
 						->label('Owner')
 						->relationship('user', 'name')

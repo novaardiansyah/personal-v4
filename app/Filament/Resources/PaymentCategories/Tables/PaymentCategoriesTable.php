@@ -25,6 +25,12 @@ class PaymentCategoriesTable
 				TextColumn::make('index')
 					->rowIndex()
 					->label('#'),
+				TextColumn::make('code')
+					->label('Category ID')
+					->badge()
+					->copyable()
+					->searchable()
+					->sortable(),
 				TextColumn::make('user.name')
 					->label('Owner')
 					->searchable(),

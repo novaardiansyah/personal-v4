@@ -27,6 +27,10 @@ class PaymentCategoryInfolist
 		return $schema
 			->components([
 				Section::make([
+					TextEntry::make('code')
+						->label('Category ID')
+						->badge()
+						->copyable(),
 					TextEntry::make('user.name')
 						->label('Owner')
 						->placeholder('-'),
