@@ -13,6 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Filament\Panel;
 use Filament\Auth\MultiFactor\App\Contracts\HasAppAuthentication;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -112,8 +113,13 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
     $this->save();
   }
 
-  public function pushNotifications()
+  public function pushNotifications(): HasMany
   {
-    return $this->hasMany(PushNotification::class);
+    return $this->hasMany(PushNotification::class, 'user_id');
+  }
+
+  public function payment_categories(): HasMany
+  {
+    return $this->hasMany(PaymentCategory::class, 'user_id');
   }
 }

@@ -20,10 +20,10 @@ class Payment extends Model
   protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'attachments', 'created_at', 'updated_at', 'deleted_at'];
 
   protected $casts = [
-    'attachments' => 'array',
-    'has_items' => 'boolean',
+    'attachments'  => 'array',
+    'has_items'    => 'boolean',
     'is_scheduled' => 'boolean',
-    'is_draft' => 'boolean'
+    'is_draft'     => 'boolean'
   ];
 
   protected $with = ['payment_account', 'payment_account_to'];
@@ -57,6 +57,11 @@ class Payment extends Model
   public function galleries(): MorphMany
   {
     return $this->morphMany(Gallery::class, 'subject');
+  }
+
+  public function category(): BelongsTo
+  {
+    return $this->belongsTo(PaymentCategory::class, 'category_id');
   }
 
   public static function mutateDataPayment(array $data): array
