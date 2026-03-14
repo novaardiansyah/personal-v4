@@ -1,24 +1,39 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentsTable.php
+ * Created Date: Thursday December 11th 2025
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Payments\Tables;
 
 use App\Filament\Resources\Payments\Actions\PaymentAction;
+use App\Filament\Resources\Payments\PaymentResource;
 use App\Filament\Resources\Payments\Schemas\PaymentFilter;
 use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
+use Filament\Actions\BulkAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Collection;
 
 class PaymentsTable
 {
@@ -125,6 +140,15 @@ class PaymentsTable
 			])
 			->toolbarActions([
 				BulkActionGroup::make([
+					BulkAction::make('details')
+						->label('Details')
+						->icon(Heroicon::OutlinedEye)
+						->color('primary')
+						->deselectRecordsAfterCompletion()
+						->action(function (Collection $records) {
+							$ids = $records->pluck('id')->implode(',');
+							return redirect(PaymentResource::getUrl('details', ['ids' => $ids]));
+						}),
 					RestoreBulkAction::make(),
 				]),
 			]);

@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: AllocateFundPaymentGoal.php
+ * Created Date: Sunday February 1st 2026
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\PaymentGoals\Pages;
 
 use App\Filament\Resources\PaymentGoals\PaymentGoalResource;
@@ -7,7 +19,6 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentGoalStatus;
 use App\Models\PaymentType;
-use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;

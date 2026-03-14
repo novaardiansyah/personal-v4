@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentInfolist.php
+ * Created Date: Saturday March 14th 2026
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\Payment;

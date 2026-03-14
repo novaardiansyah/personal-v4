@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentResource.php
+ * Created Date: Saturday February 14th 2026
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\Payments;
 
 use BackedEnum;
@@ -9,6 +21,7 @@ use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
 use App\Filament\Resources\Payments\Pages\ListPayments;
+use App\Filament\Resources\Payments\Pages\PaymentDetails;
 use App\Filament\Resources\Payments\Pages\ViewPayment;
 use App\Filament\Resources\Payments\Schemas\PaymentForm;
 use App\Filament\Resources\Payments\Schemas\PaymentInfolist;
@@ -59,10 +72,11 @@ class PaymentResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index'  => ListPayments::route('/'),
-      'create' => CreatePayment::route('/create'),
-      'view'   => ViewPayment::route('/{record}'),
-      'edit'   => EditPayment::route('/{record}/edit'),
+      'index'   => ListPayments::route('/'),
+      'create'  => CreatePayment::route('/create'),
+      'details' => PaymentDetails::route('/details'),
+      'view'    => ViewPayment::route('/{record}'),
+      'edit'    => EditPayment::route('/{record}/edit'),
     ];
   }
 
