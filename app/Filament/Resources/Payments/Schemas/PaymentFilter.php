@@ -6,10 +6,41 @@ use Illuminate\Support\Carbon;
 
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Filters\Filter;
+use Filament\Tables\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
 class PaymentFilter
 {
+  public static function paymentAccount(): SelectFilter
+  {
+    return SelectFilter::make('payment_account_id')
+      ->label('Payment')
+      ->relationship('payment_account', 'name')
+      ->native(false)
+      ->searchable()
+      ->preload();
+  }
+
+  public static function paymentAccountTo(): SelectFilter
+  {
+    return SelectFilter::make('payment_account_to_id')
+      ->label('Payment To')
+      ->relationship('payment_account_to', 'name')
+      ->native(false)
+      ->searchable()
+      ->preload();
+  }
+
+  public static function category(): SelectFilter
+  {
+    return SelectFilter::make('category_id')
+      ->label('Category')
+      ->relationship('category', 'name', fn($query) => $query->where('user_id', auth()->id()))
+      ->native(false)
+      ->searchable()
+      ->preload();
+  }
+
   public static function date(): Filter
   {
     return Filter::make('date')

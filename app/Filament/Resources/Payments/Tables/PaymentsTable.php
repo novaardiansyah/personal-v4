@@ -98,15 +98,12 @@ class PaymentsTable
 			->defaultSort('date', 'desc')
 			->filters([
 				TrashedFilter::make()
-					->native(false),
-
-				SelectFilter::make('payment_account_id')
-					->label('Payment')
-					->relationship('payment_account', 'name')
-					->native(false)
 					->searchable()
-					->preload(),
-
+					->preload(true)
+					->native(false),
+				PaymentFilter::paymentAccount(),
+				PaymentFilter::paymentAccountTo(),
+				PaymentFilter::category(),
 				PaymentFilter::date(),
 			])
 			->headerActions([
