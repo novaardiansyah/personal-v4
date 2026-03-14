@@ -3,10 +3,8 @@
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\PaymentAccount;
-use App\Models\PaymentCategory;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
-
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -75,7 +73,7 @@ class PaymentForm
             ->required(fn(Get $get) => !$get('has_items'))
             ->rows(3),
         ])
-          ->description('Transaction details')
+          ->description('Transaction information')
           ->columns(2)
           ->columnSpan(['sm' => 3, 'md' => 2])
           ->collapsible(),
@@ -139,7 +137,7 @@ class PaymentForm
             ->required(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL))
             ->visible(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL)),
         ])
-          ->description('Payment account details')
+          ->description('Other information')
           ->columns(1)
           ->columnSpan(['sm' => 3, 'md' => 1])
           ->collapsible(),
