@@ -17,7 +17,7 @@ class Payment extends Model
 {
   use SoftDeletes;
 
-  protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'attachments', 'created_at', 'updated_at', 'deleted_at'];
+  protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'category_id', 'attachments', 'created_at', 'updated_at', 'deleted_at'];
 
   protected $casts = [
     'attachments'  => 'array',

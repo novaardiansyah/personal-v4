@@ -51,6 +51,9 @@ class PaymentsTable
 				TextColumn::make('payment_account_to.name')
 					->label('Payment To')
 					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('category.name')
+					->label('Category')
+					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('type_id')
 					->label('Type')
 					->badge()

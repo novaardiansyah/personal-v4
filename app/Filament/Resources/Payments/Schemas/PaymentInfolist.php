@@ -2,39 +2,99 @@
 
 namespace App\Filament\Resources\Payments\Schemas;
 
+use App\Models\Payment;
+use App\Models\PaymentType;
+use App\Models\Setting;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
 class PaymentInfolist
 {
-    public static function configure(Schema $schema): Schema
-    {
-        return $schema
-            ->components([
+  public static function configure(Schema $schema): Schema
+  {
+    return $schema
+      ->components([
+        Grid::make(1)
+          ->schema([
+            Section::make('')
+              ->description('Transaction Information')
+              ->schema([
+                TextEntry::make('code')
+                  ->label('Transaction ID')
+                  ->copyable()
+                  ->badge()
+                  ->color('info'),
                 TextEntry::make('type_id')
-                    ->numeric(),
-                TextEntry::make('user_id')
-                    ->numeric(),
-                TextEntry::make('payment_account_id')
-                    ->numeric(),
-                TextEntry::make('payment_account_to_id')
-                    ->numeric(),
-                TextEntry::make('code'),
+                  ->label('Type')
+                  ->badge()
+                  ->color(fn(string $state): string => match ((int) $state) {
+                    PaymentType::INCOME => 'success',
+                    PaymentType::EXPENSE => 'danger',
+                    PaymentType::TRANSFER => 'info',
+                    PaymentType::WITHDRAWAL => 'warning',
+                    default => 'primary',
+                  })
+                  ->formatStateUsing(fn(Payment $record): string => $record->payment_type->name),
                 TextEntry::make('amount')
-                    ->numeric(),
-                IconEntry::make('has_items')
-                    ->boolean(),
+                  ->label('Nominal')
+                  ->formatStateUsing(fn(?string $state): string => toIndonesianCurrency($state ?? 0, showCurrency: Setting::showPaymentCurrency()))
+                  ->weight('bold'),
                 TextEntry::make('date')
-                    ->date(),
+                  ->label('Date')
+                  ->date('M d, Y')
+                  ->icon('heroicon-o-calendar'),
+                TextEntry::make('payment_account.name')
+                  ->label('From Account')
+                  ->icon('heroicon-o-wallet')
+                  ->placeholder('N/A'),
+                TextEntry::make('payment_account_to.name')
+                  ->label('To Account')
+                  ->icon('heroicon-o-arrow-right-circle')
+                  ->placeholder('N/A')
+                  ->visible(fn(Payment $record): bool => in_array((int) $record->type_id, [PaymentType::TRANSFER, PaymentType::WITHDRAWAL])),
+                TextEntry::make('category.name')
+                  ->label('Category')
+                  ->placeholder('N/A'),
+                TextEntry::make('name')
+                  ->label('Notes')
+                  ->placeholder('No notes available')
+                  ->columnSpanFull(),
+              ])
+              ->columns(['xl' => 3, '2xl' => 4])
+              ->columnSpan(2),
+          ]),
+
+        Grid::make(1)
+          ->schema([
+            Section::make('')
+              ->description('Status Information')
+              ->schema([
                 IconEntry::make('is_scheduled')
-                    ->boolean(),
-                TextEntry::make('deleted_at')
-                    ->dateTime(),
+                  ->label('Scheduled')
+                  ->boolean(),
+                IconEntry::make('has_items')
+                  ->label('Has Items')
+                  ->boolean(),
+                IconEntry::make('is_draft')
+                  ->label('Draft')
+                  ->boolean(),
                 TextEntry::make('created_at')
-                    ->dateTime(),
+                  ->label('Created')
+                  ->dateTime(),
                 TextEntry::make('updated_at')
-                    ->dateTime(),
-            ]);
-    }
+                  ->label('Last Updated')
+                  ->dateTime()
+                  ->sinceTooltip(),
+                TextEntry::make('deleted_at')
+                  ->label('Deleted')
+                  ->dateTime(),
+              ])
+              ->columns(3),
+          ]),
+      ])
+      ->columns(2);
+  }
 }

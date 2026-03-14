@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\PaymentAccount;
+use App\Models\PaymentCategory;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
 
@@ -85,6 +86,14 @@ class PaymentForm
             ->placeholder('Auto Generated')
             ->disabled()
             ->visibleOn('edit'),
+
+          Select::make('category_id')
+            ->label('Category')
+            ->relationship('category', 'name', fn ($query) => $query->where('user_id', auth()->id()))
+            ->native(false)
+            ->preload()
+            ->searchable()
+            ->nullable(),
 
           Select::make('type_id')
             ->label('Type')
