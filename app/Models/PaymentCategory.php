@@ -30,7 +30,11 @@ class PaymentCategory extends Model
 
 	protected $table = 'payment_categories';
 
-	protected $fillable = ['name', 'user_id', 'code'];
+	protected $fillable = ['name', 'user_id', 'code', 'is_default'];
+
+	protected $casts = [
+		'is_default' => 'boolean',
+	];
 
 	public function user(): BelongsTo
 	{

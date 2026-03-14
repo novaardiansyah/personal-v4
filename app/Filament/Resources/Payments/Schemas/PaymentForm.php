@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Payments\Schemas;
 
 use App\Models\PaymentAccount;
+use App\Models\PaymentCategory;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
 use Filament\Forms\Components\DatePicker;
@@ -91,6 +92,7 @@ class PaymentForm
             ->native(false)
             ->preload()
             ->searchable()
+            ->default(fn () => PaymentCategory::where('user_id', auth()->id())->where('is_default', true)->first()?->id)
             ->nullable(),
 
           Select::make('type_id')

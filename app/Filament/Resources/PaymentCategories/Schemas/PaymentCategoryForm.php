@@ -20,6 +20,7 @@ use App\Models\User;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -54,6 +55,11 @@ class PaymentCategoryForm
 						->required()
 						->rows(3)
 						->maxLength(255),
+
+					Toggle::make('is_default')
+						->label('Default')
+						->helperText('Set as default category for new payments.')
+						->default(false),
 				])
 			])
 			->columns(2);

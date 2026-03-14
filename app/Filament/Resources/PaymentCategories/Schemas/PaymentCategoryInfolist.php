@@ -16,6 +16,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\PaymentCategories\Schemas;
 
+use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -36,10 +37,13 @@ class PaymentCategoryInfolist
 						->placeholder('-'),
 					TextEntry::make('name')
 						->label('Category'),
+					IconEntry::make('is_default')
+						->label('Default')
+						->boolean(),
 				])
 				->description('General information')
 				->collapsible()
-				->columns(3),
+				->columns(4),
 
 				Section::make([
 					TextEntry::make('created_at')

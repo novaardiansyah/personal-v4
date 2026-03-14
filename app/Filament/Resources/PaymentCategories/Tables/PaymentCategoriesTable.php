@@ -12,6 +12,7 @@ use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
+use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -38,6 +39,10 @@ class PaymentCategoriesTable
 					->label('Category')
 					->sortable()
 					->searchable(),
+				IconColumn::make('is_default')
+					->label('Default')
+					->boolean()
+					->sortable(),
 				TextColumn::make('created_at')
 					->dateTime()
 					->sortable()
