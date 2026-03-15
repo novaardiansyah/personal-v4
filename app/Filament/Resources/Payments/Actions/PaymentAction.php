@@ -24,7 +24,9 @@ use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentResource\PaymentService;
 use Illuminate\Support\Carbon;
+use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\Action;
+use Filament\Actions\BulkAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -37,6 +39,8 @@ use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
 use Filament\Support\Enums\Width;
+use Filament\Support\Icons\Heroicon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 
 class PaymentAction
@@ -463,5 +467,18 @@ class PaymentAction
       'amount' => $expense,
       'name'   => $note
     ]);
+  }
+
+  public static function detailsBulk()
+  {
+    return BulkAction::make('details')
+      ->label('Details')
+      ->icon(Heroicon::OutlinedEye)
+      ->color('primary')
+      ->deselectRecordsAfterCompletion()
+      ->action(function (Collection $records, $livewire) {
+        $ids = $records->pluck('id')->implode(',');
+        $livewire->redirect(PaymentResource::getUrl('details', ['ids' => $ids]), navigate: true);
+      });
   }
 }
