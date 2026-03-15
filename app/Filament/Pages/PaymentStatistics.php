@@ -18,6 +18,7 @@ use BackedEnum;
 use UnitEnum;
 use App\Filament\Pages\Widgets\PaymentStatisticsAccountOverview;
 use App\Filament\Pages\Widgets\PaymentStatisticsStatsOverview;
+use App\Filament\Widgets\PaymentCategoryChartWidget;
 use App\Filament\Widgets\PaymentChartWidget;
 use Filament\Pages\Page;
 use Filament\Support\Icons\Heroicon;
@@ -47,12 +48,13 @@ class PaymentStatistics extends Page
 	{
 		return [
 			PaymentStatisticsAccountOverview::class,
+			PaymentCategoryChartWidget::class,
 			PaymentChartWidget::class,
 		];
 	}
 
 	public function getFooterWidgetsColumns(): int|array
 	{
-		return 1;
+		return 2;
 	}
 }

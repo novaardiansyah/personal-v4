@@ -1,10 +1,21 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: PaymentChartWidget.php
+ * Created Date: Thursday December 11th 2025
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Widgets;
 
 use App\Models\Payment;
 use Illuminate\Support\Carbon;
-
 use Filament\Forms\Components\DatePicker;
 use Filament\Schemas\Schema;
 use Filament\Widgets\ChartWidget;
@@ -15,7 +26,7 @@ class PaymentChartWidget extends ChartWidget
   use HasFiltersSchema;
 
   protected ?string $heading = 'Payment Statistics';
-  protected int | string | array $columnSpan = 1;
+  protected int | string | array $columnSpan = 'full';
   protected ?string $maxHeight = '600px';
 
   public function filtersSchema(Schema $schema): Schema
