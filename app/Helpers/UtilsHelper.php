@@ -534,3 +534,9 @@ function secondsToHumanReadable(?int $seconds): string
 
   return implode(', ', $parts);
 }
+
+function uuid7(): string
+{
+  $string = Str::uuid7()->toString();
+  return textUpper($string);
+}

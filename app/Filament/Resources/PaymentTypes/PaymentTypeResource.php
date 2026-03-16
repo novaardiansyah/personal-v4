@@ -19,6 +19,7 @@ use UnitEnum;
 use Filament\Actions\ActionGroup;
 use Filament\Support\Enums\Width;
 use App\Filament\Resources\PaymentTypes\Pages\ManagePaymentTypes;
+use App\Models\Payment;
 use App\Models\PaymentType;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -32,6 +33,7 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\TextInput;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Resources\Resource;
+use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Columns\TextColumn;
@@ -58,7 +60,14 @@ class PaymentTypeResource extends Resource
 	{
 		return $schema
 			->components([
+				TextInput::make('uid')
+					->label('UID')
+					->disabled()
+					->placeholder('Auto generated')
+					->copyable(),
+
 				TextInput::make('name')
+					->label('Name')
 					->required(),
 			])
 			->columns(1);
@@ -68,17 +77,33 @@ class PaymentTypeResource extends Resource
 	{
 		return $schema
 			->components([
-				TextEntry::make('name')
-					->columnSpanFull(),
-				TextEntry::make('created_at')
-					->dateTime(),
-				TextEntry::make('updated_at')
-					->sinceTooltip()
-					->dateTime(),
-				TextEntry::make('deleted_at')
-					->dateTime(),
+				Section::make([
+					TextEntry::make('uid')
+						->label('UID')
+						->badge()
+						->copyable()
+						->tooltip(fn(PaymentType $record): string => $record->uid ?? ''),
+					TextEntry::make('name')
+						->label('Name'),
+				])
+				->description('General information')
+				->columns(2),
+
+				Section::make([
+					TextEntry::make('created_at')
+						->sinceTooltip()
+						->dateTime(),
+					TextEntry::make('updated_at')
+						->sinceTooltip()
+						->dateTime(),
+					TextEntry::make('deleted_at')
+						->sinceTooltip()
+						->dateTime(),
+				])
+				->description('Timestamp information')
+				->columns(3),
 			])
-			->columns(3);
+			->columns(1);
 	}
 
 	public static function table(Table $table): Table
@@ -89,6 +114,14 @@ class PaymentTypeResource extends Resource
 				TextColumn::make('index')
 					->label('#')
 					->rowIndex(),
+				TextColumn::make('uid')
+					->label('UID')
+					->badge()
+					->limit(13)
+					->searchable()
+					->copyable()
+					->tooltip(fn(PaymentType $record): string => $record->uid ?? '')
+					->copyableState(fn(PaymentType $record): string => $record->uid ?? ''),
 				TextColumn::make('name')
 					->searchable(),
 				TextColumn::make('deleted_at')
@@ -106,11 +139,19 @@ class PaymentTypeResource extends Resource
 					->toggleable(),
 			])
 			->filters([
-				TrashedFilter::make(),
+				TrashedFilter::make()
+					->preload()
+					->searchable()
+					->native(false),
 			])
+			->recordAction(null)
+			->recordUrl(null)
 			->recordActions([
 				ActionGroup::make([
-					ViewAction::make(),
+					ViewAction::make()
+						->modalHeading('View details')
+						->slideOver()
+						->modalWidth(Width::ThreeExtraLarge),
 
 					EditAction::make()
 						->modalWidth(Width::Medium),

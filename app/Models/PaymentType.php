@@ -14,14 +14,19 @@
 
 namespace App\Models;
 
+use App\Observers\PaymentTypeObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy(PaymentTypeObserver::class)]
 class PaymentType extends Model
 {
   use SoftDeletes;
-  
-  protected $guarded = ['id'];
+
+	protected $table = 'payment_types';
+
+  protected $fillable = ['uid', 'name'];
 
   public const EXPENSE = 1;
   public const INCOME = 2;
