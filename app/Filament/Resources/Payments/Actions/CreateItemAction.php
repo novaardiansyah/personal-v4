@@ -131,14 +131,14 @@ class CreateItemAction
 			DB::commit();
 
 			$action->getLivewire()->dispatch('refreshForm');
-
-			Notification::make()
-				->success()
-				->title('Process Success')
-				->body('Item created successfully')
-				->send();
-
 			$action->success();
+
+			$action->successNotification(
+				Notification::make()
+					->success()
+					->title('Process Success')
+					->body('Item created successfully')
+			);
 		} catch (\Exception $e) {
 			DB::rollBack();
 

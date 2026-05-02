@@ -32,8 +32,8 @@ class EditPayment extends EditRecord
   #[On('refreshForm')]
   public function refreshForm(): void
   {
-    $data = $this->record->toArray();
-    parent::refreshFormData(array_keys($data));
+    $this->record = $this->record->fresh();
+    $this->fillForm();
   }
 
   protected function getRedirectUrl(): string

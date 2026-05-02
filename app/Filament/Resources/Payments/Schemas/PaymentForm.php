@@ -109,45 +109,31 @@ class PaymentForm
 
           Select::make('type_id')
             ->label('Type')
-            ->options(function (Get $get): Collection {
-              if ($get('has_items')) return PaymentType::where('id', 1)->pluck('name', 'id');
-              return PaymentType::all()->pluck('name', 'id');
-            })
+            ->relationship('payment_type', 'name')
             ->live(onBlur: true)
             ->native(false)
             ->default(1)
-            ->required()
-            ->afterStateUpdated(function (Set $set, ?string $state, string $operation) {
-              if ($state == PaymentType::WITHDRAWAL) {
-                $set('payment_account_id', PaymentAccount::PERMATA_BANK);
-                $set('payment_account_to_id', PaymentAccount::TUNAI);
-
-                $paymentAccount = PaymentAccount::find(PaymentAccount::PERMATA_BANK);
-                $set('name', 'Tarik Tunai dari ' . $paymentAccount->name);
-              }
-            }),
+            ->required(),
 
           Select::make('payment_account_id')
             ->label('Payment')
             ->relationship('payment_account', 'name')
-						->getOptionLabelFromRecordUsing(function(PaymentAccount $record): string {
-							return $record->name . ' (' . toIndonesianCurrency($record->deposit) . ')';
-						})
             ->native(false)
 						->preload()
 						->searchable()
             ->required()
+            ->live(onBlur: true)
+            ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state)?->deposit ?? 0))
             ->default(PaymentAccount::TUNAI),
 
           Select::make('payment_account_to_id')
             ->label('Payment To')
             ->relationship('payment_account_to', 'name')
-            ->getOptionLabelFromRecordUsing(function(PaymentAccount $record): string {
-							return $record->name . ' (' . toIndonesianCurrency($record->deposit) . ')';
-						})
             ->native(false)
 						->preload()
 						->searchable()
+            ->live(onBlur: true)
+            ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state)?->deposit ?? 0))
             ->required(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL))
             ->visible(fn(Get $get): bool => ($get('type_id') == PaymentType::TRANSFER || $get('type_id') == PaymentType::WITHDRAWAL)),
         ])

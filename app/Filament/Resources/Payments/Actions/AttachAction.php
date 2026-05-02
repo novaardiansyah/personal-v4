@@ -114,13 +114,13 @@ class AttachAction
 
 		PaymentAction::set_owner_price($record);
 		$action->getLivewire()->dispatch('refreshForm');
-
-		Notification::make()
-			->success()
-			->title('Process Success')
-			->body('Item attached successfully')
-			->send();
-
 		$action->success();
+
+		$action->successNotification(
+			Notification::make()
+				->success()
+				->title('Process Success')
+				->body('Item attached successfully')
+		);
 	}
 }
