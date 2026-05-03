@@ -35,19 +35,25 @@ class PaymentStatisticsStatsOverview extends StatsOverviewWidget
 		$scheduled_expense = $payments->scheduled_expense ?? 0;
 		$scheduled_income  = $payments->scheduled_income ?? 0;
 
-		$totalAfterScheduledExpense = $total_saldo + $scheduled_income - $scheduled_expense;
+		$draft_expense = $payments->draft_expense ?? 0;
+		$draft_income  = $payments->draft_income ?? 0;
+
+		$upcoming_expense = $draft_expense + $scheduled_expense;
+		$upcoming_income  = $draft_income + $scheduled_income;
+
+		$total_after_upcoming = ($total_saldo + $upcoming_income) - $upcoming_expense;
 
 		return [
 			Stat::make('Income (' . $month_str . ')', toIndonesianCurrency($payments->all_income ?? 0, showCurrency: Setting::showPaymentCurrency()))
-				->description(toIndonesianCurrency($scheduled_income, showCurrency: Setting::showPaymentCurrency()) . ' scheduled income')
+				->description(toIndonesianCurrency($upcoming_income, showCurrency: Setting::showPaymentCurrency()) . ' upcoming income')
 				->descriptionIcon('heroicon-m-arrow-trending-up')
 				->descriptionColor('success'),
 			Stat::make('Expense (' . $month_str . ')', toIndonesianCurrency($payments->all_expense ?? 0, showCurrency: Setting::showPaymentCurrency()))
-				->description(toIndonesianCurrency($scheduled_expense, showCurrency: Setting::showPaymentCurrency()) . ' scheduled expense')
+				->description(toIndonesianCurrency($upcoming_expense, showCurrency: Setting::showPaymentCurrency()) . ' upcoming expense')
 				->descriptionIcon('heroicon-m-arrow-trending-down')
 				->descriptionColor('danger'),
 			Stat::make('Total Deposit', toIndonesianCurrency($total_saldo, showCurrency: Setting::showPaymentCurrency()))
-				->description(toIndonesianCurrency($totalAfterScheduledExpense, showCurrency: Setting::showPaymentCurrency()) . ' remaining scheduled')
+				->description(toIndonesianCurrency($total_after_upcoming, showCurrency: Setting::showPaymentCurrency()) . ' upcoming balance')
 				->descriptionIcon('heroicon-m-credit-card')
 				->descriptionColor('primary'),
 			Stat::make('Daily Expense (Today)', toIndonesianCurrency($payments->daily_expense ?? 0, showCurrency: Setting::showPaymentCurrency()))

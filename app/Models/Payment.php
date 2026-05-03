@@ -239,39 +239,25 @@ class Payment extends Model
 
   public function overviewReport(): array
   {
-    // Mengambil tanggal awal dan akhir bulan ini
     $startDate = Carbon::now()->startOfMonth()->format('Y-m-d');
-    $endDate = Carbon::now()->format('Y-m-d');
-    $endMonth = Carbon::now()->endOfMonth()->format('Y-m-d');
+    $endDate   = Carbon::now()->format('Y-m-d');
+    $endMonth  = Carbon::now()->endOfMonth()->format('Y-m-d');
 
-    // Mengambil tanggal hari ini
-    $today = Carbon::now()->format('Y-m-d');
-
-    // Mengambil tanggal awal minggu ini (Senin)
+    $today       = Carbon::now()->format('Y-m-d');
     $startOfWeek = Carbon::now()->startOfWeek()->format('Y-m-d');
-    // Mengambil tanggal akhir minggu ini (Minggu)
-    $endOfWeek = Carbon::now()->endOfWeek()->format('Y-m-d');
+    $endOfWeek   = Carbon::now()->endOfWeek()->format('Y-m-d');
 
-    // Jika awal minggu ini berada di bulan sebelumnya, setel ke awal bulan ini
     if (Carbon::parse($startOfWeek)->month != Carbon::now()->month) {
       $startOfWeek = $startDate;
     }
 
-    // Jika akhir minggu ini berada di bulan berikutnya, setel ke akhir bulan ini
     if (Carbon::parse($endOfWeek)->month != Carbon::now()->month) {
       $endOfWeek = $endDate;
     }
 
-    // Mengambil bulan dan tahun saat ini dalam format terjemahan
-    $month_str = Carbon::now()->translatedFormat('F Y');
-
-    // Menghitung jumlah hari yang telah berlalu dalam bulan ini sampai hari ini
-    $daysElapsed = Carbon::now()->day;
-
-    // Menghitung jumlah hari dalam bulan ini
-    $daysInMonth = Carbon::now()->daysInMonth;
-
-    // Menghitung jumlah minggu dalam bulan ini
+    $month_str    = Carbon::now()->translatedFormat('F Y');
+    $daysElapsed  = Carbon::now()->day;
+    $daysInMonth  = Carbon::now()->daysInMonth;
     $weeksInMonth = intval(ceil($daysInMonth / 7));
 
     $payments = Payment::selectRaw('
@@ -283,27 +269,10 @@ class Payment extends Model
       SUM(CASE WHEN type_id = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) / ? AS avg_weekly_expense,
       SUM(CASE WHEN type_id = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS weekly_expense,
       SUM(CASE WHEN type_id = 1 AND is_scheduled = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS scheduled_expense,
-      SUM(CASE WHEN type_id = 2 AND is_scheduled = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS scheduled_income
-    ', [
-      $startDate,
-      $endDate, // All expense range
-      $startDate,
-      $endDate, // All income range
-      $today,               // Daily expense
-      $today,               // Daily income
-      $startDate,
-      $endDate,
-      $daysElapsed,  // Avg daily expense
-      $startDate,
-      $endDate,
-      $weeksInMonth, // Avg weekly expense
-      $startOfWeek,
-      $endOfWeek, // Weekly expense
-      $startDate,
-      $endMonth, // Scheduled expense
-      $startDate,
-      $endMonth // Scheduled income
-    ])->first();
+      SUM(CASE WHEN type_id = 2 AND is_scheduled = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS scheduled_income,
+			SUM(CASE WHEN type_id = 1 AND is_draft = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS draft_expense,
+			SUM(CASE WHEN type_id = 2 AND is_draft = 1 AND date BETWEEN ? AND ? THEN amount ELSE 0 END) AS draft_income
+    ', [$startDate, $endDate, $startDate, $endDate, $today, $today, $startDate, $endMonth, $daysElapsed, $startDate, $endMonth, $weeksInMonth, $startOfWeek, $endOfWeek, $startDate, $endMonth, $startDate, $endMonth, $startDate, $endMonth, $startDate, $endMonth])->first();
 
     $total_saldo = PaymentAccount::sum('deposit');
 
