@@ -22,6 +22,7 @@ use Filament\Support\Enums\Width;
 use Filament\Auth\MultiFactor\App\AppAuthentication;
 use Filament\View\PanelsRenderHook;
 use Illuminate\Support\HtmlString;
+use App\Filament\Pages\Auth\EditProfile;
 
 class AdminPanelProvider extends PanelProvider
 {
@@ -35,7 +36,7 @@ class AdminPanelProvider extends PanelProvider
       ->path('admin')
       ->login()
       ->registration(false)
-      ->profile()
+      ->profile(EditProfile::class)
       ->passwordReset()
       ->multiFactorAuthentication([
         AppAuthentication::make(),

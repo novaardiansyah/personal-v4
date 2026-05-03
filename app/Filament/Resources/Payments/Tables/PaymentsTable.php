@@ -84,7 +84,7 @@ class PaymentsTable
 				IconColumn::make('is_draft')
 					->label('Draft')
 					->boolean()
-					->toggleable(isToggledHiddenByDefault: true),
+					->toggleable(),
 				TextColumn::make('date')
 					->label('Date')
 					->date('M d, Y')
