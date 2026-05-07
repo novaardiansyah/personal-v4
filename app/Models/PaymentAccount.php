@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Carbon;
 
 #[ObservedBy([PaymentAccountObserver::class])]
@@ -34,7 +35,7 @@ class PaymentAccount extends Model
 
   public function getLogoUrlAttribute(): string|null
   {
-    return $this->logo ? config('services.self.cdn_url') . '/' .  $this->logo : null;
+    return $this->logo ? Storage::disk('public')->url($this->logo) : null;
   }
 
   public function payments(): HasMany
