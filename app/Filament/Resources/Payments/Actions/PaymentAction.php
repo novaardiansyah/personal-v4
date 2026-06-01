@@ -86,7 +86,7 @@ class PaymentAction
 
         Toggle::make('approve_draft')
           ->label('Approve Draft')
-          ->helperText('Jika draft disetujui, transaksi akan dijalankan dan saldo akan dimutasi.')
+          ->helperText('Transaction will be executed and balance will be mutated.')
           ->default(false),
       ]);
   }
@@ -312,12 +312,11 @@ class PaymentAction
   public static function manageDraft()
   {
     return Action::make('manage_draft')
-      ->label('Kelola Draft')
+      ->label('Manage Draft')
       ->color('success')
       ->icon('heroicon-o-document-text')
       ->visible(fn(Payment $record): bool => $record->is_draft === true)
-      ->modalHeading('Kelola Draft')
-      ->modalDescription('Edit transaksi draft dan tentukan statusnya.')
+      ->modalHeading('Manage Draft')
       ->modalWidth(Width::Large)
       ->schema(fn(Schema $form): Schema => self::manageDraftSchema($form))
       ->fillForm(fn(Payment $record): array => self::manageDraftFillForm($record))
