@@ -82,8 +82,8 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   if ($preview) {
     $mpdf->Output('', 'I'); // ! Output to browser for preview
     return [
-      'filename' => $filename,
-      'filepath' => $filepath,
+      'filename'   => $filename,
+      'filepath'   => $filepath,
       'signed_url' => null, // ! No signed URL for preview
     ];
   }
@@ -116,18 +116,18 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   }
 
   File::create([
-    'user_id' => $user->id,
-    'file_name' => $filename,
-    'file_path' => $filepath,
-    'download_url' => $fileUrl,
+    'user_id'                 => $user->id,
+    'file_name'               => $filename,
+    'file_path'               => $filepath,
+    'download_url'            => $fileUrl,
     'scheduled_deletion_time' => $expiration,
   ]);
 
   $properties = [
-    'filename' => $filename,
-    'filepath' => $filepath,
+    'filename'   => $filename,
+    'filepath'   => $filepath,
     'signed_url' => $fileUrl,
-    'fullpath' => $fullpath,
+    'fullpath'   => $fullpath,
   ];
 
   return $properties;
@@ -499,7 +499,7 @@ function normalizeValidationErrors(array $errors): array
 function sizeFormat(float $size): string
 {
   $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  $i = floor(log($size, 1024));
+  $i = (int) floor(log($size, 1024));
   return round($size / pow(1024, $i), 2) . ' ' . $units[$i];
 }
 

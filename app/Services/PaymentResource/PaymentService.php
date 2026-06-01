@@ -159,6 +159,7 @@ class PaymentService
 		$notification       = $data['notification'] ?? false;
 		$auto_close_tbody   = $data['auto_close_tbody'] ?? false;
 		$payment_account_id = $data['payment_account_id'] ?? null;
+		$is_draft           = $data['is_draft'] ?? false;
 
 		$startDate = $data['start_date'] ?? now()->startOfMonth();
 		$endDate   = $data['end_date'] ?? now()->endOfMonth();
@@ -185,7 +186,7 @@ class PaymentService
 
 		$mpdf->WriteHTML(view('payment-resource.make-pdf.header', [
 			'title'   => $data['title'] ?? 'Laporan keuangan',
-			'now'     => carbonTranslatedFormat($now, 'l, d M Y, H.i', 'id') . ' WIB',
+			'now'     => carbonTranslatedFormat($now, 'l, d F Y, H.i', 'id') . ' WIB',
 			'periode' => $periode,
 			'user'    => $user,
 		])->render());
@@ -194,6 +195,9 @@ class PaymentService
 			->orderBy('date', 'desc')
 			->when($payment_account_id, function ($query) use ($payment_account_id) {
 				$query->where('payment_account_id', $payment_account_id);
+			})
+			->when($is_draft, function ($query) {
+				$query->where('is_draft', true);
 			})
 			->chunk(200, function ($list) use ($mpdf, &$rowIndex, &$totalExpense, &$totalIncome, &$totalTransfer) {
 				foreach ($list as $record) {
@@ -234,8 +238,6 @@ class PaymentService
     ');
 
 		$result = makePdf($mpdf, $user, notification: $notification, auto_close_tbody: $auto_close_tbody);
-
-		Log::info('4236 --> PaymentService::make_pdf(): Finished.');
 
 		return $result;
 	}
