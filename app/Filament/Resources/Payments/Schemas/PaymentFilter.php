@@ -35,7 +35,7 @@ class PaymentFilter
   {
     return SelectFilter::make('category_id')
       ->label('Category')
-      ->relationship('category', 'name', fn($query) => $query->where('user_id', auth()->id()))
+      ->relationship('category', 'name', fn($query) => $query->where('user_id', auth()->id())->orderBy('updated_at', 'desc'))
       ->native(false)
       ->searchable()
       ->preload();

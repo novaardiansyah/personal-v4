@@ -16,7 +16,6 @@ namespace App\Observers;
 
 use App\Models\Payment;
 use App\Models\PaymentAccount;
-use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\AttachmentService;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +29,10 @@ class PaymentObserver
 			$record = $payment;
 			$record->code = getCode('payment');
 			$record->user_id = auth()->id();
+
+			if ($record->category_id) {
+				$record->category?->touch();
+			}
 
 			if ($record->payment_account_id == $record->payment_account_to_id) {
 				throw ValidationException::withMessages([
@@ -106,6 +109,9 @@ class PaymentObserver
 	{
 		DB::transaction(function () use ($payment) {
 			$record = $payment;
+			if ($record->category_id) {
+				$record->category?->touch();
+			}
 			$oldValue = [];
 
 			$changes = collect($record->getDirty())->except($record->getHidden());
