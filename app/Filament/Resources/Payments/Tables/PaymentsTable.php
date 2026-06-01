@@ -15,6 +15,7 @@
 namespace App\Filament\Resources\Payments\Tables;
 
 use App\Filament\Resources\Payments\Actions\PaymentAction;
+use App\Filament\Resources\Payments\Actions\ReplicateAction;
 use App\Filament\Resources\Payments\Schemas\PaymentFilter;
 use App\Models\Payment;
 use App\Models\PaymentType;
@@ -126,6 +127,7 @@ class PaymentsTable
 					ViewAction::make(),
 					EditAction::make(),
 					PaymentAction::manageDraft(),
+					ReplicateAction::make(),
 					DeleteAction::make(),
 					RestoreAction::make(),
 				])
