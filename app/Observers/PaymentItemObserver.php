@@ -14,11 +14,13 @@ class PaymentItemObserver
   public function created(PaymentItem $paymentItem): void
   {
     $this->_log('Created', $paymentItem);
+		$paymentItem->item?->touch();
   }
 
   public function updated(PaymentItem $paymentItem): void
   {
     $this->_log('Updated', $paymentItem);
+		$paymentItem->item?->touch();
   }
 
   public function deleted(PaymentItem $paymentItem): void

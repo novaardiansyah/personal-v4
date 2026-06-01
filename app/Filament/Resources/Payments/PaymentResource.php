@@ -36,7 +36,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PaymentResource extends Resource
 {
-  protected static ?string $model = Payment::class;
+  protected static ?string $model = \App\Models\Payment::class;
 	
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedBanknotes;
 

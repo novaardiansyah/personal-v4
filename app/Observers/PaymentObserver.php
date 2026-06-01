@@ -16,6 +16,7 @@ namespace App\Observers;
 
 use App\Models\Payment;
 use App\Models\PaymentAccount;
+use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\AttachmentService;
 use Illuminate\Support\Facades\DB;
@@ -88,9 +89,6 @@ class PaymentObserver
 		});
 	}
 
-	/**
-	 * Handle the Payment "created" event.
-	 */
 	public function created(Payment $payment): void
 	{
 		$this->_log('Created', $payment);
