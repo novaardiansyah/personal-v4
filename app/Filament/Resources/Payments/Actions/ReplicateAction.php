@@ -47,6 +47,15 @@ class ReplicateAction
 				$replicated->name = $data['name'];
 				$replicated->save();
 
+				foreach ($record->items as $item) {
+					$replicated->items()->attach($item->id, [
+						'item_code' => $item->pivot->item_code,
+						'quantity'  => $item->pivot->quantity,
+						'price'     => $item->pivot->price,
+						'total'     => $item->pivot->total,
+					]);
+				}
+
 				Notification::make()
 					->success()
 					->title('Payment Replicated')
