@@ -64,7 +64,7 @@ Need to chat? Feel free to drop me a line via [Email](mailto:novaardiansyah78@gm
 
 ## Project Status
 
-![stages](https://img.shields.io/badge/stages-development-informational)
+![stages](https://img.shields.io/badge/stages-production-informational)
 ![Laravel](https://img.shields.io/badge/Laravel-12-blue)
 ![Filament](https://img.shields.io/badge/Filament-5-blue)
 ![PHP](https://img.shields.io/badge/PHP-^8.2-blue)
