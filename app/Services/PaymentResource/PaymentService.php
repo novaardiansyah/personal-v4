@@ -230,9 +230,13 @@ class PaymentService
       <tfoot>
         <tr>
           <td colspan="5" style="text-align: center; font-weight: bold;">Total Transaksi</td>
-          <td style="font-weight: bold;">' . toIndonesianCurrency($totalTransfer) . '</td>
-          <td style="font-weight: bold;">' . toIndonesianCurrency($totalIncome) . '</td>
-          <td style="font-weight: bold;">' . toIndonesianCurrency($totalExpense) . '</td>
+          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalTransfer) . '</td>
+          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalIncome) . '</td>
+          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalExpense) . '</td>
+        </tr>
+        <tr>
+          <td colspan="5" style="text-align: center; font-weight: bold;">Total Sisa Saldo Akhir</td>
+          <td colspan="3" style="text-align: center; font-weight: bold;">' . toIndonesianCurrency($totalIncome - $totalExpense) . '</td>
         </tr>
       </tfoot>
     ');
