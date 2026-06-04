@@ -44,32 +44,11 @@ class DraftPaymentReminderJob implements ShouldQueue
       ->where('date', $today)
       ->get();
 
-    if ($draftPayments->isEmpty()) {
-      $defaultLog = array_merge($defaultLog, [
-        'description'  => 'DraftPaymentReminderJob() No drafts found for ' . $today,
-        'subject_type' => ActivityLog::class,
-        'subject_id'   => $startLog->id,
-      ]);
-
-      saveActivityLog($defaultLog);
-      return;
-    }
-
     $draftExpense = $draftPayments->where('type_id', PaymentType::EXPENSE)->sum('amount');
     $draftIncome  = $draftPayments->where('type_id', PaymentType::INCOME)->sum('amount');
     $draftOther   = $draftPayments->whereNotIn('type_id', [PaymentType::EXPENSE, PaymentType::INCOME])->sum('amount');
 
-    $pdfParams = [
-			'title'      => 'Laporan Draft Transaksi',
-			'start_date' => $today,
-			'end_date'   => $today,
-			'now'        => $now,
-			'user'       => $causer,
-			'is_draft'   => true,
-    ];
-
-    $pdf  = PaymentService::make_pdf($pdfParams);
-    $date = carbonTranslatedFormat($now, 'd F Y');
+    $date = carbonTranslatedFormat($now, 'd F Y', 'id');
 
     $data = [
       'log_name'      => 'draft_payment_reminder',
@@ -82,10 +61,25 @@ class DraftPaymentReminderJob implements ShouldQueue
       'draft_income'  => $draftIncome,
       'draft_other'   => $draftOther,
       'created_at'    => $now,
-      'attachments'   => [
-        $pdf['fullpath'],
-      ],
+      'attachments'   => [],
     ];
+
+    if ($draftPayments->isNotEmpty()) {
+      $pdfParams = [
+        'title'      => 'Laporan Draft Transaksi',
+        'start_date' => $today,
+        'end_date'   => $today,
+        'now'        => $now,
+        'user'       => $causer,
+        'is_draft'   => true,
+      ];
+
+      $pdf = PaymentService::make_pdf($pdfParams);
+
+      $data['attachments'] = [
+        $pdf['fullpath'],
+      ];
+    }
 
     Mail::to($data['email'])->queue(new DraftPaymentReminderMail($data));
     $html = (new DraftPaymentReminderMail($data))->render();
