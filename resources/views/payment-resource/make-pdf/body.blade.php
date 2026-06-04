@@ -10,7 +10,7 @@
   <td>{{ carbonTranslatedFormat($record->date, 'd M Y') }}</td>
   <td>{{ $record->payment_account->name }}</td>
   <td>{{ $record->name }}</td>
-  <td>{{ $amount }}</td>
-  <td>{{ $income }}</td>
-  <td>{{ $expense }}</td>
+  <td style="text-align: right;">{{ $amount }}</td>
+  <td style="text-align: right;">{{ $income }}</td>
+  <td style="text-align: right;">{{ $expense }}</td>
 </tr>
