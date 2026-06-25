@@ -383,6 +383,14 @@ class PaymentObserver
 			AttachmentService::deleteAttachmentFiles($attachments);
 		}
 
+		foreach ($payment->installments as $installment) {
+			$installment->update([
+				'status' => 'unpaid',
+				'paid_at' => null,
+				'payment_id' => null,
+			]);
+		}
+
 		$payment->items()->detach();
 	}
 
