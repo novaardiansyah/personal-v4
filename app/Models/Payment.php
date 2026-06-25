@@ -75,6 +75,11 @@ class Payment extends Model
     return $this->belongsTo(PaymentCategory::class, 'category_id');
   }
 
+  public function installments(): \Illuminate\Database\Eloquent\Relations\HasMany
+  {
+    return $this->hasMany(DebtInstallment::class, 'payment_id');
+  }
+
   public static function mutateDataPayment(array $data): array
   {
     $data['user_id'] = auth()->id();
