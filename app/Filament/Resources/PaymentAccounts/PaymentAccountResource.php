@@ -39,8 +39,11 @@ class PaymentAccountResource extends Resource
   protected static ?string $model = PaymentAccount::class;
 
   protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCreditCard;
+
   protected static string|UnitEnum|null $navigationGroup = 'Payments';
-  protected static ?int $navigationSort = 10;
+
+  protected static ?int $navigationSort = 20;
+
   protected static ?string $recordTitleAttribute = 'name';
 
   public static function getEloquentQuery(): Builder
