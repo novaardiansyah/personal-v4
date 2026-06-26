@@ -109,12 +109,29 @@ class DebtForm
 					Select::make('status')
 						->options([
 							'ongoing' => 'Ongoing',
+							'partial_payment' => 'Partial Payment',
 							'paid' => 'Paid',
 						])
 						->native(false)
 						->preload()
 						->default('ongoing')
-						->required(),
+						->required()
+						->live(),
+					TextInput::make('paid_tenor')
+						->label('Paid Installments')
+						->numeric()
+						->default(0)
+						->visibleOn('create')
+						->visible(fn(Get $get) => $get('status') === 'partial_payment')
+						->required(fn(Get $get) => $get('status') === 'partial_payment')
+						->rules([
+							fn(Get $get): \Closure => function (string $attribute, $value, \Closure $fail) use ($get) {
+								$tenor = (int) $get('tenor');
+								if ((int) $value >= $tenor) {
+									$fail("Paid installments must be less than the total tenor ({$tenor}).");
+								}
+							},
+						]),
 					Textarea::make('description')
 						->rows(3),
 				])

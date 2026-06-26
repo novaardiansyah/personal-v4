@@ -3,6 +3,7 @@
 namespace App\Observers;
 
 use App\Models\DebtInstallment;
+use App\Services\DebtResource\DebtService;
 
 class DebtInstallmentObserver
 {
@@ -10,8 +11,7 @@ class DebtInstallmentObserver
   {
     $debt = $installment->debt;
     if ($debt) {
-      $allPaid = $debt->installments()->where('status', '!=', 'paid')->count() === 0;
-      $newStatus = $allPaid ? 'paid' : 'ongoing';
+      $newStatus = DebtService::calculateStatus($debt);
       if ($debt->status !== $newStatus) {
         $debt->update(['status' => $newStatus]);
       }

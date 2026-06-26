@@ -14,6 +14,8 @@ class Debt extends Model
 {
   use SoftDeletes;
 
+  public int $paid_tenor;
+
   protected $table = 'debts';
 
   protected $fillable = [
@@ -31,6 +33,7 @@ class Debt extends Model
     'start_date',
     'status',
     'description',
+    'paid_tenor',
   ];
 
   protected $casts = [
@@ -52,5 +55,40 @@ class Debt extends Model
   public function installments(): HasMany
   {
     return $this->hasMany(DebtInstallment::class, 'debt_id');
+  }
+
+  public function getPaidInstallmentsCountAttribute(): int
+  {
+    return $this->installments()->where('status', 'paid')->count();
+  }
+
+  public function getTotalInstallmentsCountAttribute(): int
+  {
+    return $this->installments()->count();
+  }
+
+  public function getPaidAmountAttribute(): float
+  {
+    return (float) $this->installments()->where('status', 'paid')->sum('total_amount');
+  }
+
+  public function getTotalDebtAmountAttribute(): float
+  {
+    return (float) $this->installments()->sum('total_amount');
+  }
+
+  public function getPaymentProgressAttribute(): string
+  {
+    $paidCount = $this->paid_installments_count;
+    $totalCount = $this->total_installments_count;
+    $paidAmount = toIndonesianCurrency($this->paid_amount);
+    $totalAmount = toIndonesianCurrency($this->total_debt_amount);
+
+    return "{$paidCount} / {$totalCount} Installments Paid ({$paidAmount} / {$totalAmount})";
+  }
+
+  public function setPaidTenorAttribute($value)
+  {
+    $this->paid_tenor = $value;
   }
 }

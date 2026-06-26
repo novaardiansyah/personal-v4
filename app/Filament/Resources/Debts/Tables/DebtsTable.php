@@ -89,10 +89,17 @@ class DebtsTable
 					->label('Status')
 					->badge()
 					->color(fn(string $state): string => match ($state) {
-						'paid'    => 'success',
-						'ongoing' => 'warning',
-						default   => 'primary'
+						'paid'            => 'success',
+						'partial_payment' => 'info',
+						'ongoing'         => 'warning',
+						default           => 'primary'
 					}),
+				TextColumn::make('payment_progress')
+					->label('Progress')
+					->getStateUsing(fn($record) => "{$record->paid_installments_count}/{$record->total_installments_count}")
+					->badge()
+					->color('gray')
+					->toggleable(isToggledHiddenByDefault: false),
 				TextColumn::make('deleted_at')
 					->dateTime()
 					->sortable()
