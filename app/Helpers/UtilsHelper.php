@@ -38,21 +38,19 @@ function carbonTranslatedFormat(string $date, string $format = 'd/m/Y H:i', ?str
   return Carbon::parse($date)->translatedFormat($format);
 }
 
-function toIndonesianCurrency(float $number = 0, int $precision = 0, string $currency = 'Rp', bool $showCurrency = true)
+function toIndonesianCurrency(float $number = 0, int $precision = 2, string $currency = 'Rp', bool $showCurrency = true)
 {
-  $result = 0;
+	if ($number < 0) {
+		$result = '-' . $currency . number_format(abs($number), $precision, ',', '.');
+	} else {
+		$result = $currency . number_format($number, $precision, ',', '.');
+	}
 
-  if ($number < 0) {
-    $result = '-' . $currency . number_format(abs($number), $precision, ',', '.');
-  } else {
-    $result = $currency . number_format($number, $precision, ',', '.');
-  }
+	if ($showCurrency) {
+		return $result;
+	}
 
-  if ($showCurrency)
-    return $result;
-
-  $replace = str_replace(range(0, 9), '-', $result);
-  return $replace;
+	return str_replace(range(0, 9), '-', $result);
 }
 
 function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $notification = true, bool $auto_close_tbody = true): array
