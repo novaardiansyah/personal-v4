@@ -43,13 +43,13 @@ class DebtInfolist
 							->badge()
 							->color(fn(string $state): string => match ($state) {
 								'paid' => 'success',
+								'partial_payment' => 'info',
 								'ongoing' => 'warning',
 								default => 'primary'
 							}),
 						TextEntry::make('principal_amount')
 							->label('Principal Amount')
-							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0)))
-							->weight('bold'),
+							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
 						TextEntry::make('admin_fee')
 							->label('Admin Fee')
 							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
@@ -71,6 +71,10 @@ class DebtInfolist
 						TextEntry::make('payment_account.name')
 							->label('Disbursement Account')
 							->placeholder('N/A'),
+						TextEntry::make('payment_progress')
+							->label('Payment Progress')
+							->getStateUsing(fn($record) => $record->payment_progress)
+							->columnSpanFull(),
 						TextEntry::make('description')
 							->label('Description')
 							->placeholder('No description available')
