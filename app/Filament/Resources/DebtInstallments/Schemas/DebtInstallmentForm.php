@@ -1,9 +1,20 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: DebtInstallmentForm.php
+ * Created Date: Thursday June 25th 2026
+ * 
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ * 
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\DebtInstallments\Schemas;
 
 use Filament\Forms\Components\DatePicker;
-use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
@@ -19,13 +30,8 @@ class DebtInstallmentForm
           ->required()
           ->native(false)
           ->preload()
-          ->searchable(),
-        Select::make('payment_id')
-          ->relationship('payment', 'name')
-          ->nullable()
-          ->native(false)
-          ->preload()
-          ->searchable(),
+          ->searchable()
+          ->disabled(),
         TextInput::make('installment_number')
           ->required()
           ->numeric(),
@@ -68,9 +74,8 @@ class DebtInstallmentForm
             'paid' => 'Paid',
           ])
           ->default('unpaid')
-          ->required(),
-        DateTimePicker::make('paid_at')
-          ->native(false),
+          ->required()
+          ->disabled(),
       ]);
   }
 }

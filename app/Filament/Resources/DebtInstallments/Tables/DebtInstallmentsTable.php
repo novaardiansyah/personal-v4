@@ -93,7 +93,8 @@ class DebtInstallmentsTable
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          EditAction::make(),
+          EditAction::make()
+            ->visible(fn ($record) => $record->status !== 'paid'),
         ])
       ])
       ->toolbarActions([
