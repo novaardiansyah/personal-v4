@@ -69,10 +69,10 @@ class DebtResource extends Resource
 	public static function getPages(): array
 	{
 		return [
-			'index' => ListDebts::route('/'),
+			'index'  => ListDebts::route('/'),
 			'create' => CreateDebt::route('/create'),
-			'view' => ViewDebt::route('/{record}'),
-			'edit' => EditDebt::route('/{record}/edit'),
+			'view'   => ViewDebt::route('/{record}'),
+			'edit'   => EditDebt::route('/{record}/edit'),
 		];
 	}
 
