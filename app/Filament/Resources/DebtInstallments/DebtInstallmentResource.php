@@ -26,6 +26,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 use UnitEnum;
 
 class DebtInstallmentResource extends Resource
@@ -41,6 +42,11 @@ class DebtInstallmentResource extends Resource
   protected static ?int $navigationSort = 11;
 
   protected static ?string $recordTitleAttribute = 'debt.name';
+
+  public static function canEdit(Model $record): bool
+  {
+    return $record->status !== 'paid';
+  }
 
   public static function form(Schema $schema): Schema
   {
