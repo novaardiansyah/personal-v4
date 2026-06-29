@@ -14,7 +14,6 @@
 
 namespace App\Filament\Resources\DebtInstallments;
 
-use App\Filament\Resources\DebtInstallments\Pages\CreateDebtInstallment;
 use App\Filament\Resources\DebtInstallments\Pages\EditDebtInstallment;
 use App\Filament\Resources\DebtInstallments\Pages\ListDebtInstallments;
 use App\Filament\Resources\DebtInstallments\Pages\ViewDebtInstallment;
@@ -31,47 +30,44 @@ use UnitEnum;
 
 class DebtInstallmentResource extends Resource
 {
-	protected static ?string $model = DebtInstallment::class;
+  protected static ?string $model = DebtInstallment::class;
 
-	protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyBangladeshi;
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCurrencyBangladeshi;
 
-	protected static string|UnitEnum|null $navigationGroup = 'Payments';
+  protected static string|UnitEnum|null $navigationGroup = 'Payments';
 
-	protected static ?string $navigationParentItem = 'Debts';
+  protected static ?string $navigationParentItem = 'Debts';
 
-	protected static ?int $navigationSort = 11;
+  protected static ?int $navigationSort = 11;
 
-	protected static ?string $recordTitleAttribute = 'installment_number';
+  protected static ?string $recordTitleAttribute = 'debt.name';
 
-	public static function form(Schema $schema): Schema
-	{
-		return DebtInstallmentForm::configure($schema);
-	}
+  public static function form(Schema $schema): Schema
+  {
+    return DebtInstallmentForm::configure($schema);
+  }
 
-	public static function infolist(Schema $schema): Schema
-	{
-		return DebtInstallmentInfolist::configure($schema);
-	}
+  public static function infolist(Schema $schema): Schema
+  {
+    return DebtInstallmentInfolist::configure($schema);
+  }
 
-	public static function table(Table $table): Table
-	{
-		return DebtInstallmentsTable::configure($table);
-	}
+  public static function table(Table $table): Table
+  {
+    return DebtInstallmentsTable::configure($table);
+  }
 
-	public static function getRelations(): array
-	{
-		return [
-			//
-		];
-	}
+  public static function getRelations(): array
+  {
+    return [];
+  }
 
-	public static function getPages(): array
-	{
-		return [
-			'index' => ListDebtInstallments::route('/'),
-			'create' => CreateDebtInstallment::route('/create'),
-			'view' => ViewDebtInstallment::route('/{record}'),
-			'edit' => EditDebtInstallment::route('/{record}/edit'),
-		];
-	}
+  public static function getPages(): array
+  {
+    return [
+      'index' => ListDebtInstallments::route('/'),
+      'view' => ViewDebtInstallment::route('/{record}'),
+      'edit' => EditDebtInstallment::route('/{record}/edit'),
+    ];
+  }
 }
