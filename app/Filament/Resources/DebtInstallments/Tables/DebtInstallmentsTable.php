@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\DebtInstallments\Tables;
 
+use App\Filament\Resources\DebtInstallments\Actions\PayAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -95,6 +96,7 @@ class DebtInstallmentsTable
           ViewAction::make(),
           EditAction::make()
             ->visible(fn ($record) => $record->status !== 'paid'),
+          PayAction::make(),
         ])
       ])
       ->toolbarActions([
