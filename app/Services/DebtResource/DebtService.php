@@ -58,7 +58,7 @@ class DebtService
           'type_id'            => PaymentType::EXPENSE,
           'user_id'            => $debt->user_id,
           'payment_account_id' => $debt->payment_account_id,
-          'name'               => $debt->platform_name . ' - ' . $debt->name . '(' . $debt->code . ')',
+          'name'               => $debt->platform_name . ' - ' . $debt->name . ' (' . $debt->code . ')',
           'amount'             => $totalMonthlyInstallment,
           'date'               => $dueDate->format('Y-m-d'),
           'is_draft'           => true,
