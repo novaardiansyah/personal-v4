@@ -17,7 +17,6 @@ namespace App\Observers;
 use App\Models\Debt;
 use App\Models\Payment;
 use App\Services\DebtResource\DebtService;
-use Illuminate\Support\Carbon;
 
 class DebtObserver
 {
@@ -54,7 +53,7 @@ class DebtObserver
       'name'               => 'Pencairan Pinjaman: ' . $debt->platform_name . ' - ' . $debt->name,
       'amount'             => $debt->disbursement_amount,
       'date'               => $debt->start_date,
-      'is_draft'           => false,
+      'is_draft'           => true,
       'is_scheduled'       => false,
     ]);
   }

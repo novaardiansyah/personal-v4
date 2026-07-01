@@ -122,23 +122,23 @@ class ManagePaymentAccounts extends ManageRecords
         $paymentType = $diffDeposit > 0 ? PaymentType::EXPENSE : PaymentType::INCOME;
 
         Payment::create([
-          'code' => getCode('payment'),
-          'name' => 'Close Periode : ' . $account->name,
-          'type_id' => $paymentType,
-          'user_id' => $userId,
+          'code'               => getCode('payment'),
+          'name'               => 'Close Periode : ' . $account->name,
+          'type_id'            => $paymentType,
+          'user_id'            => $userId,
           'payment_account_id' => $account->id,
-          'amount' => abs($diffDeposit),
-          'has_items' => false,
-          'attachments' => [],
-          'date' => $endOfMonthDate,
+          'amount'             => abs($diffDeposit),
+          'has_items'          => false,
+          'attachments'        => [],
+          'date'               => $endOfMonthDate,
         ]);
       }
     });
 
     Notification::make()
       ->success()
-      ->title('Close Periode Berhasil')
-      ->body('Periode berhasil ditutup dan seluruh saldo akun di-reset ke 0.')
+      ->title('Successfully Close Periode')
+      ->body('Periode has been successfully closed and all account balances are reset to 0.')
       ->send();
   }
 }
