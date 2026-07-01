@@ -45,3 +45,12 @@ function something()
 {
     // ..
 }
+
+pest()->beforeEach(function () {
+  if (class_exists(\Illuminate\Support\Facades\App::class) && \Illuminate\Support\Facades\App::getFacadeApplication()) {
+    if (app()->isProduction()) {
+      throw new RuntimeException('Running tests in production is strictly prohibited.');
+    }
+  }
+});
+
