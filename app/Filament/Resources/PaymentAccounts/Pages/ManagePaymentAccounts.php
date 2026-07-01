@@ -7,9 +7,11 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ManageRecords;
@@ -25,7 +27,28 @@ class ManagePaymentAccounts extends ManageRecords
   protected function getHeaderActions(): array
   {
     return [
-      CreateAction::make()
+      Action::make('close_periode')
+        ->label('Close Periode')
+        ->color('primary')
+        ->requiresConfirmation()
+        ->form([
+          Select::make('periode')
+            ->label('Periode (Month)')
+            ->options(function () {
+              $now = Carbon::now();
+              $lastMonth = $now->copy()->subMonth();
+              return [
+                $lastMonth->format('Y-m') => $lastMonth->translatedFormat('F Y'),
+                $now->format('Y-m') => $now->translatedFormat('F Y'),
+              ];
+            })
+            ->required()
+            ->native(false)
+            ->default(Carbon::now()->format('Y-m')),
+        ])
+        ->action(fn(array $data) => $this->closePeriode($data)),
+
+			CreateAction::make()
         ->modalWidth(Width::ExtraLarge),
     ];
   }
@@ -80,5 +103,42 @@ class ManagePaymentAccounts extends ManageRecords
       ->body('Audit has been successfully saved.')
       ->send();
   }
-  // ! End Audit
+
+  public function closePeriode(array $data): void
+  {
+    $periode = $data['periode'];
+    $endOfMonthDate = Carbon::createFromFormat('Y-m', $periode)->endOfMonth()->format('Y-m-d');
+    $userId = auth()->id();
+    $accounts = PaymentAccount::where('user_id', $userId)->get();
+
+    DB::transaction(function () use ($accounts, $endOfMonthDate, $userId) {
+      foreach ($accounts as $account) {
+        $currentDeposit = (float) $account->deposit;
+        if ($currentDeposit == 0) {
+          continue;
+        }
+
+        $diffDeposit = $currentDeposit - 0;
+        $paymentType = $diffDeposit > 0 ? PaymentType::EXPENSE : PaymentType::INCOME;
+
+        Payment::create([
+          'code' => getCode('payment'),
+          'name' => 'Close Periode : ' . $account->name,
+          'type_id' => $paymentType,
+          'user_id' => $userId,
+          'payment_account_id' => $account->id,
+          'amount' => abs($diffDeposit),
+          'has_items' => false,
+          'attachments' => [],
+          'date' => $endOfMonthDate,
+        ]);
+      }
+    });
+
+    Notification::make()
+      ->success()
+      ->title('Close Periode Berhasil')
+      ->body('Periode berhasil ditutup dan seluruh saldo akun di-reset ke 0.')
+      ->send();
+  }
 }
