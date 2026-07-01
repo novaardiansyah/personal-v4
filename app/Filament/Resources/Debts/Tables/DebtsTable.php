@@ -122,6 +122,7 @@ class DebtsTable
 			])
 			->recordAction(null)
 			->recordUrl(null)
+			->defaultSort('updated_at', 'desc')
 			->recordActions([
 				ActionGroup::make([
 					ViewAction::make(),
