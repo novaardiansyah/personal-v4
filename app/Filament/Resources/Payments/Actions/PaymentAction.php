@@ -84,10 +84,23 @@ class PaymentAction
           ->native(false)
           ->hint(fn(?string $state) => toIndonesianCurrency(PaymentAccount::find($state ?? -1)?->deposit ?? 0)),
 
+        Toggle::make('balance_mutation')
+          ->label('Balance Mutation')
+          ->helperText('Balance will be mutated.')
+          ->default(false)
+          ->live()
+          ->afterStateUpdated(function ($state, $set) {
+            if ($state) {
+              $set('approve_draft', true);
+            }
+          }),
+
         Toggle::make('approve_draft')
           ->label('Approve Draft')
-          ->helperText('Transaction will be executed and balance will be mutated.')
-          ->default(false),
+          ->helperText('Transaction will be approved.')
+          ->default(false)
+          ->disabled(fn(Get $get) => $get('balance_mutation'))
+          ->dehydrated(),
       ]);
   }
 
@@ -98,6 +111,7 @@ class PaymentAction
       'type_id'               => $record->type_id,
       'payment_account_id'    => $record->payment_account_id,
       'payment_account_to_id' => $record->payment_account_to_id,
+      'balance_mutation'      => false,
       'approve_draft'         => false,
     ];
   }
@@ -113,24 +127,29 @@ class PaymentAction
     $record->load(['payment_account', 'payment_account_to']);
 
     if ($data['approve_draft']) {
-      $mutate = PaymentService::manageDraft($record, false);
+      if ($data['balance_mutation']) {
+        $mutate = PaymentService::manageDraft($record, false);
 
-      if (!$mutate['status']) {
-        Notification::make()
-          ->danger()
-          ->title('Transaction Failed!')
-          ->body($mutate['message'] ?? 'Something went wrong!')
-          ->send();
+        if (!$mutate['status']) {
+          Notification::make()
+            ->danger()
+            ->title('Transaction Failed!')
+            ->body($mutate['message'] ?? 'Something went wrong!')
+            ->send();
 
-        $action->halt();
-        return;
+          $action->halt();
+          return;
+        }
+      } else {
+        $record->is_draft = false;
+        $record->save();
       }
     }
 
     Notification::make()
       ->success()
       ->title($data['approve_draft'] ? 'Draft Approved!' : 'Draft Updated!')
-      ->body($data['approve_draft'] ? 'Draft has been approved and balance has been mutated.' : 'Draft has been updated successfully.')
+      ->body($data['approve_draft'] ? ($data['balance_mutation'] ? 'Draft has been approved and balance has been mutated.' : 'Draft has been approved.') : 'Draft has been updated successfully.')
       ->send();
   }
   // ! End ManageDraft
