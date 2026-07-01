@@ -4,6 +4,8 @@ namespace App\Services\DebtResource;
 
 use App\Models\Debt;
 use App\Models\DebtInstallment;
+use App\Models\Payment;
+use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
 
 class DebtService
@@ -47,19 +49,36 @@ class DebtService
         $remainingPrincipal   -= $installmentPrincipal;
       }
 
+      $dueDate = Carbon::parse($debt->start_date)->addMonths($i - 1);
       $isPaid = ($i <= $paidTenor);
+      $paymentId = null;
+
+      if ($isPaid) {
+        $payment = Payment::create([
+          'type_id'            => PaymentType::EXPENSE,
+          'user_id'            => $debt->user_id,
+          'payment_account_id' => $debt->payment_account_id,
+          'name'               => $debt->platform_name . ' - ' . $debt->name . '(' . $debt->code . ')',
+          'amount'             => $totalMonthlyInstallment,
+          'date'               => $dueDate->format('Y-m-d'),
+          'is_draft'           => true,
+          'is_scheduled'       => false,
+        ]);
+        $paymentId = $payment->id;
+      }
 
       DebtInstallment::create([
         'debt_id'            => $debt->id,
+        'payment_id'         => $paymentId,
         'installment_number' => $i,
-        'due_date'           => Carbon::parse($debt->start_date)->addMonths($i),
+        'due_date'           => $dueDate,
         'principal_amount'   => $installmentPrincipal,
         'interest_amount'    => $interest,
         'service_fee'        => $serviceFee,
         'vat_amount'         => $vat,
         'total_amount'       => $totalMonthlyInstallment,
         'status'             => $isPaid ? 'paid' : 'unpaid',
-        'paid_at'            => $isPaid ? Carbon::now() : null,
+        'paid_at'            => $isPaid ? $dueDate : null,
       ]);
     }
   }
