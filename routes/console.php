@@ -37,6 +37,12 @@ Schedule::job(new CleanExpiredTokens())
 Schedule::job(new DraftPaymentReminderJob())
   ->dailyAt('00:05');
 
+Schedule::job(new DraftPaymentReminderJob())
+  ->dailyAt('12:00');
+
+Schedule::job(new DraftPaymentReminderJob())
+  ->dailyAt('18:00');
+
 // ! Uptime Monitor Check
 // Schedule::job(new UptimeMonitorJob())
 //   ->everyMinute();
