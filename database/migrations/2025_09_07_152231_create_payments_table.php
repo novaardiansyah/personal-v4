@@ -15,7 +15,7 @@ return new class extends Migration {
       $table->foreignId('type_id')->constrained('payment_types')->cascadeOnDelete();
       $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
       $table->foreignId('payment_account_id')->constrained('payment_accounts')->cascadeOnDelete();
-      $table->foreignId('payment_account_to_id')->nullable()->constrained('payment_accounts')->onDelete('cascade');
+      $table->foreignId('payment_account_to_id')->nullable()->constrained('payment_accounts')->noActionOnDelete();
       $table->string('code')->nullable();
       $table->text('name')->nullable();
       $table->bigInteger('amount')->default(0);
