@@ -14,7 +14,7 @@ return new class extends Migration
 		Schema::create('debt_installments', function (Blueprint $table) {
 			$table->id();
 			$table->foreignId('debt_id')->constrained()->onDelete('cascade');
-			$table->foreignId('payment_id')->nullable()->constrained()->onDelete('set null');
+			$table->foreignId('payment_id')->nullable()->constrained()->noActionOnDelete();
 			$table->integer('installment_number');
 			$table->date('due_date');
 			$table->bigInteger('principal_amount')->default(0);

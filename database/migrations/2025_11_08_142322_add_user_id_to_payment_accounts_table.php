@@ -11,7 +11,7 @@ return new class extends Migration {
   public function up(): void
   {
     Schema::table('payment_accounts', function (Blueprint $table) {
-      $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->cascadeOnDelete();
+      $table->foreignId('user_id')->nullable()->after('id')->constrained('users')->noActionOnDelete();
     });
   }
 
