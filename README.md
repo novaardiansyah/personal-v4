@@ -24,6 +24,26 @@ For a complete guide on how to use the application, you can view the user manual
 
 *Scan the QR code above to quickly access the download page.*
 
+## Feature Review & Documentation
+
+We continuously review and evaluate every feature in this project to ensure quality, consistency, and real-world usability. A comprehensive feature review document is available, covering:
+
+- **17 feature areas** mapped across the application
+- **Architecture analysis** with strengths and improvement areas
+- **Security, performance, and UX audits**
+- **Future feature roadmap** with prioritized suggestions
+
+You can download the full review:
+
+| Language | Download |
+|----------|----------|
+| 🇬🇧 English | [`public/docs/personal-v4 Application Review (EN).pdf`](public/docs/personal-v4%20Application%20Review%20(EN).pdf) |
+| 🇮🇩 Indonesia | [`public/docs/personal-v4 Application Review (ID).pdf`](public/docs/personal-v4%20Application%20Review%20(ID).pdf) |
+
+This project is actively developed — each feature iteration goes through review to maintain professional standards.
+
+---
+
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
 
