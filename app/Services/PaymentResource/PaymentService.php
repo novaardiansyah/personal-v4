@@ -16,6 +16,7 @@ namespace App\Services\PaymentResource;
 
 use App\Models\Item;
 use App\Models\Payment;
+use App\Models\PaymentAccount;
 use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use Illuminate\Support\Carbon;
@@ -24,8 +25,65 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
-	public static function afterItemAttach(Payment $payment, Item $item, array $data): array
-	{
+  public static function mutateDataPayment(array $data): array
+  {
+    $data['user_id'] = auth()->id();
+
+    $has_charge    = boolval($data['has_charge'] ?? 0);
+    $is_scheduled  = boolval($data['is_scheduled'] ?? 0);
+    $is_draft      = boolval($data['is_draft'] ?? 0);
+    $type_id       = intval($data['type_id'] ?? 2);
+    $amount        = intval($data['amount'] ?? 0);
+    $payment_account     = PaymentAccount::find($data['payment_account_id']);
+    $payment_account_to  = PaymentAccount::find($data['payment_account_to_id'] ?? -1);
+
+    if ($is_scheduled)
+      $has_charge = true;
+
+    if ($is_draft)
+      $has_charge = true;
+
+    if ($type_id == 2) {
+      // ! Income
+      $payment_account->deposit += $amount;
+    } else {
+      if (!$has_charge && $payment_account->deposit < $amount) {
+        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.', 'data' => $data];
+      }
+
+      if ($type_id == 1) {
+        // ! Expense
+        $payment_account->deposit -= $amount;
+      } else if ($type_id == 3 || $type_id == 4) {
+        // ! Transfer / Withdrawal
+        if (!$payment_account_to)
+          return ['status' => false, 'message' => 'The destination payment account is invalid or not found.', 'data' => $data];
+
+        $payment_account->deposit -= $amount;
+        $payment_account_to->deposit += $amount;
+      } else {
+        // ! NO ACTION
+        return ['status' => false, 'message' => 'The selected transaction type is invalid.', 'data' => $data];
+      }
+    }
+
+    if (!$has_charge) {
+      if ($payment_account->isDirty('deposit')) {
+        $payment_account->save();
+      }
+
+      if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
+        $payment_account_to->save();
+      }
+    }
+
+    $data['code'] = getCode('payment');
+
+    return ['status' => true, 'message' => 'Transaction data has been successfully transferred and saved.', 'data' => $data];
+  }
+
+  public static function afterItemAttach(Payment $payment, Item $item, array $data): array
+  {
 		$item->update(['amount' => $data['price'], 'updated_at' => now()]);
 
 		$expense = $payment->amount + (int) $data['total'];

@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\PaymentGoalResource;
 use App\Http\Resources\Api\PaymentGoalCollection;
-use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentGoal;
+use App\Services\PaymentResource\PaymentService;
 use App\Models\PaymentGoalStatus;
 use App\Models\PaymentType;
 use Illuminate\Http\Request;
@@ -328,8 +328,7 @@ class PaymentGoalController extends Controller
       'attachments'        => []
     ];
 
-    $payment = new Payment();
-    $mutate  = $payment::mutateDataPayment($paymentData);
+    $mutate  = PaymentService::mutateDataPayment($paymentData);
 
     if (!$mutate['status']) {
       return response()->json([
@@ -338,7 +337,7 @@ class PaymentGoalController extends Controller
       ], 422);
     }
 
-    $payment = Payment::create($mutate['data']);
+    $payment = \App\Models\Payment::create($mutate['data']);
 
     $newAmount       = $paymentGoal->amount + $fundAmount;
     $target          = $paymentGoal->target_amount;
