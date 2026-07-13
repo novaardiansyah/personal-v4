@@ -162,33 +162,43 @@ class UptimeMonitorService
 
   private function sendDownNotification(UptimeMonitor $monitor, ?string $errorMessage): void
   {
-    $message = "🔴 {$monitor->name} is now DOWN\n";
-    $message .= "Target: {$monitor->url}\n";
-    $message .= "Noticed at: " . now()->format('M j, Y H:i:s') . "\n";
-    $message .= "Encountered errors: " . $errorMessage;
+    $message = view('notifications.telegram.uptime-down', [
+      'name'         => $monitor->name,
+      'url'          => $monitor->url,
+      'noticedAt'    => now()->format('M j, Y H:i:s'),
+      'errorMessage' => $errorMessage,
+    ])->render();
 
-    sendTelegramNotification($message);
+    sendTelegramNotification(trim($message));
   }
 
   private function sendUpNotification(UptimeMonitor $monitor, $originalLastUnhealthyAt): void
   {
     $downtime = $originalLastUnhealthyAt?->diffForHumans(now(), ['parts' => 2, 'short' => true]) ?? 'unknown';
-    $message = "🟢 {$monitor->name} is now UP\n";
-    $message .= "Downtime: {$downtime}\n";
-    $message .= "Target: {$monitor->url}\n";
-    $message .= "Noticed at: " . now()->format('M j, Y H:i:s');
-    sendTelegramNotification($message);
+
+    $message = view('notifications.telegram.uptime-up', [
+      'name'      => $monitor->name,
+      'url'       => $monitor->url,
+      'noticedAt' => now()->format('M j, Y H:i:s'),
+      'downtime'  => $downtime,
+    ])->render();
+
+    sendTelegramNotification(trim($message));
   }
 
   private function sendSlowNotification(UptimeMonitor $monitor): void
   {
-    $message = "🟡 {$monitor->name} is SLOW\n";
-    $message .= "Target: {$monitor->url}\n";
-    $message .= "Response Time: {$monitor->logs()->latest('checked_at')->first()?->response_time_ms} ms\n";
-    $message .= "Threshold: " . self::SLOW_RESPONSE_THRESHOLD_MS . " ms\n";
-    $message .= "Noticed at: " . now()->format('M j, Y H:i:s');
+    $latestLog = $monitor->logs()->latest('checked_at')->first();
 
-    sendTelegramNotification($message);
+    $message = view('notifications.telegram.uptime-slow', [
+      'name'         => $monitor->name,
+      'url'          => $monitor->url,
+      'responseTime' => $latestLog?->response_time_ms,
+      'threshold'    => self::SLOW_RESPONSE_THRESHOLD_MS,
+      'noticedAt'    => now()->format('M j, Y H:i:s'),
+    ])->render();
+
+    sendTelegramNotification(trim($message));
   }
 
   public function runScheduledChecks(): array
