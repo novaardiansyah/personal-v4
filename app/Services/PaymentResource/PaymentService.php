@@ -25,6 +25,48 @@ use Illuminate\Support\Facades\Log;
 
 class PaymentService
 {
+  public static function mutateBalance(
+    int              $type_id,
+    int              $amount,
+    PaymentAccount   $payment_account,
+    ?PaymentAccount  $payment_account_to = null,
+    bool             $skipCharged = false
+  ): ?string
+  {
+    if ($type_id == PaymentType::INCOME) {
+      $payment_account->deposit += $amount;
+    } else {
+      if (!$skipCharged && $payment_account->deposit < $amount) {
+        return 'The amount in the payment account is not sufficient for the transaction.';
+      }
+
+      if ($type_id == PaymentType::EXPENSE) {
+        $payment_account->deposit -= $amount;
+      } else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
+        if (!$payment_account_to) {
+          return 'The destination payment account is invalid or not found.';
+        }
+
+        $payment_account->deposit -= $amount;
+        $payment_account_to->deposit += $amount;
+      } else {
+        return 'The selected transaction type is invalid.';
+      }
+    }
+
+    if (!$skipCharged) {
+      if ($payment_account->isDirty('deposit')) {
+        $payment_account->save();
+      }
+
+      if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
+        $payment_account_to->save();
+      }
+    }
+
+    return null;
+  }
+
   public static function mutateDataPayment(array $data): array
   {
     $data['user_id'] = auth()->id();
@@ -32,7 +74,7 @@ class PaymentService
     $has_charge    = boolval($data['has_charge'] ?? 0);
     $is_scheduled  = boolval($data['is_scheduled'] ?? 0);
     $is_draft      = boolval($data['is_draft'] ?? 0);
-    $type_id       = intval($data['type_id'] ?? 2);
+    $type_id       = intval($data['type_id'] ?? PaymentType::INCOME);
     $amount        = intval($data['amount'] ?? 0);
     $payment_account     = PaymentAccount::find($data['payment_account_id']);
     $payment_account_to  = PaymentAccount::find($data['payment_account_to_id'] ?? -1);
@@ -43,38 +85,10 @@ class PaymentService
     if ($is_draft)
       $has_charge = true;
 
-    if ($type_id == 2) {
-      // ! Income
-      $payment_account->deposit += $amount;
-    } else {
-      if (!$has_charge && $payment_account->deposit < $amount) {
-        return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.', 'data' => $data];
-      }
+    $error = self::mutateBalance($type_id, $amount, $payment_account, $payment_account_to, $has_charge);
 
-      if ($type_id == 1) {
-        // ! Expense
-        $payment_account->deposit -= $amount;
-      } else if ($type_id == 3 || $type_id == 4) {
-        // ! Transfer / Withdrawal
-        if (!$payment_account_to)
-          return ['status' => false, 'message' => 'The destination payment account is invalid or not found.', 'data' => $data];
-
-        $payment_account->deposit -= $amount;
-        $payment_account_to->deposit += $amount;
-      } else {
-        // ! NO ACTION
-        return ['status' => false, 'message' => 'The selected transaction type is invalid.', 'data' => $data];
-      }
-    }
-
-    if (!$has_charge) {
-      if ($payment_account->isDirty('deposit')) {
-        $payment_account->save();
-      }
-
-      if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
-        $payment_account_to->save();
-      }
+    if ($error) {
+      return ['status' => false, 'message' => $error, 'data' => $data];
     }
 
     $data['code'] = getCode('payment');
@@ -168,38 +182,15 @@ class PaymentService
 			return ['status' => false, 'message' => 'This transaction is not a draft or has already been approved.'];
 		}
 
-		$type_id = intval($record->type_id);
-		$amount = intval($record->amount);
-		$payment_account = $record->payment_account;
+		$type_id           = intval($record->type_id);
+		$amount            = intval($record->amount);
+		$payment_account   = $record->payment_account;
 		$payment_account_to = $record->payment_account_to;
 
-		if ($type_id == PaymentType::INCOME) {
-			$payment_account->deposit += $amount;
-		} else {
-			if ($payment_account->deposit < $amount) {
-				return ['status' => false, 'message' => 'The amount in the payment account is not sufficient for the transaction.'];
-			}
+		$error = self::mutateBalance($type_id, $amount, $payment_account, $payment_account_to);
 
-			if ($type_id == PaymentType::EXPENSE) {
-				$payment_account->deposit -= $amount;
-			} else if ($type_id == PaymentType::TRANSFER || $type_id == PaymentType::WITHDRAWAL) {
-				if (!$payment_account_to) {
-					return ['status' => false, 'message' => 'The destination payment account is invalid or not found.'];
-				}
-
-				$payment_account->deposit -= $amount;
-				$payment_account_to->deposit += $amount;
-			} else {
-				return ['status' => false, 'message' => 'The selected transaction type is invalid.'];
-			}
-		}
-
-		if ($payment_account->isDirty('deposit')) {
-			$payment_account->save();
-		}
-
-		if ($payment_account_to && $payment_account_to->isDirty('deposit')) {
-			$payment_account_to->save();
+		if ($error) {
+			return ['status' => false, 'message' => $error];
 		}
 
 		$record->is_draft = false;
