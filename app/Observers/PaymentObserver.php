@@ -18,6 +18,7 @@ use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
 use App\Services\AttachmentService;
+use App\Services\CalendarIntegrationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -94,6 +95,9 @@ class PaymentObserver
 
 	public function created(Payment $payment): void
 	{
+		if (!$payment->is_draft && !$payment->is_scheduled) {
+			(new CalendarIntegrationService())->syncFromPayment($payment);
+		}
 		$this->_log('Created', $payment);
 	}
 
@@ -102,6 +106,11 @@ class PaymentObserver
 	 */
 	public function updated(Payment $payment): void
 	{
+		if (!$payment->is_draft && !$payment->is_scheduled) {
+			if ($payment->isDirty('date') || $payment->isDirty('name')) {
+				(new CalendarIntegrationService())->syncFromPayment($payment);
+			}
+		}
 		$this->_log('Updated', $payment);
 	}
 
@@ -328,6 +337,7 @@ class PaymentObserver
 	 */
 	public function deleted(Payment $payment): void
 	{
+		(new CalendarIntegrationService())->removeSource('payment', $payment->id);
 		$this->_handleDeleteLogic($payment);
 		$this->_log('Deleted', $payment);
 	}
@@ -345,6 +355,7 @@ class PaymentObserver
 	 */
 	public function forceDeleted(Payment $payment): void
 	{
+		(new CalendarIntegrationService())->removeSource('payment', $payment->id);
 		$this->_handleDeleteLogic($payment);
 		$this->_log('Force Deleted', $payment);
 	}

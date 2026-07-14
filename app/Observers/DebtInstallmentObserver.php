@@ -4,6 +4,7 @@ namespace App\Observers;
 
 use App\Models\DebtInstallment;
 use App\Services\DebtResource\DebtService;
+use App\Services\CalendarIntegrationService;
 
 class DebtInstallmentObserver
 {
@@ -16,16 +17,21 @@ class DebtInstallmentObserver
         $debt->update(['status' => $newStatus]);
       }
     }
+    if ($installment->isDirty('due_date') || $installment->isDirty('paid_at')) {
+      (new CalendarIntegrationService())->syncFromDebtInstallment($installment);
+    }
     $this->_log('Updated', $installment);
   }
 
   public function created(DebtInstallment $installment): void
   {
+    (new CalendarIntegrationService())->syncFromDebtInstallment($installment);
     $this->_log('Created', $installment);
   }
 
   public function deleted(DebtInstallment $installment): void
   {
+    (new CalendarIntegrationService())->removeSource('debt', $installment->id);
     $this->_log('Deleted', $installment);
   }
 
