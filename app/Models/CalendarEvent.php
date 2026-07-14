@@ -3,7 +3,10 @@
 namespace App\Models;
 
 use App\Observers\CalendarEventObserver;
+use App\Services\CalendarRecurrenceService;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -79,5 +82,42 @@ class CalendarEvent extends Model
     public function recurringEvents(): HasMany
     {
         return $this->hasMany(self::class, 'recurring_event_id');
+    }
+
+    public function scopeGetEventsInRange(Builder $query, Carbon $start, Carbon $end)
+    {
+      $service = new CalendarRecurrenceService();
+
+      $nonRecurringEvents = $query
+        ->whereNull('recurrence_type')
+        ->whereBetween('start_at', [$start, $end])
+        ->with(['category'])
+        ->get();
+
+      $recurringParents = $query
+        ->whereNotNull('recurrence_type')
+        ->whereNull('recurring_event_id')
+        ->with(['category'])
+        ->get();
+
+      $expandedInstances = collect();
+
+      foreach ($recurringParents as $parent) {
+        $instances = $service->expand($parent, $start, $end);
+        $expandedInstances = $expandedInstances->merge($instances);
+      }
+
+      $allEvents = $nonRecurringEvents->merge($expandedInstances);
+
+      return $allEvents->sortBy(function ($event) {
+        $startKey = $event instanceof self ? $event->start_at : $event->instance_start;
+        return $startKey->timestamp;
+      });
+    }
+
+    public function generateInstances(Carbon $start, Carbon $end)
+    {
+      $service = new CalendarRecurrenceService();
+      return $service->generateInstances($this, $start, $end);
     }
 }
