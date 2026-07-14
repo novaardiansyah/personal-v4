@@ -17,6 +17,7 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Models\CalendarReminder;
+use App\Jobs\SendCalendarReminderJob;
 
 class CalendarReminderObserver
 {
@@ -33,6 +34,12 @@ class CalendarReminderObserver
 
     public function created(CalendarReminder $reminder): void
     {
+        $delay = $reminder->remind_at->diffInSeconds(now());
+        if ($delay > 0) {
+            SendCalendarReminderJob::dispatch($reminder)->delay(now()->addSeconds($delay));
+        } else {
+            SendCalendarReminderJob::dispatch($reminder);
+        }
         $this->_log('Created', $reminder);
     }
 

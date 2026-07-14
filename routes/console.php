@@ -43,6 +43,6 @@ Schedule::job(new DraftPaymentReminderJob())
 Schedule::job(new DraftPaymentReminderJob())
   ->dailyAt('18:00');
 
-// ! Uptime Monitor Check
-// Schedule::job(new UptimeMonitorJob())
-//   ->everyMinute();
+// ! Process Calendar Reminders
+Schedule::command('calendar:process-reminders')
+  ->everyFiveMinutes();
