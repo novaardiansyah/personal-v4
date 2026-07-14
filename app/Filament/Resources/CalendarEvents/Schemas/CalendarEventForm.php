@@ -79,18 +79,17 @@ class CalendarEventForm
           ->collapsible()
           ->columnSpan(['sm' => 3, 'md' => 1])
           ->columns(1)
+          ->visible(fn($record) => $record?->source_type)
           ->schema([
             TextInput::make('source_type')
               ->label('Source Type')
               ->disabled()
-              ->dehydrated(false)
-              ->visibleOn('edit'),
+              ->dehydrated(),
             TextInput::make('source_id')
               ->label('Source ID')
               ->numeric()
               ->disabled()
-              ->dehydrated(false)
-              ->visibleOn('edit'),
+              ->dehydrated(),
           ]),
       ])
       ->columns(3);

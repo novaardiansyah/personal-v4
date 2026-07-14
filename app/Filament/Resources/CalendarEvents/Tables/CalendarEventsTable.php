@@ -31,19 +31,23 @@ class CalendarEventsTable
         TextColumn::make('code')
           ->searchable()
           ->copyable()
-          ->badge(),
+          ->badge()
+          ->toggleable(),
         TextColumn::make('title')
           ->searchable()
           ->sortable()
           ->wrap()
-          ->limit(50),
+          ->limit(50)
+          ->toggleable(),
         TextColumn::make('start_end')
           ->label('Start at → End at')
           ->getStateUsing(fn($record) => $record->start_at->format('M d, Y H:i') . ($record->end_at ? ' → ' . $record->end_at->format('M d, Y H:i') : ''))
-          ->sortable(query: fn($query, $direction) => $query->orderBy('start_at', $direction)),
+          ->sortable(query: fn($query, $direction) => $query->orderBy('start_at', $direction))
+          ->toggleable(),
         IconColumn::make('is_all_day')
           ->boolean()
-          ->label('All day'),
+          ->label('All day')
+          ->toggleable(),
         TextColumn::make('category.name')
           ->label('Category')
           ->badge()
