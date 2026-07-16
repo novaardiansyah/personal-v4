@@ -3,9 +3,10 @@
 namespace App\Livewire;
 
 use App\Models\CalendarEvent;
+use App\Models\CalendarTodo;
 use Carbon\Carbon;
-use Livewire\Component;
 use Livewire\Attributes\Url;
+use Livewire\Component;
 
 class CalendarWidget extends Component
 {
@@ -15,6 +16,11 @@ class CalendarWidget extends Component
   public Carbon $currentMonth;
   public array $daysInMonth = [];
   public array $eventsByDate = [];
+  public array $todosByDate = [];
+
+  public ?string $selectedDate = null;
+  public array $selectedDayEvents = [];
+  public array $selectedDayTodos = [];
 
   public function mount(): void
   {
@@ -25,6 +31,7 @@ class CalendarWidget extends Component
     }
 
     $this->loadEvents();
+    $this->loadTodos();
   }
 
   public function previousMonth(): void
@@ -32,6 +39,8 @@ class CalendarWidget extends Component
     $this->currentMonth = $this->currentMonth->copy()->subMonth();
     $this->month = $this->currentMonth->format('Y-m');
     $this->loadEvents();
+    $this->loadTodos();
+    $this->resetSelection();
   }
 
   public function nextMonth(): void
@@ -39,6 +48,8 @@ class CalendarWidget extends Component
     $this->currentMonth = $this->currentMonth->copy()->addMonth();
     $this->month = $this->currentMonth->format('Y-m');
     $this->loadEvents();
+    $this->loadTodos();
+    $this->resetSelection();
   }
 
   public function today(): void
@@ -46,6 +57,27 @@ class CalendarWidget extends Component
     $this->currentMonth = now();
     $this->month = $this->currentMonth->format('Y-m');
     $this->loadEvents();
+    $this->loadTodos();
+    $this->resetSelection();
+  }
+
+  public function selectDate(string $date): void
+  {
+    $this->selectedDate = $date;
+    $this->selectedDayEvents = $this->eventsByDate[$date] ?? [];
+    $this->selectedDayTodos  = $this->todosByDate[$date] ?? [];
+  }
+
+  public function clearSelection(): void
+  {
+    $this->resetSelection();
+  }
+
+  private function resetSelection(): void
+  {
+    $this->selectedDate = null;
+    $this->selectedDayEvents = [];
+    $this->selectedDayTodos = [];
   }
 
   private function loadEvents(): void
@@ -71,6 +103,26 @@ class CalendarWidget extends Component
     $this->generateCalendarDays();
   }
 
+  private function loadTodos(): void
+  {
+    $startOfMonth = $this->currentMonth->copy()->startOfMonth();
+    $endOfMonth   = $this->currentMonth->copy()->endOfMonth();
+
+    $todos = CalendarTodo::query()
+      ->whereNotNull('due_at')
+      ->whereBetween('due_at', [$startOfMonth, $endOfMonth])
+      ->get();
+
+    $this->todosByDate = [];
+    foreach ($todos as $todo) {
+      $dateKey = $todo->due_at->format('Y-m-d');
+      if (!isset($this->todosByDate[$dateKey])) {
+        $this->todosByDate[$dateKey] = [];
+      }
+      $this->todosByDate[$dateKey][] = $todo;
+    }
+  }
+
   private function generateCalendarDays(): void
   {
     $startOfMonth = $this->currentMonth->copy()->startOfMonth();
@@ -94,6 +146,7 @@ class CalendarWidget extends Component
         'isWeekend'         => $current->isWeekend(),
         'events'            => $this->eventsByDate[$dateStr] ?? [],
         'eventCount'        => count($this->eventsByDate[$dateStr] ?? []),
+        'todoCount'         => count($this->todosByDate[$dateStr] ?? []),
       ];
 
       $current->addDay();
