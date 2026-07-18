@@ -10,8 +10,9 @@ class GenerateSeeder extends Seeder
     public function run(): void
     {
         $generates = [
-            ['name' => 'Calendar Event', 'alias' => 'calendar_event', 'prefix' => 'CEV-', 'suffix' => ''],
-            ['name' => 'Calendar Todo',  'alias' => 'calendar_todo',  'prefix' => 'CTD-', 'suffix' => ''],
+            ['name' => 'Calendar Event',  'alias' => 'calendar_event', 'prefix' => 'CEV-', 'suffix' => ''],
+            ['name' => 'Calendar Todo',   'alias' => 'calendar_todo',  'prefix' => 'CTD-', 'suffix' => ''],
+            ['name' => 'Subscription',    'alias' => 'subscription',   'prefix' => 'SUB-', 'suffix' => ''],
         ];
 
         foreach ($generates as $generate) {
