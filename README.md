@@ -42,29 +42,6 @@ You can download the full review:
 
 This project is actively developed — each feature iteration goes through review to maintain professional standards.
 
-## Upcoming Feature: Calendar / Planner
-
-A **Calendar / Planner** module is in the works! This feature will bring unified schedule management, events, to-dos, and reminders into the admin panel.
-
-**Key capabilities:**
-
-- Monthly/weekly/daily calendar view
-- One-time & recurring events with categories and colors
-- To-do list with priority, deadline, and checklist
-- Reminders via database & push notifications
-- Calendar integration with Payments, Debts, and Notes
-- Full CRUD API for external frontend integration
-- iCal export
-
-You can review the full Product Requirements Document:
-
-| Type | Download |
-|----------|----------|
-| Markdown | [`public/docs/markdown/Calendar Planner - PRD (EN).md`](public/docs/markdown/Calendar%20Planner%20-%20PRD%20(EN).md) |
-| PDF | [`public/docs/pdf/Calendar Planner - PRD (EN).pdf`](public/docs/pdf/Calendar%20Planner%20-%20PRD%20(EN).pdf) |
-
----
-
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
 
