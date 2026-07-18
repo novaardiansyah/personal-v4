@@ -10,7 +10,8 @@ class SubscriptionObserver
   public function creating(Subscription $subscription): void
   {
     DB::transaction(function () use ($subscription) {
-      $subscription->code = getCode('subscription');
+      $subscription->user_id = auth()->id();
+      $subscription->code    = getCode('subscription');
     });
   }
 

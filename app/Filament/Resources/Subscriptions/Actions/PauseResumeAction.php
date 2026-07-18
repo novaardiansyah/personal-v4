@@ -13,7 +13,7 @@ class PauseResumeAction
   {
     return Action::make('pause_resume')
       ->label(fn(Subscription $record): string => $record->is_paused ? 'Resume' : 'Pause')
-      ->icon(fn(Subscription $record): string => $record->is_paused ? Heroicon::OutlinedPlayCircle : Heroicon::OutlinedPauseCircle)
+      ->icon(fn(Subscription $record) => $record->is_paused ? Heroicon::OutlinedPlayCircle : Heroicon::OutlinedPauseCircle)
       ->color(fn(Subscription $record): string => $record->is_paused ? 'success' : 'warning')
       ->requiresConfirmation()
       ->modalHeading(fn(Subscription $record): string => $record->is_paused ? 'Resume Subscription' : 'Pause Subscription')
