@@ -12,59 +12,65 @@ use App\Filament\Resources\CalendarTodos\Schemas\CalendarTodoInfolist;
 use App\Filament\Resources\CalendarTodos\Tables\CalendarTodosTable;
 use App\Models\CalendarTodo;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class CalendarTodoResource extends Resource
 {
-  protected static ?string $model = CalendarTodo::class;
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCheckCircle;
-  protected static string|UnitEnum|null $navigationGroup = 'Calendar';
-  protected static ?int $navigationSort = 3;
-  protected static ?string $recordTitleAttribute = 'title';
+    protected static ?string $model = CalendarTodo::class;
 
-  public static function form(Schema $schema): Schema
-  {
-    return CalendarTodoForm::configure($schema);
-  }
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedCheckCircle;
 
-  public static function table(Table $table): Table
-  {
-    return CalendarTodosTable::configure($table);
-  }
+    protected static string|UnitEnum|null $navigationGroup = 'Calendar';
 
-  public static function infolist(Schema $schema): Schema
-  {
-    return CalendarTodoInfolist::configure($schema);
-  }
+    protected static ?int $navigationSort = 3;
 
-  public static function getRelations(): array
-  {
-    return [
-      EventRelationManager::class,
-    ];
-  }
+    protected static ?string $navigationLabel = 'Todos';
 
-  public static function getPages(): array
-  {
-    return [
-      'index'  => ListCalendarTodos::route('/'),
-      'create' => CreateCalendarTodo::route('/create'),
-      'view'   => ViewCalendarTodo::route('/{record}'),
-      'edit'   => EditCalendarTodo::route('/{record}/edit'),
-    ];
-  }
+    protected static ?string $recordTitleAttribute = 'title';
 
-  public static function getRecordRouteBindingEloquentQuery(): Builder
-  {
-    return parent::getRecordRouteBindingEloquentQuery()
-      ->withoutGlobalScopes([
-        SoftDeletingScope::class,
-      ]);
-  }
+    public static function form(Schema $schema): Schema
+    {
+        return CalendarTodoForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return CalendarTodosTable::configure($table);
+    }
+
+    public static function infolist(Schema $schema): Schema
+    {
+        return CalendarTodoInfolist::configure($schema);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            EventRelationManager::class,
+        ];
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ListCalendarTodos::route('/'),
+            'create' => CreateCalendarTodo::route('/create'),
+            'view' => ViewCalendarTodo::route('/{record}'),
+            'edit' => EditCalendarTodo::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
 }

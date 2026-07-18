@@ -9,47 +9,52 @@ use App\Filament\Resources\CalendarCategories\Schemas\CalendarCategoryForm;
 use App\Filament\Resources\CalendarCategories\Tables\CalendarCategoriesTable;
 use App\Models\CalendarCategory;
 use BackedEnum;
-use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use UnitEnum;
 
 class CalendarCategoryResource extends Resource
 {
-  protected static ?string $model = CalendarCategory::class;
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
-  protected static string|UnitEnum|null $navigationGroup = 'Calendar';
-  protected static ?string $navigationParentItem = 'Calendar Events';
-  protected static ?int $navigationSort = 1;
-  protected static ?string $recordTitleAttribute = 'name';
+    protected static ?string $model = CalendarCategory::class;
 
-  public static function form(Schema $schema): Schema
-  {
-    return CalendarCategoryForm::configure($schema);
-  }
+    protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedTag;
 
-  public static function table(Table $table): Table
-  {
-    return CalendarCategoriesTable::configure($table);
-  }
+    protected static string|UnitEnum|null $navigationGroup = 'Calendar';
 
-  public static function getPages(): array
-  {
-    return [
-      'index'  => ManageCalendarCategories::route('/'),
-      'create' => CreateCalendarCategory::route('/create'),
-      'edit'   => EditCalendarCategory::route('/{record}/edit'),
-    ];
-  }
+    protected static ?int $navigationSort = 1;
 
-  public static function getRecordRouteBindingEloquentQuery(): Builder
-  {
-    return parent::getRecordRouteBindingEloquentQuery()
-      ->withoutGlobalScopes([
-        SoftDeletingScope::class,
-      ]);
-  }
+    protected static ?string $navigationLabel = 'Categories';
+
+    protected static ?string $recordTitleAttribute = 'name';
+
+    public static function form(Schema $schema): Schema
+    {
+        return CalendarCategoryForm::configure($schema);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return CalendarCategoriesTable::configure($table);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => ManageCalendarCategories::route('/'),
+            'create' => CreateCalendarCategory::route('/create'),
+            'edit' => EditCalendarCategory::route('/{record}/edit'),
+        ];
+    }
+
+    public static function getRecordRouteBindingEloquentQuery(): Builder
+    {
+        return parent::getRecordRouteBindingEloquentQuery()
+            ->withoutGlobalScopes([
+                SoftDeletingScope::class,
+            ]);
+    }
 }
