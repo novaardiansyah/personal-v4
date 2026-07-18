@@ -85,17 +85,6 @@ class SubscriptionForm
           ->columns(2)
           ->columnSpanFull()
           ->collapsible(),
-
-        Section::make([
-          TextInput::make('code')
-            ->label('Subscription ID')
-            ->placeholder('Auto Generated')
-            ->disabled()
-            ->visibleOn('edit'),
-        ])
-          ->description('Other information')
-          ->columns(1)
-          ->collapsible(),
       ])
       ->columns(2);
   }
