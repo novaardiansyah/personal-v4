@@ -6,6 +6,7 @@ use App\Filament\Pages\Widgets\PaymentStatisticsAccountOverview;
 use App\Filament\Pages\Widgets\PaymentStatisticsStatsOverview;
 use App\Filament\Widgets\PaymentCategoryChartWidget;
 use App\Filament\Widgets\PaymentChartWidget;
+use App\Filament\Widgets\UpcomingSubscriptionsWidget;
 use Filament\Pages\Dashboard as BaseDashboard;
 
 class Dashboard extends BaseDashboard
@@ -17,6 +18,7 @@ class Dashboard extends BaseDashboard
 			PaymentStatisticsAccountOverview::class,
 			PaymentCategoryChartWidget::class,
 			PaymentChartWidget::class,
+			UpcomingSubscriptionsWidget::class,
 		];
 	}
 

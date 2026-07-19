@@ -37,7 +37,7 @@ Subscription Tracker lets users track recurring subscription payments (Netflix, 
 
 - **GOAL-001**: Create `subscriptions` table, `Subscription` model with observer, and full Filament CRUD resource.
 
-| Task | Description | Completed | Date |
+| Task | Description | Done | Modified-Date |
 |------|-------------|-----------|------|
 | TASK-001 | Create migration for `subscriptions` table: id, user_id, code, name, amount, payment_account_id, category_id, cycle (enum: monthly/quarterly/yearly), next_date, reminder_days_before (default 3), is_paused (default false), last_reminded_at, timestamps, softDeletes | Yes | 2026-07-18 |
 | TASK-002 | Create `Subscription` model with fillable, casts, relationships to `User`, `PaymentAccount`, `PaymentCategory`, add `#[ObservedBy]` attribute | Yes | 2026-07-18 |
@@ -54,7 +54,7 @@ Subscription Tracker lets users track recurring subscription payments (Netflix, 
 
 - **GOAL-002**: Auto-reminder queue job runs at 05:00 daily, sends Telegram + Email.
 
-| Task | Description | Completed | Date |
+| Task | Description | Done | Modified-Date |
 |------|-------------|-----------|------|
 | TASK-011 | Create `Jobs/SubscriptionReminderJob.php` — queries active subscriptions where `next_date` within `reminder_days_before` and `last_reminded_at` is null or before current cycle, dispatches notification | Yes | 2026-07-19 |
 | TASK-012 | Register job in `bootstrap/app.php` or `routes/console.php` schedule — runs daily at 05:00 | Yes | 2026-07-19 |
@@ -65,9 +65,9 @@ Subscription Tracker lets users track recurring subscription payments (Netflix, 
 
 - **GOAL-003**: Show upcoming subscriptions on the admin dashboard.
 
-| Task | Description | Completed | Date |
+| Task | Description | Done | Modified-Date |
 |------|-------------|-----------|------|
-| TASK-015 | Create dashboard widget `UpcomingSubscriptionsWidget` listing subscriptions due within 7 days | | |
+| TASK-015 | Create dashboard widget `UpcomingSubscriptionsWidget` listing subscriptions due within 7 days | Yes | 2026-07-19 |
 
 ---
 
