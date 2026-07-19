@@ -1,7 +1,7 @@
 ---
 goal: Subscription Tracker — Track recurring subscriptions (Netflix, Spotify, etc.) with reminders
 version: 2.0
-date_created: 2026-07-19
+date_created: 2026-07-18
 last_updated: 2026-07-19
 status: Planned
 tags: feature, subscription, recurring, payment
