@@ -5,6 +5,7 @@ use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\DraftPaymentReminderJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
+use App\Jobs\SubscriptionReminderJob;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Schedule;
@@ -46,3 +47,7 @@ Schedule::job(new DraftPaymentReminderJob())
 // ! Process Calendar Reminders
 Schedule::command('calendar:process-reminders')
   ->everyFiveMinutes();
+
+// ! Subscription Reminder Job
+Schedule::job(new SubscriptionReminderJob())
+  ->dailyAt('05:00');

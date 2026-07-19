@@ -39,16 +39,16 @@ Subscription Tracker lets users track recurring subscription payments (Netflix, 
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-001 | Create migration for `subscriptions` table: id, user_id, code, name, amount, payment_account_id, category_id, cycle (enum: monthly/quarterly/yearly), next_date, reminder_days_before (default 3), is_paused (default false), last_reminded_at, timestamps, softDeletes | | |
-| TASK-002 | Create `Subscription` model with fillable, casts, relationships to `User`, `PaymentAccount`, `PaymentCategory`, add `#[ObservedBy]` attribute | | |
-| TASK-003 | Create `SubscriptionObserver` with `created`/`updated` hooks for `code` generation via `getCode('subscription')` | | |
-| TASK-004 | Create `SubscriptionResource` with navigation icon, group 'Payments', sort after `PaymentResource` | | |
-| TASK-005 | Create `Schemas/SubscriptionForm.php`: name, amount, payment_account, category, cycle select, next_date, reminder_days_before, is_paused toggle — reuse `PaymentForm` patterns | | |
-| TASK-006 | Create `Tables/SubscriptionsTable.php`: name, amount, next_date, cycle, is_paused, category, payment_account columns, actions (view/edit/delete/pause/resume/mark-as-paid) | | |
-| TASK-007 | Create `Pages/ListSubscriptions.php`, `CreateSubscription.php`, `EditSubscription.php` — follow `PaymentResource` page pattern | | |
-| TASK-008 | Create `Actions/PauseResumeAction.php` — toggles `is_paused` column | | |
-| TASK-009 | Create `Actions/MarkAsPaidAction.php` — creates `Payment` record (expense type), advances `next_date` by cycle, generates subscription code via `getCode('subscription')` | | |
-| TASK-010 | Create filter for active/paused/all subscriptions | | |
+| TASK-001 | Create migration for `subscriptions` table: id, user_id, code, name, amount, payment_account_id, category_id, cycle (enum: monthly/quarterly/yearly), next_date, reminder_days_before (default 3), is_paused (default false), last_reminded_at, timestamps, softDeletes | Yes | 2026-07-18 |
+| TASK-002 | Create `Subscription` model with fillable, casts, relationships to `User`, `PaymentAccount`, `PaymentCategory`, add `#[ObservedBy]` attribute | Yes | 2026-07-18 |
+| TASK-003 | Create `SubscriptionObserver` with `created`/`updated` hooks for `code` generation via `getCode('subscription')` | Yes | 2026-07-18 |
+| TASK-004 | Create `SubscriptionResource` with navigation icon, group 'Payments', sort after `PaymentResource` | Yes | 2026-07-18 |
+| TASK-005 | Create `Schemas/SubscriptionForm.php`: name, amount, payment_account, category, cycle select, next_date, reminder_days_before, is_paused toggle — reuse `PaymentForm` patterns | Yes | 2026-07-18 |
+| TASK-006 | Create `Tables/SubscriptionsTable.php`: name, amount, next_date, cycle, is_paused, category, payment_account columns, actions (view/edit/delete/pause/resume/mark-as-paid) | Yes | 2026-07-18 |
+| TASK-007 | Create `Pages/ListSubscriptions.php`, `CreateSubscription.php`, `EditSubscription.php` — follow `PaymentResource` page pattern | Yes | 2026-07-18 |
+| TASK-008 | Create `Actions/PauseResumeAction.php` — toggles `is_paused` column | Yes | 2026-07-18 |
+| TASK-009 | Create `Actions/MarkAsPaidAction.php` — creates `Payment` record (expense type), advances `next_date` by cycle, generates subscription code via `getCode('subscription')` | Yes | 2026-07-18 |
+| TASK-010 | Create filter for active/paused/all subscriptions | Yes | 2026-07-18 |
 
 ### Implementation Phase 2 — Scheduled Reminder Job
 
@@ -56,10 +56,10 @@ Subscription Tracker lets users track recurring subscription payments (Netflix, 
 
 | Task | Description | Completed | Date |
 |------|-------------|-----------|------|
-| TASK-011 | Create `Jobs/SubscriptionReminderJob.php` — queries active subscriptions where `next_date` within `reminder_days_before` and `last_reminded_at` is null or before current cycle, dispatches notification | | |
-| TASK-012 | Register job in `bootstrap/app.php` or `routes/console.php` schedule — runs daily at 05:00 | | |
-| TASK-013 | Create notification class using existing Telegram + Email channels (reuse `sendTelegramNotification` + Mail) | | |
-| TASK-014 | Update `last_reminded_at` on subscription after successful notification dispatch | | |
+| TASK-011 | Create `Jobs/SubscriptionReminderJob.php` — queries active subscriptions where `next_date` within `reminder_days_before` and `last_reminded_at` is null or before current cycle, dispatches notification | Yes | 2026-07-19 |
+| TASK-012 | Register job in `bootstrap/app.php` or `routes/console.php` schedule — runs daily at 05:00 | Yes | 2026-07-19 |
+| TASK-013 | Create notification class using existing Telegram + Email channels (reuse `sendTelegramNotification` + Mail) | Yes | 2026-07-19 |
+| TASK-014 | Update `last_reminded_at` on subscription after successful notification dispatch | Yes | 2026-07-19 |
 
 ### Implementation Phase 3 — Dashboard Widget
 
