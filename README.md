@@ -42,6 +42,14 @@ You can download the full review:
 
 This project is actively developed — each feature iteration goes through review to maintain professional standards.
 
+## Module Documentation
+
+In-depth developer documentation for individual modules is available under [`public/docs/module/`](public/docs/module/). These guides cover architecture, components, data flows, and key patterns for contributors:
+
+| Module | Documentation |
+|--------|---------------|
+| Payment Resource | [`public/docs/module/PaymentResource.md`](public/docs/module/PaymentResource.md) |
+
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
 
