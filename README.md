@@ -50,6 +50,7 @@ In-depth developer documentation for individual modules is available under [`pub
 |--------|---------------|
 | Payment Resource | [`public/docs/module/PaymentResource.md`](public/docs/module/PaymentResource.md) |
 | Subscription Resource | [`public/docs/module/SubscriptionResource.md`](public/docs/module/SubscriptionResource.md) |
+| Debt Resource | [`public/docs/module/DebtResource.md`](public/docs/module/DebtResource.md) |
 
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
