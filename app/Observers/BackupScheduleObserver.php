@@ -4,11 +4,19 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Enums\BackupScheduleIntervalUnit;
 use App\Models\BackupSchedule;
 use Illuminate\Support\Str;
 
 class BackupScheduleObserver
 {
+  public function saving(BackupSchedule $backupSchedule): void
+  {
+    if (empty($backupSchedule->uid)) {
+      $backupSchedule->uid = (string) Str::uuid7();
+    }
+  }
+
   public function creating(BackupSchedule $backupSchedule): void
   {
     if (empty($backupSchedule->uid)) {
