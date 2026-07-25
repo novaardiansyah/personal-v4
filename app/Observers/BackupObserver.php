@@ -12,7 +12,7 @@ class BackupObserver
   public function creating(Backup $backup): void
   {
     if (empty($backup->uid)) {
-      $backup->uid = (string) Str::uuid();
+      $backup->uid = (string) Str::uuid7();
     }
 
     if (empty($backup->started_at)) {
