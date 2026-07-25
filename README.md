@@ -81,6 +81,12 @@ This project is built to work seamlessly with the **NovaApp** mobile application
 
 - **Mobile App Repository**: [https://github.com/novaardiansyah/NovaApp](https://github.com/novaardiansyah/NovaApp)
 
+## Backup & System Monitoring Integration
+
+A new feature will be added to manage system backups and perform real-time monitoring. This feature connects directly with another repository for system administration tools:
+
+- **SysAdmin Repository**: [https://github.com/novaardiansyah/sysadmin](https://github.com/novaardiansyah/sysadmin)
+
 ## Credentials & Environment
 
 While this repository is public, please note that all forms of credentials, API keys (including `.env`), and environment configurations are **not provided for the public**. Access to the production database and sensitive configuration remains restricted for security reasons.
