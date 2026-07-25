@@ -74,6 +74,7 @@ class AdminPanelProvider extends PanelProvider
         'Items',
         'File Manager',
         'Blog',
+        'Backup',
         'Settings',
         'Logs',
       ])
