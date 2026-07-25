@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
+use App\Observers\BackupObserver;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+#[ObservedBy([BackupObserver::class])]
 class Backup extends Model
 {
   use SoftDeletes;
