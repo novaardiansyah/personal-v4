@@ -6,6 +6,7 @@ use App\Enums\BackupScheduleIntervalUnit;
 use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupScheduleObserver::class])]
@@ -41,4 +42,9 @@ class BackupSchedule extends Model
     'is_enabled'       => 'boolean',
     'deleted_at'       => 'datetime',
   ];
+
+  public function backupJobs(): HasMany
+  {
+    return $this->hasMany(BackupJob::class);
+  }
 }
