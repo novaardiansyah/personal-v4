@@ -33,17 +33,21 @@ class BackupSchedulesTable
           ->searchable()
           ->copyable()
           ->badge()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('name')
+					->label('Name')
+					->searchable()
+					->toggleable(),
         TextColumn::make('source_path')
           ->label('Source Path')
           ->searchable()
           ->limit(35)
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('destination_path')
           ->label('Destination Path')
           ->searchable()
-          ->limit(25)
-          ->toggleable(),
+          ->limit(35)
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('interval')
           ->label('Interval')
           ->getStateUsing(fn($record) => "Every {$record->interval_value} {$record->interval_unit?->getLabel()}")
@@ -54,7 +58,7 @@ class BackupSchedulesTable
           ->label('Retention')
           ->formatStateUsing(fn($state) => "{$state} days")
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         IconColumn::make('is_enabled')
           ->label('Enabled')
           ->boolean()
