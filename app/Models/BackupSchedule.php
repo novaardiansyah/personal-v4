@@ -18,6 +18,7 @@ class BackupSchedule extends Model
 
   protected $fillable = [
     'uid',
+    'name',
     'source_path',
     'destination_path',
     'filename_pattern',
@@ -31,6 +32,7 @@ class BackupSchedule extends Model
 
   protected $casts = [
     'uid'              => 'string',
+    'name'             => 'string',
     'source_path'      => 'string',
     'destination_path' => 'string',
     'filename_pattern' => 'string',
