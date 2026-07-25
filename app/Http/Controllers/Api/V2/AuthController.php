@@ -39,7 +39,7 @@ class AuthController extends Controller
       ], 401);
     }
 
-    $expiration = Carbon::now()->addYears(5);
+    $expiration = Carbon::now()->addDays(7);
     $token = $user->createToken('auth_token', ['*'], $expiration)->plainTextToken;
 
     event(new Login('api', $user, false));
