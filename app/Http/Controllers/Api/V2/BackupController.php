@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Api\V2;
 
+use App\Enums\BackupJobStatus;
+use App\Enums\BackupScheduleIntervalUnit;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V2\BackupCollection;
+use App\Http\Resources\Api\V2\BackupJobResource;
 use App\Http\Resources\Api\V2\BackupResource;
 use App\Models\Backup;
+use App\Models\BackupJob;
+use App\Models\BackupSchedule;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -264,5 +269,65 @@ class BackupController extends Controller
     }
 
     return Storage::disk('public')->download($backup->file_path, $backup->file_name);
+  }
+
+  public function checkSchedule(): JsonResponse
+  {
+    $now = now();
+
+    $schedules = BackupSchedule::where('is_enabled', true)
+      ->whereNotNull('next_backup_at')
+      ->where('next_backup_at', '<=', $now)
+      ->get();
+
+    if ($schedules->isEmpty()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'No backup schedules are due',
+        'data'    => null,
+      ], 404);
+    }
+
+    $jobs = [];
+
+    foreach ($schedules as $schedule) {
+      $job = BackupJob::create([
+        'backup_schedule_id' => $schedule->id,
+        'status'             => BackupJobStatus::Running,
+        'assigned_at'        => $now,
+        'started_at'         => $now,
+      ]);
+
+      $intervalValue = (int) ($schedule->interval_value ?? 1);
+      $intervalUnit  = $schedule->interval_unit;
+      $unitValue     = $intervalUnit instanceof BackupScheduleIntervalUnit
+        ? $intervalUnit->value
+        : (string) $intervalUnit;
+
+      $nextBackupAt = match ($unitValue) {
+        'minutes' => $now->copy()->addMinutes($intervalValue),
+        'hours'   => $now->copy()->addHours($intervalValue),
+        'days'    => $now->copy()->addDays($intervalValue),
+        'weeks'   => $now->copy()->addWeeks($intervalValue),
+        'months'  => $now->copy()->addMonths($intervalValue),
+        default   => $now->copy()->addDays($intervalValue),
+      };
+
+      $schedule->update([
+        'last_backup_at' => $now,
+        'next_backup_at' => $nextBackupAt,
+      ]);
+
+      $job->load('backupSchedule');
+      $jobs[] = $job;
+    }
+
+    $data = BackupJobResource::collection($jobs);
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Backup job created successfully',
+      'data'    => $data,
+    ]);
   }
 }
