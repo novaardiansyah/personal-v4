@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Http\Resources\Api\V2;
+
+use App\Models\BackupJob;
+use App\Models\BackupSchedule;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class BackupJobResource extends JsonResource
+{
+  public function toArray(Request $request): array
+  {
+		$filename = BackupSchedule::generateFilename($this->backupSchedule?->filename_pattern, '-' . $this->id . '.zip');
+
+    return [
+			'id'                 => $this->id,
+			'backup_schedule_id' => $this->backup_schedule_id,
+			'status'             => $this->status?->getLabel(),
+			'started_at'         => $this->started_at?->format('Y-m-d H:i:s'),
+			'finished_at'        => $this->finished_at?->format('Y-m-d H:i:s'),
+			'source_path'        => $this->backupSchedule?->source_path,
+			'destination_path'   => $this->backupSchedule?->destination_path,
+			'expected_filename'  => $filename,
+    ];
+  }
+}

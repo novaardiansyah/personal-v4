@@ -49,4 +49,21 @@ class BackupSchedule extends Model
   {
     return $this->hasMany(BackupJob::class);
   }
+
+	public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
+	{
+		if (empty($pattern)) {
+			return '-';
+		}
+
+		$preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
+			try {
+				return now()->format($matches[1]);
+			} catch (\Throwable $e) {
+				return $matches[0];
+			}
+		}, $pattern);
+
+		return $preview . $extension;
+	}
 }

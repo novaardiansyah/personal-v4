@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupSchedules\Schemas;
 
 use App\Enums\BackupScheduleIntervalUnit;
+use App\Models\BackupSchedule;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -36,7 +37,7 @@ class BackupScheduleForm
 									->required()
 									->default('backup-{Ymd-His}')
 									->live(onBlur: true)
-									->hint(fn(?string $state): string => static::previewFilenamePattern($state)),
+									->hint(fn(?string $state): string => BackupSchedule::generateFilename($state)),
 								TextInput::make('source_path')
 									->label('Source Path')
 									->required()
@@ -119,22 +120,5 @@ class BackupScheduleForm
 		};
 
 		$set('next_backup_at', $nextDate->format('Y-m-d H:i:s'));
-	}
-
-	private static function previewFilenamePattern(?string $pattern): string
-	{
-		if (empty($pattern)) {
-			return '-';
-		}
-
-		$preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
-			try {
-				return now()->format($matches[1]);
-			} catch (\Throwable $e) {
-				return $matches[0];
-			}
-		}, $pattern);
-
-		return $preview . '.zip';
 	}
 }
