@@ -16,14 +16,15 @@ class BackupJobResource extends JsonResource
 		$filename = BackupSchedule::generateFilename($this->backupSchedule?->filename_pattern, '-' . $this->id . '.zip');
 
     return [
-			'id'                 => $this->id,
-			'backup_schedule_id' => $this->backup_schedule_id,
-			'status'             => $this->status?->getLabel(),
-			'started_at'         => $this->started_at?->format('Y-m-d H:i:s'),
-			'finished_at'        => $this->finished_at?->format('Y-m-d H:i:s'),
-			'source_path'        => $this->backupSchedule?->source_path,
-			'destination_path'   => $this->backupSchedule?->destination_path,
-			'expected_filename'  => $filename,
+      'id'                 => $this->id,
+      'backup_schedule_id' => $this->backup_schedule_id,
+      'status'             => $this->status?->getLabel(),
+      'message'            => $this->message,
+      'started_at'         => $this->started_at?->format('Y-m-d H:i:s'),
+      'finished_at'        => $this->finished_at?->format('Y-m-d H:i:s'),
+      'source_path'        => $this->backupSchedule?->source_path,
+      'destination_path'   => $this->backupSchedule?->destination_path,
+      'expected_filename'  => $filename,
     ];
   }
 }

@@ -330,4 +330,47 @@ class BackupController extends Controller
       'data'    => $data,
     ]);
   }
+
+  public function updateJob(Request $request, string $id): JsonResponse
+  {
+    $job = BackupJob::find($id);
+
+    if (!$job) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Backup job not found',
+      ], 404);
+    }
+
+    $validator = Validator::make($request->all(), [
+      'status'      => 'nullable|string|in:pending,running,success,failed',
+      'finished_at' => 'nullable|date',
+      'message'     => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors'  => $validator->errors(),
+      ], 422);
+    }
+
+    $data = $validator->validated();
+
+    if (isset($data['status']) && in_array($data['status'], ['success', 'failed'], true)) {
+      if (empty($data['finished_at'])) {
+        $data['finished_at'] = now();
+      }
+    }
+
+    $job->update($data);
+    $job->load('backupSchedule');
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Backup job updated successfully',
+      'data'    => new BackupJobResource($job),
+    ]);
+  }
 }

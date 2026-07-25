@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->prefix('backups')->group(function () {
   Route::get('/', [BackupController::class, 'index']);
+
   Route::get('/check-schedule', [BackupController::class, 'checkSchedule']);
+  Route::patch('/jobs/{id}', [BackupController::class, 'updateJob']);
 
   Route::post('/', [BackupController::class, 'store']);
   Route::get('/{id}', [BackupController::class, 'show']);
