@@ -11,6 +11,10 @@ use App\Http\Controllers\Api\ShortUrlController;
 use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PushNotificationController;
 
+Route::prefix('v2')->group(function () {
+	require __DIR__ . '/api/v2/main.php';
+});
+
 Route::get('/health', function () {
   return response()->json([
     'status'    => 'ok',
