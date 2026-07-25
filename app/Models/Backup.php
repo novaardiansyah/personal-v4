@@ -35,7 +35,7 @@ class Backup extends Model
     'uid'          => 'string',
     'file_name'    => 'string',
     'file_path'    => 'string',
-    'file_size'    => 'string',
+    'file_size'    => 'integer',
     'checksum'     => 'string',
     'type'         => BackupType::class,
     'started_at'   => 'datetime',
