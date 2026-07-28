@@ -10,6 +10,7 @@ Route::middleware('auth:sanctum')->prefix('backups')->group(function () {
 
   Route::get('/check-schedule', [BackupController::class, 'checkSchedule']);
   Route::patch('/jobs/{id}', [BackupController::class, 'updateJob']);
+  Route::post('/jobs/{id}/report', [BackupController::class, 'storeJobReport']);
 
   Route::post('/', [BackupController::class, 'store']);
   Route::get('/{id}', [BackupController::class, 'show']);
