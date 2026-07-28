@@ -3,9 +3,6 @@
 namespace App\Filament\Resources\Payments\Pages;
 
 use App\Filament\Resources\Payments\PaymentResource;
-use App\Models\Gallery;
-use App\Models\Payment;
-use App\Services\AttachmentService;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;

@@ -66,24 +66,28 @@ class BackupSchedulesTable
         TextColumn::make('next_backup_at')
           ->label('Next Backup At')
           ->dateTime('M d, Y H:i')
+					->sinceTooltip()
           ->sortable()
           ->toggleable(),
         TextColumn::make('last_backup_at')
           ->label('Last Backup At')
           ->dateTime('M d, Y H:i')
+					->sinceTooltip()
           ->sortable()
           ->toggleable(),
         TextColumn::make('created_at')
           ->dateTime()
+					->sinceTooltip()
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('updated_at')
           ->dateTime()
-          ->sortable()
           ->sinceTooltip()
+          ->sortable()
           ->toggleable(isToggledHiddenByDefault: false),
         TextColumn::make('deleted_at')
           ->dateTime()
+					->sinceTooltip()
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
       ])

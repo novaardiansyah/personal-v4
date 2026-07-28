@@ -7,5 +7,11 @@ use Filament\Resources\Pages\CreateRecord;
 
 class CreateBackupSchedule extends CreateRecord
 {
-    protected static string $resource = BackupScheduleResource::class;
+	protected static string $resource = BackupScheduleResource::class;
+
+	protected function getRedirectUrl(): string
+	{
+		$resource = static::getResource();
+		return $resource::getUrl('index');
+	}
 }
