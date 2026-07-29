@@ -7,6 +7,7 @@ use App\Observers\BackupJobObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupJobObserver::class])]
@@ -38,5 +39,10 @@ class BackupJob extends Model
   public function backupSchedule(): BelongsTo
   {
     return $this->belongsTo(BackupSchedule::class);
+  }
+
+  public function backups(): HasMany
+  {
+    return $this->hasMany(Backup::class);
   }
 }
