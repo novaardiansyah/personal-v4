@@ -36,14 +36,17 @@ class BackupJobInfolist
               TextEntry::make('assigned_at')
                 ->label('Assigned At')
                 ->dateTime('M d, Y H:i:s')
+                ->sinceTooltip()
                 ->placeholder('N/A'),
               TextEntry::make('started_at')
                 ->label('Started At')
                 ->dateTime('M d, Y H:i:s')
+                ->sinceTooltip()
                 ->placeholder('N/A'),
               TextEntry::make('finished_at')
                 ->label('Finished At')
                 ->dateTime('M d, Y H:i:s')
+                ->sinceTooltip()
                 ->placeholder('N/A'),
             ])
             ->columns(['xl' => 3, '2xl' => 3]),
@@ -55,7 +58,8 @@ class BackupJobInfolist
           ->schema([
             TextEntry::make('created_at')
               ->label('Created At')
-              ->dateTime(),
+              ->dateTime()
+              ->sinceTooltip(),
             TextEntry::make('updated_at')
               ->label('Last Updated')
               ->dateTime()
@@ -63,6 +67,7 @@ class BackupJobInfolist
             TextEntry::make('deleted_at')
               ->label('Deleted At')
               ->dateTime()
+              ->sinceTooltip()
               ->placeholder('Active'),
           ])
           ->columns(1)
