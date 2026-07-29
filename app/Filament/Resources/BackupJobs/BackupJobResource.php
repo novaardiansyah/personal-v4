@@ -6,6 +6,7 @@ use App\Filament\Resources\BackupJobs\Pages\CreateBackupJob;
 use App\Filament\Resources\BackupJobs\Pages\EditBackupJob;
 use App\Filament\Resources\BackupJobs\Pages\ListBackupJobs;
 use App\Filament\Resources\BackupJobs\Pages\ViewBackupJob;
+use App\Filament\Resources\BackupJobs\RelationManagers\BackupsRelationManager;
 use App\Filament\Resources\BackupJobs\Schemas\BackupJobForm;
 use App\Filament\Resources\BackupJobs\Schemas\BackupJobInfolist;
 use App\Filament\Resources\BackupJobs\Tables\BackupJobsTable;
@@ -29,7 +30,7 @@ class BackupJobResource extends Resource
 
   protected static ?int $navigationSort = 2;
 
-	protected static ?string $navigationParentItem = 'Schedules';
+  protected static ?string $navigationParentItem = 'Schedules';
 
   protected static ?string $navigationLabel = 'Jobs';
 
@@ -50,7 +51,9 @@ class BackupJobResource extends Resource
 
   public static function getRelations(): array
   {
-    return [];
+    return [
+      BackupsRelationManager::class,
+    ];
   }
 
   public static function getPages(): array
