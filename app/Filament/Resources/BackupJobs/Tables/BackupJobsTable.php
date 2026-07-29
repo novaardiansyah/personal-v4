@@ -41,16 +41,19 @@ class BackupJobsTable
         TextColumn::make('assigned_at')
           ->label('Assigned At')
           ->dateTime('M d, Y H:i')
+          ->sinceTooltip()
           ->sortable()
           ->toggleable(),
         TextColumn::make('started_at')
           ->label('Started At')
           ->dateTime('M d, Y H:i')
+          ->sinceTooltip()
           ->sortable()
           ->toggleable(),
         TextColumn::make('finished_at')
           ->label('Finished At')
           ->dateTime('M d, Y H:i')
+          ->sinceTooltip()
           ->sortable()
           ->toggleable(),
         TextColumn::make('message')
@@ -61,6 +64,7 @@ class BackupJobsTable
         TextColumn::make('created_at')
           ->label('Created At')
           ->dateTime()
+          ->sinceTooltip()
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('updated_at')
@@ -72,6 +76,7 @@ class BackupJobsTable
         TextColumn::make('deleted_at')
           ->label('Deleted At')
           ->dateTime()
+          ->sinceTooltip()
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
       ])
