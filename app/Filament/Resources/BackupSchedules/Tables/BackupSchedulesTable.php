@@ -44,8 +44,13 @@ class BackupSchedulesTable
           ->searchable()
           ->limit(35)
           ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('destination_path')
-          ->label('Destination Path')
+        TextColumn::make('local_destination_path')
+          ->label('Local Path')
+          ->searchable()
+          ->limit(35)
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('r2_destination_path')
+          ->label('R2 Path')
           ->searchable()
           ->limit(35)
           ->toggleable(isToggledHiddenByDefault: true),

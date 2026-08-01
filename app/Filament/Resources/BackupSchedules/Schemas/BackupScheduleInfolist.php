@@ -31,8 +31,12 @@ class BackupScheduleInfolist
 								->label('Source Path')
 								->copyable()
 								->placeholder('N/A'),
-							TextEntry::make('destination_path')
-								->label('Destination Path')
+							TextEntry::make('local_destination_path')
+								->label('Local Destination Path')
+								->copyable()
+								->placeholder('N/A'),
+							TextEntry::make('r2_destination_path')
+								->label('R2 Destination Path')
 								->copyable()
 								->placeholder('N/A'),
 							IconEntry::make('is_enabled')
