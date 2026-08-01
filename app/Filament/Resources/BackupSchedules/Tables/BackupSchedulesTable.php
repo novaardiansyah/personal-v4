@@ -4,6 +4,7 @@ namespace App\Filament\Resources\BackupSchedules\Tables;
 
 use App\Enums\BackupScheduleIntervalUnit;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
+use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -117,6 +118,7 @@ class BackupSchedulesTable
           ViewAction::make(),
           EditAction::make(),
           EnableDisableAction::make(),
+          ReplicateAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
