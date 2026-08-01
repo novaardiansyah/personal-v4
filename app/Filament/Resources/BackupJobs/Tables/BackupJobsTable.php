@@ -60,6 +60,7 @@ class BackupJobsTable
           ->label('Message')
           ->limit(30)
           ->searchable()
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')
           ->label('Created At')
