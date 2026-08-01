@@ -82,6 +82,7 @@ class BackupController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
+      'backup_job_id'   => 'nullable|integer|exists:backup_jobs,id',
       'type'            => 'required|string|in:full,database,files,incremental',
       'file_name'       => 'nullable|string|max:255',
       'file_path'       => 'nullable|string|max:255',
@@ -155,6 +156,7 @@ class BackupController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
+      'backup_job_id'   => 'nullable|integer|exists:backup_jobs,id',
       'type'            => 'nullable|string|in:full,database,files,incremental',
       'file_name'       => 'nullable|string|max:255',
       'file_path'       => 'nullable|string|max:255',
@@ -490,6 +492,7 @@ class BackupController extends Controller
     }
 
     $backupData = array_filter([
+      'backup_job_id'   => $job->id,
       'type'            => $request->input('type', 'database'),
       'file_name'       => $request->input('file_name'),
       'file_path'       => $request->input('file_path'),
