@@ -42,11 +42,14 @@ class BackupScheduleForm
 									->label('Source Path')
 									->required()
 									->placeholder('/path/to/source'),
-								TextInput::make('destination_path')
-									->label('Destination Path')
+								TextInput::make('local_destination_path')
+									->label('Local Destination Path')
 									->required()
 									->default('./backups')
-									->placeholder('/path/to/destination'),
+									->placeholder('/path/to/local/destination'),
+								TextInput::make('r2_destination_path')
+									->label('R2 Destination Path')
+									->placeholder('backups/r2'),
 							]),
 					]),
 

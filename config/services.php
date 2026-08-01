@@ -44,6 +44,14 @@ return [
       'site_url'   => 'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       'secret_key' => env('CF_CAPTCHA_SECRET', '-'),
     ],
+    'r2' => [
+      'account_id'        => env('R2_ACCOUNT_ID'),
+      'access_key_id'     => env('R2_ACCESS_KEY_ID'),
+      'secret_access_key' => env('R2_SECRET_ACCESS_KEY'),
+      'bucket_name'       => env('R2_BUCKET_NAME'),
+      'endpoint_url'      => env('R2_ENDPOINT_URL'),
+      'enabled'           => env('R2_ENABLED', true),
+    ],
   ],
 
   'telegram-bot-api' => [

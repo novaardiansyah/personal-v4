@@ -21,6 +21,8 @@ class BackupSchedule extends Model
     'name',
     'source_path',
     'destination_path',
+    'local_destination_path',
+    'r2_destination_path',
     'filename_pattern',
     'retention_days',
     'interval_value',
@@ -31,19 +33,26 @@ class BackupSchedule extends Model
   ];
 
   protected $casts = [
-    'uid'              => 'string',
-    'name'             => 'string',
-    'source_path'      => 'string',
-    'destination_path' => 'string',
-    'filename_pattern' => 'string',
-    'retention_days'   => 'integer',
-    'interval_value'   => 'integer',
-    'interval_unit'    => BackupScheduleIntervalUnit::class,
-    'next_backup_at'   => 'datetime',
-    'last_backup_at'   => 'datetime',
-    'is_enabled'       => 'boolean',
-    'deleted_at'       => 'datetime',
+    'uid'                    => 'string',
+    'name'                   => 'string',
+    'source_path'            => 'string',
+    'destination_path'       => 'string',
+    'local_destination_path' => 'string',
+    'r2_destination_path'    => 'string',
+    'filename_pattern'       => 'string',
+    'retention_days'         => 'integer',
+    'interval_value'         => 'integer',
+    'interval_unit'          => BackupScheduleIntervalUnit::class,
+    'next_backup_at'         => 'datetime',
+    'last_backup_at'         => 'datetime',
+    'is_enabled'             => 'boolean',
+    'deleted_at'             => 'datetime',
   ];
+
+  public function getDestinationPathAttribute(): ?string
+  {
+    return $this->local_destination_path ?? $this->attributes['destination_path'] ?? null;
+  }
 
   public function backupJobs(): HasMany
   {
