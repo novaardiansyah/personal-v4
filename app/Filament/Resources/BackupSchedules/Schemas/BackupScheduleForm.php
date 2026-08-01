@@ -40,16 +40,27 @@ class BackupScheduleForm
 									->hint(fn(?string $state): string => BackupSchedule::generateFilename($state)),
 								TextInput::make('source_path')
 									->label('Source Path')
-									->required()
-									->placeholder('/path/to/source'),
+									->placeholder('/www/wwwroot')
+									->datalist(['/www/wwwroot'])
+									->autocomplete(false)
+									->required(),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')
-									->required()
-									->default('./backups')
-									->placeholder('/path/to/local/destination'),
+									->placeholder('/www/wwwroot/backup/sysadmin')
+									->datalist(['/www/wwwroot/backup/sysadmin', '/www/wwwroot/backup/sysadmin/projects'])
+									->autocomplete(false)
+									->required(),
+								Toggle::make('is_sync_cloud')
+									->label('Sync Cloud')
+									->default(false)
+									->live()
+									->afterStateUpdated(fn(Set $set, $state) => ! $state ? $set('r2_destination_path', null) : null),
 								TextInput::make('r2_destination_path')
-									->label('R2 Destination Path')
-									->placeholder('backups/r2'),
+									->label('Cloud Destination Path')
+									->placeholder('/backups')
+									->datalist(['/backups/projects', '/backups/database', '/backups/others'])
+									->autocomplete(false)
+									->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
 							]),
 					]),
 

@@ -50,9 +50,13 @@ class BackupSchedulesTable
           ->limit(35)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('r2_destination_path')
-          ->label('R2 Path')
+          ->label('Cloud Destination Path')
           ->searchable()
           ->limit(35)
+          ->toggleable(isToggledHiddenByDefault: true),
+        IconColumn::make('is_sync_cloud')
+          ->label('Sync Cloud')
+          ->boolean()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('interval')
           ->label('Interval')
