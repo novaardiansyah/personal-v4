@@ -37,6 +37,9 @@ class BackupForm
 								TextInput::make('file_path')
 									->label('File Path')
 									->placeholder('/path/to/backup.zip'),
+								TextInput::make('cloud_file_path')
+									->label('Cloud File Path')
+									->placeholder('/cloud/path/to/backup.zip'),
 								Grid::make(['sm' => 2, 'xs' => 1])
 									->schema([
 										Select::make('type')

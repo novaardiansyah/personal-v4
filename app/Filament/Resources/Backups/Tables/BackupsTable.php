@@ -44,6 +44,11 @@ class BackupsTable
           ->searchable()
           ->limit(35)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('cloud_file_path')
+          ->label('Cloud File Path')
+          ->searchable()
+          ->limit(35)
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('type')
           ->label('Type')
           ->badge()

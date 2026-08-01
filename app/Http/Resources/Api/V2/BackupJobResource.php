@@ -25,7 +25,6 @@ class BackupJobResource extends JsonResource
       'source_path'            => $this->backupSchedule?->source_path,
       'destination_path'       => $this->backupSchedule?->local_destination_path,
       'is_sync_cloud'          => (bool) ($this->backupSchedule?->is_sync_cloud ?? false),
-      'r2_destination_path'    => $this->backupSchedule?->r2_destination_path,
       'cloud_destination_path' => $this->backupSchedule?->r2_destination_path,
       'expected_filename'      => $filename,
     ];

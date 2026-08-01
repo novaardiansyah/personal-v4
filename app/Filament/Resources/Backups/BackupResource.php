@@ -23,11 +23,9 @@ class BackupResource extends Resource
 {
   protected static ?string $model = Backup::class;
 
-  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedArchiveBox;
+  protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedFolderOpen;
 
   protected static string|UnitEnum|null $navigationGroup = 'Backup';
-
-  protected static ?string $navigationParentItem = 'Schedules';
 
   protected static ?int $navigationSort = 3;
 
