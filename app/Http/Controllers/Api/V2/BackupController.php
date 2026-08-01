@@ -82,17 +82,18 @@ class BackupController extends Controller
   public function store(Request $request): JsonResponse
   {
     $validator = Validator::make($request->all(), [
-      'type'         => 'required|string|in:full,database,files,incremental',
-      'file_name'    => 'nullable|string|max:255',
-      'file_path'    => 'nullable|string|max:255',
-      'file_size'    => 'nullable|integer|min:0',
-      'checksum'     => 'nullable|string|max:64',
-      'status'       => 'nullable|string|in:pending,success,failed',
-      'message'      => 'nullable|string',
-      'server_name'  => 'nullable|string|max:255',
-      'started_at'   => 'nullable|date',
-      'completed_at' => 'nullable|date',
-      'duration'     => 'nullable|integer|min:0',
+      'type'            => 'required|string|in:full,database,files,incremental',
+      'file_name'       => 'nullable|string|max:255',
+      'file_path'       => 'nullable|string|max:255',
+      'cloud_file_path' => 'nullable|string|max:255',
+      'file_size'       => 'nullable|integer|min:0',
+      'checksum'        => 'nullable|string|max:64',
+      'status'          => 'nullable|string|in:pending,success,failed',
+      'message'         => 'nullable|string',
+      'server_name'     => 'nullable|string|max:255',
+      'started_at'      => 'nullable|date',
+      'completed_at'    => 'nullable|date',
+      'duration'        => 'nullable|integer|min:0',
     ]);
 
     if ($validator->fails()) {
@@ -154,17 +155,18 @@ class BackupController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'type'         => 'nullable|string|in:full,database,files,incremental',
-      'file_name'    => 'nullable|string|max:255',
-      'file_path'    => 'nullable|string|max:255',
-      'file_size'    => 'nullable|string|max:100',
-      'checksum'     => 'nullable|string|max:64',
-      'status'       => 'nullable|string|in:pending,success,failed',
-      'message'      => 'nullable|string',
-      'server_name'  => 'nullable|string|max:255',
-      'started_at'   => 'nullable|date',
-      'completed_at' => 'nullable|date',
-      'duration'     => 'nullable|integer|min:0',
+      'type'            => 'nullable|string|in:full,database,files,incremental',
+      'file_name'       => 'nullable|string|max:255',
+      'file_path'       => 'nullable|string|max:255',
+      'cloud_file_path' => 'nullable|string|max:255',
+      'file_size'       => 'nullable|string|max:100',
+      'checksum'        => 'nullable|string|max:64',
+      'status'          => 'nullable|string|in:pending,success,failed',
+      'message'         => 'nullable|string',
+      'server_name'     => 'nullable|string|max:255',
+      'started_at'      => 'nullable|date',
+      'completed_at'    => 'nullable|date',
+      'duration'        => 'nullable|integer|min:0',
     ]);
 
     if ($validator->fails()) {
@@ -272,6 +274,37 @@ class BackupController extends Controller
     return Storage::disk('public')->download($backup->file_path, $backup->file_name);
   }
 
+  /**
+   * Check and trigger due backup schedules
+   *
+   * Scans enabled backup schedules that are due for execution, creates BackupJob entries, and updates schedule timestamps.
+   *
+   * @response 200 {
+   *   "success": true,
+   *   "message": "Backup job created successfully",
+   *   "data": [
+   *     {
+   *       "id": 1,
+   *       "backup_schedule_id": 1,
+   *       "status": "Running",
+   *       "message": null,
+   *       "started_at": "2026-08-01 23:30:00",
+   *       "finished_at": null,
+   *       "source_path": "/www/wwwroot",
+   *       "destination_path": "/www/wwwroot/backup/sysadmin",
+   *       "is_sync_cloud": true,
+   *       "r2_destination_path": "/backups/projects",
+   *       "cloud_destination_path": "/backups/projects",
+   *       "expected_filename": "backup-20260801-233000-1.zip"
+   *     }
+   *   ]
+   * }
+   * @response 404 {
+   *   "success": false,
+   *   "message": "No backup schedules are due",
+   *   "data": null
+   * }
+   */
   public function checkSchedule(): JsonResponse
   {
     $now = now();
@@ -396,19 +429,20 @@ class BackupController extends Controller
     }
 
     $validator = Validator::make($request->all(), [
-      'status'       => 'nullable|string|in:pending,running,success,failed',
-      'job_status'   => 'nullable|string|in:pending,running,success,failed',
-      'finished_at'  => 'nullable|date',
-      'message'      => 'nullable|string',
-      'type'         => 'nullable|string|in:full,database,files,incremental',
-      'file_name'    => 'nullable|string|max:255',
-      'file_path'    => 'nullable|string|max:255',
-      'file_size'    => 'nullable|integer|min:0',
-      'checksum'     => 'nullable|string|max:64',
-      'server_name'  => 'nullable|string|max:255',
-      'started_at'   => 'nullable|date',
-      'completed_at' => 'nullable|date',
-      'duration'     => 'nullable|integer|min:0',
+      'status'          => 'nullable|string|in:pending,running,success,failed',
+      'job_status'      => 'nullable|string|in:pending,running,success,failed',
+      'finished_at'     => 'nullable|date',
+      'message'         => 'nullable|string',
+      'type'            => 'nullable|string|in:full,database,files,incremental',
+      'file_name'       => 'nullable|string|max:255',
+      'file_path'       => 'nullable|string|max:255',
+      'cloud_file_path' => 'nullable|string|max:255',
+      'file_size'       => 'nullable|integer|min:0',
+      'checksum'        => 'nullable|string|max:64',
+      'server_name'     => 'nullable|string|max:255',
+      'started_at'      => 'nullable|date',
+      'completed_at'    => 'nullable|date',
+      'duration'        => 'nullable|integer|min:0',
     ]);
 
     if ($validator->fails()) {
@@ -456,17 +490,18 @@ class BackupController extends Controller
     }
 
     $backupData = array_filter([
-      'type'         => $request->input('type', 'database'),
-      'file_name'    => $request->input('file_name'),
-      'file_path'    => $request->input('file_path'),
-      'file_size'    => $request->input('file_size'),
-      'checksum'     => $request->input('checksum'),
-      'status'       => $backupStatus,
-      'message'      => $request->input('message'),
-      'server_name'  => $request->input('server_name'),
-      'started_at'   => $startedAt,
-      'completed_at' => $completedAt,
-      'duration'     => $duration,
+      'type'            => $request->input('type', 'database'),
+      'file_name'       => $request->input('file_name'),
+      'file_path'       => $request->input('file_path'),
+      'cloud_file_path' => $request->input('cloud_file_path'),
+      'file_size'       => $request->input('file_size'),
+      'checksum'        => $request->input('checksum'),
+      'status'          => $backupStatus,
+      'message'         => $request->input('message'),
+      'server_name'     => $request->input('server_name'),
+      'started_at'      => $startedAt,
+      'completed_at'    => $completedAt,
+      'duration'        => $duration,
     ], fn ($val) => !is_null($val));
 
     $backup = Backup::create($backupData);

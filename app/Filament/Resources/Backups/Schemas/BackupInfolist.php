@@ -50,6 +50,11 @@ class BackupInfolist
                 ->copyable()
                 ->placeholder('N/A')
                 ->columnSpanFull(),
+              TextEntry::make('cloud_file_path')
+                ->label('Cloud File Path')
+                ->copyable()
+                ->placeholder('N/A')
+                ->columnSpanFull(),
               TextEntry::make('message')
                 ->label('Message')
                 ->placeholder('N/A')
