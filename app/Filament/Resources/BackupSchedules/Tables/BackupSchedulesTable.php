@@ -44,16 +44,19 @@ class BackupSchedulesTable
           ->label('Source Path')
           ->searchable()
           ->limit(35)
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('local_destination_path')
           ->label('Local Path')
           ->searchable()
           ->limit(35)
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('r2_destination_path')
           ->label('Cloud Destination Path')
           ->searchable()
           ->limit(35)
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         IconColumn::make('is_sync_cloud')
           ->label('Sync Cloud')
@@ -110,7 +113,7 @@ class BackupSchedulesTable
         TrashedFilter::make()
           ->native(false),
       ])
-      ->defaultSort('created_at', 'desc')
+      ->defaultSort('next_backup_at', 'asc')
       ->recordAction(null)
       ->recordUrl(null)
       ->recordActions([

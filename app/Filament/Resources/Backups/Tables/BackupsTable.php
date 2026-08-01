@@ -38,16 +38,19 @@ class BackupsTable
           ->label('File Name')
           ->searchable()
           ->limit(30)
+          ->tooltip(fn($state) => $state)
           ->toggleable(),
         TextColumn::make('file_path')
           ->label('File Path')
           ->searchable()
           ->limit(35)
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('cloud_file_path')
           ->label('Cloud File Path')
           ->searchable()
           ->limit(35)
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('type')
           ->label('Type')
@@ -76,6 +79,7 @@ class BackupsTable
           ->searchable()
           ->limit(15)
           ->copyable()
+          ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('server_name')
           ->label('Server Name')
