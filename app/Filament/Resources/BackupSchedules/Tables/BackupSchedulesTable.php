@@ -58,6 +58,10 @@ class BackupSchedulesTable
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
+        IconColumn::make('keep_local_backup')
+          ->label('Keep Local Backup')
+          ->boolean()
+          ->toggleable(isToggledHiddenByDefault: true),
         IconColumn::make('is_sync_cloud')
           ->label('Sync Cloud')
           ->boolean()
