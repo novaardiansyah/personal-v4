@@ -276,37 +276,6 @@ class BackupController extends Controller
     return Storage::disk('public')->download($backup->file_path, $backup->file_name);
   }
 
-  /**
-   * Check and trigger due backup schedules
-   *
-   * Scans enabled backup schedules that are due for execution, creates BackupJob entries, and updates schedule timestamps.
-   *
-   * @response 200 {
-   *   "success": true,
-   *   "message": "Backup job created successfully",
-   *   "data": [
-   *     {
-   *       "id": 1,
-   *       "backup_schedule_id": 1,
-   *       "status": "Running",
-   *       "message": null,
-   *       "started_at": "2026-08-01 23:30:00",
-   *       "finished_at": null,
-   *       "source_path": "/www/wwwroot",
-   *       "destination_path": "/www/wwwroot/backup/sysadmin",
-   *       "is_sync_cloud": true,
-   *       "r2_destination_path": "/backups/projects",
-   *       "cloud_destination_path": "/backups/projects",
-   *       "expected_filename": "backup-20260801-233000-1.zip"
-   *     }
-   *   ]
-   * }
-   * @response 404 {
-   *   "success": false,
-   *   "message": "No backup schedules are due",
-   *   "data": null
-   * }
-   */
   public function checkSchedule(): JsonResponse
   {
     $now = now();

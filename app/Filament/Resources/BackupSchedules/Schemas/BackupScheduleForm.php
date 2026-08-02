@@ -50,11 +50,17 @@ class BackupScheduleForm
 									->datalist(['/www/wwwroot/backup/sysadmin', '/www/wwwroot/backup/sysadmin/projects'])
 									->autocomplete(false)
 									->required(),
-								Toggle::make('is_sync_cloud')
-									->label('Sync Cloud')
-									->default(false)
-									->live()
-									->afterStateUpdated(fn(Set $set, $state) => ! $state ? $set('r2_destination_path', null) : null),
+								Grid::make(3)
+									->schema([
+										Toggle::make('keep_local_backup')
+											->label('Keep Local Backup')
+											->default(false),
+										Toggle::make('is_sync_cloud')
+											->label('Sync Cloud')
+											->default(false)
+											->live()
+											->afterStateUpdated(fn(Set $set, $state) => ! $state ? $set('r2_destination_path', null) : null),
+									]),
 								TextInput::make('r2_destination_path')
 									->label('Cloud Destination Path')
 									->placeholder('/backups')

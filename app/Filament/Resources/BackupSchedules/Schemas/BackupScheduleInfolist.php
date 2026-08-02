@@ -35,6 +35,9 @@ class BackupScheduleInfolist
 								->label('Local Destination Path')
 								->copyable()
 								->placeholder('N/A'),
+							IconEntry::make('keep_local_backup')
+								->label('Keep Local Backup')
+								->boolean(),
 							IconEntry::make('is_sync_cloud')
 								->label('Sync Cloud')
 								->boolean(),
