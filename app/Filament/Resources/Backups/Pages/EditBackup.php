@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Backups\Pages;
 
+use App\Filament\Resources\Backups\Actions\DownloadCloudBackupAction;
 use App\Filament\Resources\Backups\BackupResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -17,9 +18,11 @@ class EditBackup extends EditRecord
   {
     return [
       ViewAction::make(),
+      DownloadCloudBackupAction::make(),
       DeleteAction::make(),
       ForceDeleteAction::make(),
       RestoreAction::make(),
     ];
   }
 }
+
