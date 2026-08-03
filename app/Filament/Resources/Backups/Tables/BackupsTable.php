@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Backups\Tables;
 
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
+use App\Filament\Resources\Backups\Actions\DownloadCloudBackupAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -135,6 +136,7 @@ class BackupsTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
+          DownloadCloudBackupAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),
