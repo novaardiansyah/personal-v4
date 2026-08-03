@@ -7,6 +7,7 @@ use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Throwable;
 
 class DownloadCloudBackupAction
@@ -31,17 +32,48 @@ class DownloadCloudBackupAction
           return null;
         }
 
+        $fileName = $record->file_name ?: basename($cloudPath);
+
         if (str_starts_with($cloudPath, 'http://') || str_starts_with($cloudPath, 'https://')) {
+          try {
+            $readStream = @fopen($cloudPath, 'rb');
+
+            if ($readStream) {
+              $tempPath = 'temp-downloads/' . Str::uuid() . '_' . $fileName;
+              Storage::disk('local')->writeStream($tempPath, $readStream);
+
+              if (is_resource($readStream)) {
+                fclose($readStream);
+              }
+
+              $fullPath = Storage::disk('local')->path($tempPath);
+
+              return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
+            }
+          } catch (Throwable $e) {
+          }
+
           return redirect()->away($cloudPath);
         }
-
-        $fileName = $record->file_name ?: basename($cloudPath);
 
         if (class_exists('League\Flysystem\AwsS3V3\AwsS3V3Adapter') || class_exists('League\Flysystem\AwsS3V3\PortableVisibilityConverter')) {
           if (config('filesystems.disks.r2') && config('filesystems.disks.r2.key')) {
             try {
               if (Storage::disk('r2')->exists($cloudPath)) {
-                return Storage::disk('r2')->download($cloudPath, $fileName);
+                $readStream = Storage::disk('r2')->readStream($cloudPath);
+
+                if ($readStream) {
+                  $tempPath = 'temp-downloads/' . Str::uuid() . '_' . $fileName;
+                  Storage::disk('local')->writeStream($tempPath, $readStream);
+
+                  if (is_resource($readStream)) {
+                    fclose($readStream);
+                  }
+
+                  $fullPath = Storage::disk('local')->path($tempPath);
+
+                  return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
+                }
               }
             } catch (Throwable $e) {
             }
@@ -50,32 +82,49 @@ class DownloadCloudBackupAction
           if (config('filesystems.disks.s3') && config('filesystems.disks.s3.key')) {
             try {
               if (Storage::disk('s3')->exists($cloudPath)) {
-                return Storage::disk('s3')->download($cloudPath, $fileName);
+                $readStream = Storage::disk('s3')->readStream($cloudPath);
+
+                if ($readStream) {
+                  $tempPath = 'temp-downloads/' . Str::uuid() . '_' . $fileName;
+                  Storage::disk('local')->writeStream($tempPath, $readStream);
+
+                  if (is_resource($readStream)) {
+                    fclose($readStream);
+                  }
+
+                  $fullPath = Storage::disk('local')->path($tempPath);
+
+                  return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
+                }
               }
             } catch (Throwable $e) {
             }
           }
         }
 
-        if (config('filesystems.disks.r2.url')) {
-          $r2BaseUrl = rtrim(config('filesystems.disks.r2.url'), '/');
-          $cloudUrl  = $r2BaseUrl . '/' . ltrim($cloudPath, '/');
-          return redirect()->away($cloudUrl);
-        }
-
         try {
           if (Storage::disk('public')->exists($cloudPath)) {
-            return Storage::disk('public')->download($cloudPath, $fileName);
+            $readStream = Storage::disk('public')->readStream($cloudPath);
+
+            if ($readStream) {
+              $tempPath = 'temp-downloads/' . Str::uuid() . '_' . $fileName;
+              Storage::disk('local')->writeStream($tempPath, $readStream);
+
+              if (is_resource($readStream)) {
+                fclose($readStream);
+              }
+
+              $fullPath = Storage::disk('local')->path($tempPath);
+
+              return response()->download($fullPath, $fileName)->deleteFileAfterSend(true);
+            }
           }
 
           if (Storage::disk('local')->exists($cloudPath)) {
-            return Storage::disk('local')->download($cloudPath, $fileName);
+            $fullPath = Storage::disk('local')->path($cloudPath);
+            return response()->download($fullPath, $fileName);
           }
         } catch (Throwable $e) {
-        }
-
-        if (str_starts_with($cloudPath, '/')) {
-          return redirect()->away(url($cloudPath));
         }
 
         Notification::make()
