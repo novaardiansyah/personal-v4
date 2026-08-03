@@ -13,6 +13,7 @@
  */
 
 use App\Http\Controllers\ActivityLogController;
+use App\Http\Controllers\BackupDownloadController;
 use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\EmailController;
 use App\Http\Controllers\EmailTemplateController;
@@ -26,6 +27,10 @@ Route::get('/', function () {
 Route::get('download/{path}/{extension}', [DownloadController::class, 'index'])
   ->name('download')
   ->middleware('signed');
+
+Route::get('admin/backups/{backup}/download-cloud', [BackupDownloadController::class, 'downloadCloud'])
+  ->name('admin.backups.download-cloud')
+  ->middleware('auth');
 
 Route::get('admin/activity-logs/{activityLog}/preview-email', [ActivityLogController::class, 'preview_email']);
 
