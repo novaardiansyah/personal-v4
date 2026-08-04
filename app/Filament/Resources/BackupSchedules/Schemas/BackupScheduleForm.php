@@ -6,6 +6,7 @@ use App\Enums\BackupScheduleIntervalUnit;
 use App\Models\BackupSchedule;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -44,6 +45,11 @@ class BackupScheduleForm
 									->datalist(['/www/wwwroot'])
 									->autocomplete(false)
 									->required(),
+								TagsInput::make('exclude')
+									->label('Exclude Files/Directories')
+									->placeholder('Enter directory or file patterns, separated by commas.')
+									->separator(',')
+									->helperText('Press Enter to add a new option.'),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')
 									->placeholder('/www/wwwroot/backup/sysadmin')

@@ -23,6 +23,7 @@ class BackupJobResource extends JsonResource
       'started_at'             => $this->started_at?->format('Y-m-d H:i:s'),
       'finished_at'            => $this->finished_at?->format('Y-m-d H:i:s'),
       'source_path'            => $this->backupSchedule?->source_path,
+      'exclude'                => $this->backupSchedule?->exclude ?? [],
       'destination_path'       => $this->backupSchedule?->local_destination_path,
       'keep_local_backup'      => (bool) ($this->backupSchedule?->keep_local_backup ?? true),
       'is_sync_cloud'          => (bool) ($this->backupSchedule?->is_sync_cloud ?? false),
