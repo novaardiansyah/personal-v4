@@ -53,8 +53,8 @@ class BackupScheduleForm
 									->placeholder('/www/wwwroot')
 									->datalist(['/www/wwwroot'])
 									->autocomplete(false)
-									->required(fn(Get $get): bool => ! static::isDatabaseType($get('type')))
-									->visible(fn(Get $get): bool => ! static::isDatabaseType($get('type'))),
+									->required(fn(Get $get): bool => !static::isDatabaseType($get('type')))
+									->visible(fn(Get $get): bool => !static::isDatabaseType($get('type'))),
 								TextInput::make('drivers')
 									->label('Drivers')
 									->placeholder('mysql')
@@ -69,14 +69,14 @@ class BackupScheduleForm
 									->visible(fn(Get $get): bool => static::isDatabaseType($get('type'))),
 								TagsInput::make('exclude')
 									->label('Exclude Files/Directories')
-									->placeholder('Enter directory or file patterns, separated by commas.')
+									->placeholder('Enter directory or file patterns, separated by enter.')
 									->separator(',')
 									->helperText('Press Enter to add a new option.')
-									->visible(fn(Get $get): bool => ! static::isDatabaseType($get('type'))),
+									->visible(fn(Get $get): bool => !static::isDatabaseType($get('type'))),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')
-									->placeholder('/www/wwwroot/backup/sysadmin')
-									->datalist(['/www/wwwroot/backup/sysadmin', '/www/wwwroot/backup/sysadmin/projects'])
+									->placeholder('/www/backup/sysadmin/others')
+									->datalist(['/www/backup/sysadmin/others', '/www/backup/sysadmin/projects', '/www/backup/sysadmin/database'])
 									->autocomplete(false)
 									->required(),
 								Grid::make(3)
@@ -92,7 +92,7 @@ class BackupScheduleForm
 									]),
 								TextInput::make('r2_destination_path')
 									->label('Cloud Destination Path')
-									->placeholder('/backups')
+									->placeholder('/backups/others')
 									->datalist(['/backups/projects', '/backups/database', '/backups/others'])
 									->autocomplete(false)
 									->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
