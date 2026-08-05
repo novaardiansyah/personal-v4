@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupSchedules\Schemas;
 
+use App\Enums\BackupType;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
@@ -23,6 +24,17 @@ class BackupScheduleInfolist
 								->copyable()
 								->badge()
 								->color('info'),
+							TextEntry::make('type')
+								->label('Type')
+								->badge(),
+							TextEntry::make('drivers')
+								->label('Drivers')
+								->visible(fn($record) => $record->type === BackupType::Database || (string) $record->type === 'database')
+								->placeholder('N/A'),
+							TextEntry::make('database_name')
+								->label('Database Name')
+								->visible(fn($record) => $record->type === BackupType::Database || (string) $record->type === 'database')
+								->placeholder('N/A'),
 							TextEntry::make('filename_pattern')
 								->label('Filename Pattern')
 								->formatStateUsing(fn(?string $state) => $state ? "{$state} (" . static::previewFilenamePattern($state) . ")" : 'N/A')
