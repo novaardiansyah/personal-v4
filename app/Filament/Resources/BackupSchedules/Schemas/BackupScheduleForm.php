@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupSchedules\Schemas;
 
 use App\Enums\BackupScheduleIntervalUnit;
+use App\Enums\BackupType;
 use App\Models\BackupSchedule;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Select;
@@ -33,6 +34,14 @@ class BackupScheduleForm
 								TextInput::make('name')
 									->label('Name')
 									->required(),
+								Select::make('type')
+									->label('Type')
+									->options(BackupType::class)
+									->native(false)
+									->preload()
+									->required()
+									->default(BackupType::Files)
+									->live(),
 								TextInput::make('filename_pattern')
 									->label('Filename Pattern')
 									->required()
@@ -44,12 +53,26 @@ class BackupScheduleForm
 									->placeholder('/www/wwwroot')
 									->datalist(['/www/wwwroot'])
 									->autocomplete(false)
-									->required(),
+									->required(fn(Get $get): bool => ! static::isDatabaseType($get('type')))
+									->visible(fn(Get $get): bool => ! static::isDatabaseType($get('type'))),
+								TextInput::make('drivers')
+									->label('Drivers')
+									->placeholder('mysql')
+									->datalist(['mysql', 'pgsql', 'sqlite', 'sqlsrv'])
+									->autocomplete(false)
+									->required(fn(Get $get): bool => static::isDatabaseType($get('type')))
+									->visible(fn(Get $get): bool => static::isDatabaseType($get('type'))),
+								TextInput::make('database_name')
+									->label('Database Name')
+									->placeholder('my_database')
+									->required(fn(Get $get): bool => static::isDatabaseType($get('type')))
+									->visible(fn(Get $get): bool => static::isDatabaseType($get('type'))),
 								TagsInput::make('exclude')
 									->label('Exclude Files/Directories')
 									->placeholder('Enter directory or file patterns, separated by commas.')
 									->separator(',')
-									->helperText('Press Enter to add a new option.'),
+									->helperText('Press Enter to add a new option.')
+									->visible(fn(Get $get): bool => ! static::isDatabaseType($get('type'))),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')
 									->placeholder('/www/wwwroot/backup/sysadmin')
@@ -146,5 +169,18 @@ class BackupScheduleForm
 		};
 
 		$set('next_backup_at', $nextDate->format('Y-m-d H:i:s'));
+	}
+
+	private static function isDatabaseType(mixed $type): bool
+	{
+		if (empty($type)) {
+			return false;
+		}
+
+		if ($type instanceof BackupType) {
+			return $type === BackupType::Database;
+		}
+
+		return (string) $type === 'database' || (string) $type === BackupType::Database->value;
 	}
 }

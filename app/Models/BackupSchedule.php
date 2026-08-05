@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\BackupScheduleIntervalUnit;
+use App\Enums\BackupType;
 use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
@@ -19,6 +20,9 @@ class BackupSchedule extends Model
   protected $fillable = [
     'uid',
     'name',
+    'type',
+    'drivers',
+    'database_name',
     'source_path',
     'exclude',
     'destination_path',
@@ -38,6 +42,9 @@ class BackupSchedule extends Model
   protected $casts = [
     'uid'                    => 'string',
     'name'                   => 'string',
+    'type'                   => BackupType::class,
+    'drivers'                => 'string',
+    'database_name'          => 'string',
     'source_path'            => 'string',
     'exclude'                => 'array',
     'destination_path'       => 'string',

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupSchedules\Tables;
 
 use App\Enums\BackupScheduleIntervalUnit;
+use App\Enums\BackupType;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
 use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
 use Filament\Actions\ActionGroup;
@@ -40,6 +41,19 @@ class BackupSchedulesTable
 					->label('Name')
 					->searchable()
 					->toggleable(),
+				TextColumn::make('type')
+					->label('Type')
+					->badge()
+					->searchable()
+					->toggleable(),
+				TextColumn::make('drivers')
+					->label('Drivers')
+					->searchable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('database_name')
+					->label('Database Name')
+					->searchable()
+					->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('source_path')
           ->label('Source Path')
           ->searchable()
@@ -115,6 +129,10 @@ class BackupSchedulesTable
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
+        SelectFilter::make('type')
+          ->label('Type')
+          ->options(BackupType::class)
+          ->native(false),
         SelectFilter::make('interval_unit')
           ->label('Interval Unit')
           ->options(BackupScheduleIntervalUnit::class)
