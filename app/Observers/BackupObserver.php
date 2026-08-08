@@ -27,26 +27,41 @@ class BackupObserver
   public function created(Backup $backup): void
   {
     $this->_log('Created', $backup);
+    $this->_syncScheduleCount($backup);
   }
 
   public function updated(Backup $backup): void
   {
     $this->_log('Updated', $backup);
+    $this->_syncScheduleCount($backup);
   }
 
   public function deleted(Backup $backup): void
   {
     $this->_log('Deleted', $backup);
+    $this->_syncScheduleCount($backup);
   }
 
   public function restored(Backup $backup): void
   {
     $this->_log('Restored', $backup);
+    $this->_syncScheduleCount($backup);
   }
 
   public function forceDeleted(Backup $backup): void
   {
     $this->_log('Force Deleted', $backup);
+    $this->_syncScheduleCount($backup);
+  }
+
+  private function _syncScheduleCount(Backup $backup): void
+  {
+    $schedule = $backup->backupJob?->backupSchedule;
+
+    if ($schedule) {
+      $count = $schedule->backups()->count();
+      $schedule->update(['count_backup' => $count]);
+    }
   }
 
   private function _log(string $event, Backup $backup): void

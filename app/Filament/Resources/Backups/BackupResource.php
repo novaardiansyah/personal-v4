@@ -33,6 +33,11 @@ class BackupResource extends Resource
 
   protected static ?string $recordTitleAttribute = 'uid';
 
+  public static function canCreate(): bool
+  {
+    return false;
+  }
+
   public static function form(Schema $schema): Schema
   {
     return BackupForm::configure($schema);
