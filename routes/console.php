@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\BackupResource\CleanExcessBackupsJob;
 use App\Jobs\CleanExpiredTokens;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
@@ -51,3 +52,7 @@ Schedule::command('calendar:process-reminders')
 // ! Subscription Reminder Job
 Schedule::job(new SubscriptionReminderJob())
   ->dailyAt('05:00');
+
+// ! Clean Excess Backups
+Schedule::job(new CleanExcessBackupsJob())
+  ->dailyAt('22:00');
