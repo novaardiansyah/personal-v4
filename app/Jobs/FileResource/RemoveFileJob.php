@@ -71,7 +71,7 @@ class RemoveFileJob implements ShouldQueue
       $author_email = getSetting('remove_file_email');
       $author_name  = getSetting('author_name');
 
-      $placeholders = array_merge($template->placeholders, [
+      $placeholders = array_merge($template->placeholders ?? [], [
         'count' => $count,
       ]);
 
