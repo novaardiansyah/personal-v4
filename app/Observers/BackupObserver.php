@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Models\Backup;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class BackupObserver
@@ -60,7 +61,7 @@ class BackupObserver
 
     if ($schedule) {
       $count   = $schedule->backups()->count();
-      $sumSize = (int) $schedule->backups()->sum('file_size');
+      $sumSize = (int) $schedule->backups()->sum(DB::raw('CAST(file_size AS BIGINT)'));
 
       $schedule->update([
         'count_backup'  => $count,

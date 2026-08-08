@@ -6,6 +6,7 @@ use App\Models\BackupSchedule;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Facades\DB;
 
 class SyncBackupAction
 {
@@ -17,7 +18,7 @@ class SyncBackupAction
       ->color('info')
       ->action(function (BackupSchedule $record): void {
         $count   = $record->backups()->count();
-        $sumSize = (int) $record->backups()->sum('file_size');
+        $sumSize = (int) $record->backups()->sum(DB::raw('CAST(file_size AS BIGINT)'));
 
         $record->update([
           'count_backup'  => $count,
