@@ -18,7 +18,7 @@
     "laravel/framework": "^12.0",
     "laravel/sanctum": "^4.2",
     "laravel/tinker": "^2.10.1",
-    "league/flysystem-aws-s3-v3": "3.0",
+    "league/flysystem-aws-s3-v3": "^3.0",
     "maatwebsite/excel": "^3.1",
     "mpdf/mpdf": "^8.2",
     "spatie/image": "^3.8",
