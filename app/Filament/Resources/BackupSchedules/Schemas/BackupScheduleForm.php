@@ -36,7 +36,10 @@ class BackupScheduleForm
 									->required(),
 								Select::make('type')
 									->label('Type')
-									->options(BackupType::class)
+									->options([
+										BackupType::Files->value    => BackupType::Files->getLabel(),
+										BackupType::Database->value => BackupType::Database->getLabel(),
+									])
 									->native(false)
 									->preload()
 									->required()
@@ -130,6 +133,11 @@ class BackupScheduleForm
 							->label('Backup Count')
 							->numeric()
 							->default(0)
+							->disabled()
+							->dehydrated(false),
+						TextInput::make('sum_file_size')
+							->label('Total File Size')
+							->formatStateUsing(fn($state) => sizeFormat(floatval($state)))
 							->disabled()
 							->dehydrated(false),
 						TextInput::make('max_count_backup')
