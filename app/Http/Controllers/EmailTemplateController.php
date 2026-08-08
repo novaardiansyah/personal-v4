@@ -9,7 +9,7 @@ class EmailTemplateController extends Controller
   public function preview(EmailTemplate $emailTemplate)
   {
     $message      = $emailTemplate->message;
-    $placeholders = $emailTemplate->placeholders;
+    $placeholders = $emailTemplate->placeholders ?? [];
 
     foreach ($placeholders as $key => $value) {
       $message = str_replace('{' . $key . '}', $value, $message);

@@ -93,7 +93,7 @@ class AuthService
 		$author_name   = getSetting('author_name');
 		$author_email  = getSetting('login_email_notification');
 
-		$placeholders = array_merge($template->placeholders, [
+		$placeholders = array_merge($template->placeholders ?? [], [
 			'user_email'  => $user->email,
 			'ip_address'  => $ip_address ?? '-',
 			'address'     => $context['address'],
