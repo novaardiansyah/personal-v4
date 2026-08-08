@@ -29,11 +29,11 @@ class BackupScheduleInfolist
 								->badge(),
 							TextEntry::make('drivers')
 								->label('Drivers')
-								->visible(fn($record) => $record->type === BackupType::Database || (string) $record->type === 'database')
+								->visible(fn($record) => $record->type === BackupType::Database || $record->type?->value === 'database')
 								->placeholder('N/A'),
 							TextEntry::make('database_name')
 								->label('Database Name')
-								->visible(fn($record) => $record->type === BackupType::Database || (string) $record->type === 'database')
+								->visible(fn($record) => $record->type === BackupType::Database || $record->type?->value === 'database')
 								->placeholder('N/A'),
 							TextEntry::make('filename_pattern')
 								->label('Filename Pattern')
