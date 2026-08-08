@@ -76,9 +76,10 @@ class BackupScheduleInfolist
 							TextEntry::make('interval_unit')
 								->label('Interval Unit')
 								->badge(),
-							TextEntry::make('retention_days')
-								->label('Retention Days')
-								->formatStateUsing(fn($state) => "{$state} days"),
+							TextEntry::make('count_backup')
+								->label('Backup Count'),
+							TextEntry::make('max_count_backup')
+								->label('Max Backup Count'),
 							TextEntry::make('next_backup_at')
 								->label('Next Backup At')
 								->dateTime('M d, Y H:i')

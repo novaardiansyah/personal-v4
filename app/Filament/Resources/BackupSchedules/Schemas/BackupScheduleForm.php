@@ -100,7 +100,7 @@ class BackupScheduleForm
 					]),
 
 				Section::make()
-					->description('Interval & Retention')
+					->description('Interval & Limits')
 					->collapsible()
 					->columnSpan(['sm' => 3, 'md' => 1])
 					->columns(1)
@@ -126,11 +126,17 @@ class BackupScheduleForm
 							->label('Next Backup At')
 							->native(false)
 							->default(fn() => now()->addDays(3)->format('Y-m-d H:i:s')),
-						TextInput::make('retention_days')
-							->label('Retention Days')
+						TextInput::make('count_backup')
+							->label('Backup Count')
+							->numeric()
+							->default(0)
+							->disabled()
+							->dehydrated(false),
+						TextInput::make('max_count_backup')
+							->label('Max Backup Count')
 							->numeric()
 							->required()
-							->default(3)
+							->default(5)
 							->minValue(1),
 						Toggle::make('is_enabled')
 							->label('Enabled')

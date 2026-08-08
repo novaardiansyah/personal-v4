@@ -6,6 +6,7 @@ use App\Enums\BackupScheduleIntervalUnit;
 use App\Enums\BackupType;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
 use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
+use App\Filament\Resources\BackupSchedules\Actions\SyncCountBackupAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -91,11 +92,12 @@ class BackupSchedulesTable
           ->badge()
           ->color('info')
           ->toggleable(),
-        TextColumn::make('retention_days')
-          ->label('Retention')
-          ->formatStateUsing(fn($state) => "{$state} days")
+        TextColumn::make('count_backup')
+          ->label('Count')
+          ->getStateUsing(fn($record) => "{$record->count_backup}/{$record->max_count_backup}")
+          ->badge()
           ->sortable()
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
         IconColumn::make('is_enabled')
           ->label('Enabled')
           ->boolean()
@@ -111,7 +113,7 @@ class BackupSchedulesTable
           ->dateTime('M d, Y H:i')
 					->sinceTooltip()
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')
           ->dateTime()
 					->sinceTooltip()
@@ -147,6 +149,7 @@ class BackupSchedulesTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
+          SyncCountBackupAction::make(),
           EnableDisableAction::make(),
           ReplicateAction::make(),
           DeleteAction::make(),
