@@ -496,8 +496,14 @@ function normalizeValidationErrors(array $errors): array
 
 function sizeFormat(float $size): string
 {
+  if ($size <= 0) {
+    return '0 B';
+  }
+
   $units = ['B', 'KB', 'MB', 'GB', 'TB'];
-  $i = (int) floor(log($size, 1024));
+  $i     = (int) floor(log($size, 1024));
+  $i     = min($i, count($units) - 1);
+
   return round($size / pow(1024, $i), 2) . ' ' . $units[$i];
 }
 

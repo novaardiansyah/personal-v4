@@ -6,7 +6,7 @@ use App\Enums\BackupScheduleIntervalUnit;
 use App\Enums\BackupType;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
 use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
-use App\Filament\Resources\BackupSchedules\Actions\SyncCountBackupAction;
+use App\Filament\Resources\BackupSchedules\Actions\SyncBackupAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -98,6 +98,11 @@ class BackupSchedulesTable
           ->badge()
           ->sortable()
           ->toggleable(),
+        TextColumn::make('sum_file_size')
+          ->label('Total Size')
+          ->formatStateUsing(fn($state) => sizeFormat(floatval($state)))
+          ->sortable()
+          ->toggleable(),
         IconColumn::make('is_enabled')
           ->label('Enabled')
           ->boolean()
@@ -149,7 +154,7 @@ class BackupSchedulesTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
-          SyncCountBackupAction::make(),
+          SyncBackupAction::make(),
           EnableDisableAction::make(),
           ReplicateAction::make(),
           DeleteAction::make(),

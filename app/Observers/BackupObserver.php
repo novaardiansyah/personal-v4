@@ -59,8 +59,13 @@ class BackupObserver
     $schedule = $backup->backupJob?->backupSchedule;
 
     if ($schedule) {
-      $count = $schedule->backups()->count();
-      $schedule->update(['count_backup' => $count]);
+      $count   = $schedule->backups()->count();
+      $sumSize = (int) $schedule->backups()->sum('file_size');
+
+      $schedule->update([
+        'count_backup'  => $count,
+        'sum_file_size' => $sumSize,
+      ]);
     }
   }
 

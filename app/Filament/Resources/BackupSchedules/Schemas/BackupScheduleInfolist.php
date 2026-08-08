@@ -78,6 +78,9 @@ class BackupScheduleInfolist
 								->badge(),
 							TextEntry::make('count_backup')
 								->label('Backup Count'),
+							TextEntry::make('sum_file_size')
+								->label('Total File Size')
+								->formatStateUsing(fn($state) => sizeFormat(floatval($state))),
 							TextEntry::make('max_count_backup')
 								->label('Max Backup Count'),
 							TextEntry::make('next_backup_at')
