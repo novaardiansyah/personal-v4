@@ -8,6 +8,7 @@ use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupScheduleObserver::class])]
@@ -31,7 +32,8 @@ class BackupSchedule extends Model
     'keep_local_backup',
     'is_sync_cloud',
     'filename_pattern',
-    'retention_days',
+    'count_backup',
+    'max_count_backup',
     'interval_value',
     'interval_unit',
     'next_backup_at',
@@ -53,7 +55,8 @@ class BackupSchedule extends Model
     'keep_local_backup'      => 'boolean',
     'is_sync_cloud'          => 'boolean',
     'filename_pattern'       => 'string',
-    'retention_days'         => 'integer',
+    'count_backup'           => 'integer',
+    'max_count_backup'       => 'integer',
     'interval_value'         => 'integer',
     'interval_unit'          => BackupScheduleIntervalUnit::class,
     'next_backup_at'         => 'datetime',
@@ -70,6 +73,11 @@ class BackupSchedule extends Model
   public function backupJobs(): HasMany
   {
     return $this->hasMany(BackupJob::class);
+  }
+
+  public function backups(): HasManyThrough
+  {
+    return $this->hasManyThrough(Backup::class, BackupJob::class);
   }
 
 	public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
