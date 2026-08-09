@@ -43,6 +43,11 @@ class BackupScheduleInfolist
 								->label('Source Path')
 								->copyable()
 								->placeholder('N/A'),
+							TextEntry::make('include')
+								->label('Include')
+								->badge()
+								->separator(', ')
+								->placeholder('None'),
 							TextEntry::make('exclude')
 								->label('Exclude')
 								->badge()

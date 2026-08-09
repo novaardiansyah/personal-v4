@@ -26,6 +26,7 @@ class BackupJobResource extends JsonResource
       'drivers'                => $this->backupSchedule?->drivers,
       'database_name'          => $this->backupSchedule?->database_name,
       'source_path'            => $this->backupSchedule?->source_path,
+      'include'                => $this->backupSchedule?->include ?? [],
       'exclude'                => $this->backupSchedule?->exclude ?? [],
       'destination_path'       => $this->backupSchedule?->local_destination_path,
       'keep_local_backup'      => (bool) ($this->backupSchedule?->keep_local_backup ?? true),
