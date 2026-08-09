@@ -15,6 +15,10 @@ class BackupScheduleObserver
     if (empty($backupSchedule->uid)) {
       $backupSchedule->uid = (string) Str::uuid7();
     }
+
+    if (empty($backupSchedule->local_destination_path)) {
+      $backupSchedule->local_destination_path = '/www/backup/sysadmin/others';
+    }
   }
 
   public function creating(BackupSchedule $backupSchedule): void

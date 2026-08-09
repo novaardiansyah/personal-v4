@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupSchedules\Actions;
 
+use App\Filament\Resources\BackupSchedules\BackupScheduleResource;
 use App\Models\BackupSchedule;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
@@ -18,7 +19,7 @@ class ReplicateAction
       ->requiresConfirmation()
       ->modalHeading('Replicate Backup Schedule')
       ->modalDescription('Are you sure you want to replicate this backup schedule?')
-      ->action(function (BackupSchedule $record): void {
+      ->action(function (BackupSchedule $record, Action $action): void {
         $replica             = $record->replicate();
         $replica->name       = "{$record->name} (copy)";
         $replica->is_enabled = false;
@@ -30,6 +31,8 @@ class ReplicateAction
           ->title('Backup Schedule Replicated')
           ->body('Backup schedule has been replicated successfully.')
           ->send();
+
+        $action->redirect(BackupScheduleResource::getUrl('edit', ['record' => $replica]));
       });
   }
 }

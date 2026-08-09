@@ -84,10 +84,10 @@ class BackupScheduleForm
 									->visible(fn(Get $get): bool => !static::isDatabaseType($get('type'))),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')
+									->default('/www/backup/sysadmin/others')
 									->placeholder('/www/backup/sysadmin/others')
 									->datalist(['/www/backup/sysadmin/others', '/www/backup/sysadmin/projects', '/www/backup/sysadmin/database'])
-									->autocomplete(false)
-									->required(),
+									->autocomplete(false),
 								Grid::make(3)
 									->schema([
 										Toggle::make('keep_local_backup')
