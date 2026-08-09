@@ -70,11 +70,17 @@ class BackupScheduleForm
 									->placeholder('my_database')
 									->required(fn(Get $get): bool => static::isDatabaseType($get('type')))
 									->visible(fn(Get $get): bool => static::isDatabaseType($get('type'))),
+								TagsInput::make('include')
+									->label('Include Files/Directories')
+									->placeholder('Relative to your source path above.')
+									->separator(',')
+									->helperText('Only include files or directories listed. Leave empty to include all files or directories.')
+									->visible(fn(Get $get): bool => !static::isDatabaseType($get('type'))),
 								TagsInput::make('exclude')
 									->label('Exclude Files/Directories')
-									->placeholder('Enter directory or file patterns, separated by enter.')
+									->placeholder('Relative to your source path above.')
 									->separator(',')
-									->helperText('Press Enter to add a new option.')
+									->helperText('Files or directories listed here will be excluded from the backup.')
 									->visible(fn(Get $get): bool => !static::isDatabaseType($get('type'))),
 								TextInput::make('local_destination_path')
 									->label('Local Destination Path')

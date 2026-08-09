@@ -61,6 +61,11 @@ class BackupSchedulesTable
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('include')
+          ->label('Include')
+          ->badge()
+          ->separator(', ')
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('exclude')
           ->label('Exclude')
           ->badge()
