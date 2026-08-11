@@ -74,13 +74,13 @@ class CleanExcessBackupsJob implements ShouldQueue
     if ($totalDeletedFiles > 0) {
       $formattedSize = sizeFormat((float) $totalDeletedSize);
 
-      $message = "Pembersihan Backup (CleanExcessBackupsJob)\n\n"
-        . "Total file dihapus: {$totalDeletedFiles}\n"
-        . "Total size terhapus: {$formattedSize}";
+      $message = "Schedule Backup Cleanup\n\n"
+        . "Total files deleted: {$totalDeletedFiles}\n"
+        . "Total size deleted: {$formattedSize}";
     } else {
-      $message = "Pembersihan Backup (CleanExcessBackupsJob)\n\n"
-        . "Pengecekan pembersihan backup telah berjalan. Tidak ada file backup berlebih yang dihapus.\n"
-        . "Pengecekan selanjutnya akan dilakukan sesuai jadwal.";
+      $message = "Schedule Backup Cleanup\n\n"
+        . "Backup cleanup check completed. No excess backup files were deleted.\n\n"
+        . "Next check will run according to schedule.";
     }
 
     sendTelegramNotification($message);
