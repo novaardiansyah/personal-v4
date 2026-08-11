@@ -6,7 +6,6 @@ use App\Filament\Resources\Subscriptions\Actions\PauseResumeAction;
 use App\Filament\Resources\Subscriptions\Actions\MarkAsPaidAction;
 use App\Filament\Resources\Subscriptions\Filters\SubscriptionsFilter;
 use App\Models\Setting;
-use App\Models\Subscription;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;

@@ -49,7 +49,7 @@ class MarkAsPaidAction
             'user_id'             => auth()->id(),
             'type_id'             => PaymentType::EXPENSE,
             'payment_account_id'  => $data['payment_account_id'],
-            'name'                => 'Subscription: ' . $record->name,
+            'name'                => "Subscription: {$record->name} ({$record->code})",
             'amount'              => $data['amount'],
             'date'                => Carbon::now()->format('Y-m-d'),
           ]);
