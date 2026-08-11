@@ -96,7 +96,8 @@ class BackupObserver
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
     $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
 
-    $text = "name: {$scheduleName}\n"
+    $text = "Schedule Backup Report\n\n" 
+			. "name: {$scheduleName}\n"
       . "size: {$fileSize}\n"
       . "type: {$type}\n"
       . "duration: {$duration}\n"
