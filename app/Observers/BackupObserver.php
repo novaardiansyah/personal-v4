@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
+use App\Enums\BackupStatus;
+use App\Enums\BackupType;
 use App\Models\Backup;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -29,12 +31,17 @@ class BackupObserver
   {
     $this->_log('Created', $backup);
     $this->_syncScheduleCount($backup);
+    $this->_sendTelegramNotification($backup);
   }
 
   public function updated(Backup $backup): void
   {
     $this->_log('Updated', $backup);
     $this->_syncScheduleCount($backup);
+
+    if ($backup->wasChanged('status')) {
+      $this->_sendTelegramNotification($backup);
+    }
   }
 
   public function deleted(Backup $backup): void
@@ -70,6 +77,37 @@ class BackupObserver
     }
   }
 
+  private function _sendTelegramNotification(Backup $backup): void
+  {
+    $statusVal = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
+
+    if (!in_array($statusVal, ['success', 'failed'], true)) {
+      return;
+    }
+
+    $backup->loadMissing('backupJob.backupSchedule');
+
+    $scheduleName = $backup->backupJob?->backupSchedule?->name ?? '-';
+    $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
+    $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
+    $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
+    $status       = $statusVal;
+    $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
+    $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
+    $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
+
+    $text = "name={$scheduleName}\n"
+      . "size={$fileSize}\n"
+      . "type={$type}\n"
+      . "duration: {$duration}\n"
+      . "status: {$status}\n"
+      . "started at: {$startedAt}\n"
+      . "completed at: {$completedAt}\n"
+      . "message: {$message}";
+
+    sendTelegramNotification($text);
+  }
+
   private function _log(string $event, Backup $backup): void
   {
     saveActivityLog([
@@ -80,3 +118,4 @@ class BackupObserver
     ], $backup);
   }
 }
+
