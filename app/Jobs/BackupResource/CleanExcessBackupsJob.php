@@ -15,7 +15,10 @@ class CleanExcessBackupsJob implements ShouldQueue
 
   public function handle(): void
   {
-    BackupSchedule::chunk(5, function ($schedules): void {
+    $totalDeletedFiles = 0;
+    $totalDeletedSize  = 0;
+
+    BackupSchedule::chunk(5, function ($schedules) use (&$totalDeletedFiles, &$totalDeletedSize): void {
       foreach ($schedules as $schedule) {
         $maxCount = (int) ($schedule->max_count_backup ?? 5);
 
@@ -46,6 +49,9 @@ class CleanExcessBackupsJob implements ShouldQueue
             $this->deleteCloudFile($backup->cloud_file_path);
             $this->deleteLocalFile($backup->file_path);
 
+            $totalDeletedFiles++;
+            $totalDeletedSize += (int) ($backup->file_size ?? 0);
+
             $backupJob = $backup->backupJob;
 
             $backup->delete();
@@ -59,6 +65,25 @@ class CleanExcessBackupsJob implements ShouldQueue
         }
       }
     });
+
+    $this->sendNotification($totalDeletedFiles, $totalDeletedSize);
+  }
+
+  private function sendNotification(int $totalDeletedFiles, int $totalDeletedSize): void
+  {
+    if ($totalDeletedFiles > 0) {
+      $formattedSize = sizeFormat((float) $totalDeletedSize);
+
+      $message = "Pembersihan Backup (CleanExcessBackupsJob)\n\n"
+        . "Total file dihapus: {$totalDeletedFiles}\n"
+        . "Total size terhapus: {$formattedSize}";
+    } else {
+      $message = "Pembersihan Backup (CleanExcessBackupsJob)\n\n"
+        . "Pengecekan pembersihan backup telah berjalan. Tidak ada file backup berlebih yang dihapus.\n"
+        . "Pengecekan selanjutnya akan dilakukan sesuai jadwal.";
+    }
+
+    sendTelegramNotification($message);
   }
 
   private function deleteCloudFile(?string $cloudPath): void
