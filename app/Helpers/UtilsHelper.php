@@ -75,8 +75,6 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
     </html>
   ');
 
-  $mpdf->SetHTMLFooter(view('layout.footer')->render());
-
   if ($preview) {
     $mpdf->Output('', 'I'); // ! Output to browser for preview
     return [
