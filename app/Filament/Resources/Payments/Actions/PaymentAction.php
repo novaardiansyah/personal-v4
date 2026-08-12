@@ -34,6 +34,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
+use Filament\Resources\Pages\ListRecords;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Utilities\Get;
@@ -151,6 +152,10 @@ class PaymentAction
       ->title($data['approve_draft'] ? 'Draft Approved!' : 'Draft Updated!')
       ->body($data['approve_draft'] ? ($data['balance_mutation'] ? 'Draft has been approved and balance has been mutated.' : 'Draft has been approved.') : 'Draft has been updated successfully.')
       ->send();
+
+    if (!$action->getLivewire() instanceof ListRecords) {
+      $action->redirect(PaymentResource::getUrl('index'));
+    }
   }
   // ! End ManageDraft
 

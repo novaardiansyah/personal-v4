@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Payments\Pages;
 
+use App\Filament\Resources\Payments\Actions\PaymentAction;
 use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -20,6 +21,9 @@ class EditPayment extends EditRecord
     return [
 			ViewAction::make(),
 			CreateAction::make(),
+			PaymentAction::manageDraft()
+				->color('primary')
+				->icon(null),
       DeleteAction::make(),
       ForceDeleteAction::make(),
       RestoreAction::make(),
@@ -36,7 +40,6 @@ class EditPayment extends EditRecord
   protected function getRedirectUrl(): string
   {
     $resource = static::getResource();
-    $record = $this->getRecord();
-    return $resource::getUrl('edit', ['record' => $record]);
+    return $resource::getUrl('index');
   }
 }
