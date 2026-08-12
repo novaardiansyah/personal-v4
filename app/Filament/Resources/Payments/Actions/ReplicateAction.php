@@ -32,7 +32,6 @@ class ReplicateAction
 			->label('Replicate')
 			->icon(Heroicon::OutlinedClipboardDocument)
 			->color('warning')
-			->visible(fn(Payment $record): bool => $record->is_draft === true)
 			->modalHeading(fn(Payment $record): string => 'Replicate Payment ' . $record->code)
 			->modalWidth(Width::Large)
 			->schema([
@@ -69,8 +68,9 @@ class ReplicateAction
 				foreach ($data['dates'] as $dateEntry) {
 					$replicated = $record->replicate();
 
-					$replicated->date = $dateEntry['date'];
-					$replicated->name = $data['name'];
+					$replicated->is_draft = true;
+					$replicated->date     = $dateEntry['date'];
+					$replicated->name     = $data['name'];
 					$replicated->save();
 
 					foreach ($record->items as $item) {
