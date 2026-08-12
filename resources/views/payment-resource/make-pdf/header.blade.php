@@ -18,14 +18,14 @@
 <table class="table table-bordered table-sm" style="margin-top: 15px;">
   <thead>
     <tr>
-      <th scope="col">#</th>
-      <th scope="col">ID Transaksi</th>
-      <th scope="col">Tanggal</th>
+      <th scope="col" style="text-align: center;">#</th>
+      <th scope="col" style="white-space: nowrap;">ID Transaksi</th>
+      <th scope="col" style="white-space: nowrap;">Tanggal</th>
       <th scope="col">Akun</th>
-      <th scope="col">Catatan</th>
-      <th scope="col">Transfer</th>
-      <th scope="col">Pemasukan</th>
-      <th scope="col">Pengeluaran</th>
+      <th scope="col" style="width: 300px;">Catatan</th>
+      <th scope="col" style="white-space: nowrap; text-align: right;">Transfer</th>
+      <th scope="col" style="white-space: nowrap; text-align: right;">Pemasukan</th>
+      <th scope="col" style="white-space: nowrap; text-align: right;">Pengeluaran</th>
     </tr>
   </thead>
   <tbody>

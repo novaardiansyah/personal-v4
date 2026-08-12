@@ -226,7 +226,7 @@ class PaymentService
 		}
 
 		// ! Setup pdf attachment
-		$mpdf          = new \Mpdf\Mpdf();
+		$mpdf          = new \Mpdf\Mpdf(['orientation' => 'L']);
 		$rowIndex      = 1;
 		$totalExpense  = 0;
 		$totalIncome   = 0;
@@ -248,6 +248,7 @@ class PaymentService
 			->when($is_draft, function ($query) {
 				$query->where('is_draft', true);
 			})
+			->with(['payment_account', 'payment_account_to', 'items'])
 			->chunk(200, function ($list) use ($mpdf, &$rowIndex, &$totalExpense, &$totalIncome, &$totalTransfer) {
 				foreach ($list as $record) {
 					$record->income  = (int) $record->type_id === PaymentType::INCOME ? $record->amount : 0;
@@ -279,13 +280,13 @@ class PaymentService
       <tfoot>
         <tr>
           <td colspan="5" style="text-align: center; font-weight: bold;">Total Transaksi</td>
-          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalTransfer) . '</td>
-          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalIncome) . '</td>
-          <td style="font-weight: bold; text-align: right;">' . toIndonesianCurrency($totalExpense) . '</td>
+          <td style="font-weight: bold; text-align: right; white-space: nowrap;">' . toIndonesianCurrency($totalTransfer) . '</td>
+          <td style="font-weight: bold; text-align: right; white-space: nowrap;">' . toIndonesianCurrency($totalIncome) . '</td>
+          <td style="font-weight: bold; text-align: right; white-space: nowrap;">' . toIndonesianCurrency($totalExpense) . '</td>
         </tr>
         <tr>
           <td colspan="5" style="text-align: center; font-weight: bold;">Total Sisa Saldo Akhir</td>
-          <td colspan="3" style="text-align: center; font-weight: bold;">' . toIndonesianCurrency($totalIncome - $totalExpense) . '</td>
+          <td colspan="3" style="text-align: center; font-weight: bold; white-space: nowrap;">' . toIndonesianCurrency($totalIncome - $totalExpense) . '</td>
         </tr>
       </tfoot>
     ');
