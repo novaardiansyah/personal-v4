@@ -14,6 +14,7 @@
 
 namespace App\Filament\Resources\Payments\Actions;
 
+use App\Filament\Resources\Payments\PaymentResource;
 use App\Models\Payment;
 use Carbon\Carbon;
 use Filament\Actions\Action;
@@ -62,8 +63,9 @@ class ReplicateAction
 					'name' => $record->name,
 				];
 			})
-			->action(function (Payment $record, array $data): void {
-				$count = 0;
+			->action(function (Payment $record, array $data, Action $action): void {
+				$count          = 0;
+				$lastReplicated = null;
 
 				foreach ($data['dates'] as $dateEntry) {
 					$replicated = $record->replicate();
@@ -82,6 +84,7 @@ class ReplicateAction
 						]);
 					}
 
+					$lastReplicated = $replicated;
 					$count++;
 				}
 
@@ -90,6 +93,10 @@ class ReplicateAction
 					->title('Payment Replicated')
 					->body("Payment has been replicated x{$count} successfully.")
 					->send();
+
+				if ($count === 1 && $lastReplicated) {
+					$action->redirect(PaymentResource::getUrl('edit', ['record' => $lastReplicated]));
+				}
 			});
 	}
 }
