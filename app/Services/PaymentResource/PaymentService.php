@@ -227,6 +227,7 @@ class PaymentService
 
 		// ! Setup pdf attachment
 		$mpdf          = new \Mpdf\Mpdf(['orientation' => 'L']);
+		$mpdf->SetHTMLFooter(view('layout.footer')->render());
 		$rowIndex      = 1;
 		$totalExpense  = 0;
 		$totalIncome   = 0;
