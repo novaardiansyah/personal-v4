@@ -25,6 +25,8 @@ class ChatBot extends Page
   public ?string $activeSessionId = null;
   public array   $sessions        = [];
   public array   $messages        = [];
+  public ?string $editingSessionId = null;
+  public string  $editingTitle     = '';
   public bool    $isSidebarOpen   = true;
   public bool    $isGenerating    = false;
 
@@ -47,7 +49,8 @@ class ChatBot extends Page
 
   public function createNewSession(): void
   {
-    $newSession                              = $this->makeNewSessionObject('New Conversation');
+    $count                                  = count($this->sessions) + 1;
+    $newSession                             = $this->makeNewSessionObject("Chat #{$count}");
     $this->sessions[$newSession['id']]      = $newSession;
     $this->activeSessionId                  = $newSession['id'];
     $this->messages                         = [];
@@ -56,10 +59,43 @@ class ChatBot extends Page
     $this->persistSessions();
 
     Notification::make()
-      ->title('New chat session started')
+      ->title('New chat session created')
       ->success()
       ->duration(2000)
       ->send();
+  }
+
+  public function editSession(string $sessionId): void
+  {
+    if (isset($this->sessions[$sessionId])) {
+      $this->editingSessionId = $sessionId;
+      $this->editingTitle     = $this->sessions[$sessionId]['title'] ?? '';
+    }
+  }
+
+  public function saveSessionTitle(): void
+  {
+    $trimmed = trim($this->editingTitle);
+
+    if ($trimmed !== '' && $this->editingSessionId && isset($this->sessions[$this->editingSessionId])) {
+      $this->sessions[$this->editingSessionId]['title'] = $trimmed;
+      $this->persistSessions();
+
+      Notification::make()
+        ->title('Chat title updated')
+        ->success()
+        ->duration(2000)
+        ->send();
+    }
+
+    $this->editingSessionId = null;
+    $this->editingTitle     = '';
+  }
+
+  public function cancelEditSession(): void
+  {
+    $this->editingSessionId = null;
+    $this->editingTitle     = '';
   }
 
   public function selectSession(string $sessionId): void
