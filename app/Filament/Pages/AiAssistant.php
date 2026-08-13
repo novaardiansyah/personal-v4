@@ -8,36 +8,36 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use UnitEnum;
 
-class ChatBot extends Page
+class AiAssistant extends Page
 {
-  protected static \BackedEnum | string | null $navigationIcon  = 'heroicon-o-chat-bubble-left-right';
+  protected static \BackedEnum | string | null $navigationIcon  = 'heroicon-o-sparkles';
   protected static string | UnitEnum | null     $navigationGroup = 'Productivity';
   protected static ?int                         $navigationSort  = 1;
-  protected static ?string                      $title           = 'Chat Bot';
-  protected static ?string                      $slug            = 'chat-bot';
+  protected static ?string                      $title           = 'AI Assistant';
+  protected static ?string                      $slug            = 'ai-assistant';
 
-  protected string $view = 'filament.pages.chat-bot';
+  protected string $view = 'filament.pages.ai-assistant';
 
-  public string  $userMessage     = '';
-  public string  $selectedModel   = 'gpt-4o';
-  public string  $systemPersona   = 'general';
-  public string  $searchQuery     = '';
-  public ?string $activeSessionId = null;
-  public array   $sessions        = [];
-  public array   $messages        = [];
+  public string  $userMessage       = '';
+  public string  $selectedModel     = 'gpt-4o';
+  public string  $systemPersona     = 'general';
+  public string  $searchQuery       = '';
+  public ?string $activeSessionId   = null;
+  public array   $sessions          = [];
+  public array   $messages          = [];
   public ?string $editingSessionId = null;
-  public string  $editingTitle     = '';
-  public bool    $isSidebarOpen   = true;
-  public bool    $isGenerating    = false;
+  public string  $editingTitle       = '';
+  public bool    $isSidebarOpen     = true;
+  public bool    $isGenerating      = false;
 
   public function mount(): void
   {
-    $stored = session('chatbot_sessions', []);
+    $stored = session('ai_assistant_sessions', session('chatbot_sessions', []));
 
     if (empty($stored)) {
       $initialSession = $this->makeNewSessionObject('New Conversation');
       $this->sessions = [$initialSession['id'] => $initialSession];
-      session(['chatbot_sessions' => $this->sessions]);
+      session(['ai_assistant_sessions' => $this->sessions]);
     } else {
       $this->sessions = $stored;
     }
@@ -50,7 +50,7 @@ class ChatBot extends Page
   public function createNewSession(): void
   {
     $count                                  = count($this->sessions) + 1;
-    $newSession                             = $this->makeNewSessionObject("Chat #{$count}");
+    $newSession                             = $this->makeNewSessionObject("Conversation #{$count}");
     $this->sessions[$newSession['id']]      = $newSession;
     $this->activeSessionId                  = $newSession['id'];
     $this->messages                         = [];
@@ -59,7 +59,7 @@ class ChatBot extends Page
     $this->persistSessions();
 
     Notification::make()
-      ->title('New chat session created')
+      ->title('New conversation started')
       ->success()
       ->duration(2000)
       ->send();
@@ -82,7 +82,7 @@ class ChatBot extends Page
       $this->persistSessions();
 
       Notification::make()
-        ->title('Chat title updated')
+        ->title('Title updated')
         ->success()
         ->duration(2000)
         ->send();
@@ -137,6 +137,7 @@ class ChatBot extends Page
     $this->messages        = [];
     $this->activeSessionId = null;
 
+    session()->forget('ai_assistant_sessions');
     session()->forget('chatbot_sessions');
     $this->createNewSession();
   }
@@ -166,11 +167,11 @@ class ChatBot extends Page
       'created_at' => now()->format('H:i'),
     ];
 
-    $this->messages[] = $userMsg;
-    $this->userMessage = '';
+    $this->messages[]  = $userMsg;
+    $this->userMessage  = '';
     $this->isGenerating = true;
 
-    if (count($this->messages) === 1 || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
+    if (count($this->messages) === 1 || str_starts_with($this->sessions[$this->activeSessionId]['title'], 'Conversation #') || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
       $newTitle                                              = Str::limit($trimmed, 30);
       $this->sessions[$this->activeSessionId]['title']      = $newTitle;
     }
@@ -260,7 +261,7 @@ class ChatBot extends Page
 
   private function persistSessions(): void
   {
-    session(['chatbot_sessions' => $this->sessions]);
+    session(['ai_assistant_sessions' => $this->sessions]);
   }
 
   private function fetchAiResponse(string $prompt): array|string
@@ -354,7 +355,7 @@ class ChatBot extends Page
     }
 
     if (str_contains($lower, 'hello') || str_contains($lower, 'hi') || str_contains($lower, 'halo') || str_contains($lower, 'hey')) {
-      return "Hello! I am your AI Chat Assistant inside **Personal V4**.\n\n" .
+      return "Hello! I am your **AI Assistant** inside **Personal V4**.\n\n" .
         "I can help you with:\n" .
         "- Writing PHP & Laravel code snippets\n" .
         "- Designing Filament v5 components\n" .
