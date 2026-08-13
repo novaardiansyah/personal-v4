@@ -5,7 +5,9 @@ namespace App\Filament\Pages;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Livewire\Attributes\On;
 use UnitEnum;
 
 class AiAssistant extends Page
@@ -167,28 +169,71 @@ class AiAssistant extends Page
       'created_at' => now()->format('H:i'),
     ];
 
-    $this->messages[]  = $userMsg;
+    $botPlaceholderMsg = [
+      'id'             => Str::uuid()->toString(),
+      'role'           => 'assistant',
+      'content'        => 'Thinking...',
+      'is_placeholder' => true,
+      'created_at'     => now()->format('H:i'),
+    ];
+
+    $this->messages[] = $userMsg;
+    $this->messages[] = $botPlaceholderMsg;
+
     $this->userMessage  = '';
     $this->isGenerating = true;
 
-    if (count($this->messages) === 1 || str_starts_with($this->sessions[$this->activeSessionId]['title'], 'Conversation #') || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
+    if (count($this->messages) <= 2 || str_starts_with($this->sessions[$this->activeSessionId]['title'], 'Conversation #') || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
       $newTitle                                              = Str::limit($trimmed, 30);
       $this->sessions[$this->activeSessionId]['title']      = $newTitle;
     }
 
-    $replyText = $this->fetchAiResponse($trimmed);
+    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
+    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
 
-    $botMsg = [
-      'id'         => Str::uuid()->toString(),
-      'role'       => 'assistant',
-      'content'    => $replyText,
-      'created_at' => now()->format('H:i'),
-    ];
+    $this->persistSessions();
 
-    $this->messages[]                                           = $botMsg;
-    $this->sessions[$this->activeSessionId]['messages']        = $this->messages;
-    $this->sessions[$this->activeSessionId]['updated_at']      = now()->format('H:i');
-    $this->isGenerating                                         = false;
+    $this->dispatch('fetch-ai-response');
+  }
+
+  #[On('fetch-ai-response')]
+  public function processAiResponse(): void
+  {
+    if (empty($this->messages)) {
+      return;
+    }
+
+    $userPrompt = '';
+    for ($i = count($this->messages) - 1; $i >= 0; $i--) {
+      if ($this->messages[$i]['role'] === 'user') {
+        $userPrompt = $this->messages[$i]['content'];
+        break;
+      }
+    }
+
+    if (empty($userPrompt)) {
+      $this->isGenerating = false;
+      return;
+    }
+
+    $replyText = $this->fetchAiResponse($userPrompt);
+
+    $lastIndex = count($this->messages) - 1;
+    if ($lastIndex >= 0 && $this->messages[$lastIndex]['role'] === 'assistant') {
+      $this->messages[$lastIndex]['content']        = $replyText;
+      $this->messages[$lastIndex]['is_placeholder'] = false;
+    } else {
+      $this->messages[] = [
+        'id'         => Str::uuid()->toString(),
+        'role'       => 'assistant',
+        'content'    => $replyText,
+        'created_at' => now()->format('H:i'),
+      ];
+    }
+
+    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
+    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
+    $this->isGenerating                                   = false;
 
     $this->persistSessions();
   }
@@ -211,22 +256,22 @@ class AiAssistant extends Page
     $lastUserMsg = end($this->messages);
 
     if ($lastUserMsg['role'] === 'user') {
-      $this->isGenerating = true;
-      $replyText          = $this->fetchAiResponse($lastUserMsg['content']);
-
-      $botMsg = [
-        'id'         => Str::uuid()->toString(),
-        'role'       => 'assistant',
-        'content'    => $replyText,
-        'created_at' => now()->format('H:i'),
+      $botPlaceholderMsg = [
+        'id'             => Str::uuid()->toString(),
+        'role'           => 'assistant',
+        'content'        => 'Thinking...',
+        'is_placeholder' => true,
+        'created_at'     => now()->format('H:i'),
       ];
 
-      $this->messages[]                                           = $botMsg;
-      $this->sessions[$this->activeSessionId]['messages']        = $this->messages;
-      $this->sessions[$this->activeSessionId]['updated_at']      = now()->format('H:i');
-      $this->isGenerating                                         = false;
+      $this->messages[]   = $botPlaceholderMsg;
+      $this->isGenerating = true;
 
+      $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
+      $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
       $this->persistSessions();
+
+      $this->dispatch('fetch-ai-response');
     }
   }
 
@@ -266,43 +311,50 @@ class AiAssistant extends Page
 
   private function fetchAiResponse(string $prompt): array|string
   {
-    $openAiKey = getSetting('openai_api_key', env('OPENAI_API_KEY'));
-    $geminiKey = getSetting('gemini_api_key', env('GEMINI_API_KEY'));
+    $chatbotUrl         = env('CHATBOT_API_URL');
+    $chatbotKey         = env('CHATBOT_API_KEY');
+    $chatbotModel       = env('CHATBOT_MODEL');
+    $chatbotMaxTokens   = (int) env('CHATBOT_MAX_TOKENS', 3072);
+    $chatbotTemperature = (float) env('CHATBOT_TEMPERATURE', 0.3);
 
-    if (!empty($openAiKey)) {
+    if (!empty($chatbotKey) && !empty($chatbotUrl)) {
       try {
-        $response = Http::withToken($openAiKey)
-          ->timeout(20)
-          ->post('https://api.openai.com/v1/chat/completions', [
-            'model'    => $this->selectedModel === 'gpt-4o' ? 'gpt-4o' : 'gpt-3.5-turbo',
-            'messages' => array_map(fn($m) => [
-              'role'    => $m['role'],
-              'content' => $m['content'],
-            ], array_slice($this->messages, -10)),
-          ]);
+        $endpoint = rtrim($chatbotUrl, '/') . '/chat/completions';
+        $payload  = [
+          'model'       => $chatbotModel,
+          'max_tokens'  => $chatbotMaxTokens,
+          'temperature' => $chatbotTemperature,
+          'messages'    => array_map(fn($m) => [
+            'role'    => $m['role'],
+            'content' => $m['content'],
+          ], array_slice($this->messages, -10)),
+        ];
+
+        $response = Http::withToken($chatbotKey)
+          ->timeout(30)
+          ->post($endpoint, $payload);
 
         if ($response->successful()) {
-          $data = $response->json();
-          return $data['choices'][0]['message']['content'] ?? 'No response received.';
-        }
-      } catch (\Throwable $e) {
-      }
-    }
+          $rawBody     = $response->body();
+          $cleanedJson = $rawBody;
 
-    if (!empty($geminiKey)) {
-      try {
-        $response = Http::timeout(20)
-          ->post("https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={$geminiKey}", [
-            'contents' => [
-              [
-                'parts' => [['text' => $prompt]],
-              ],
-            ],
-          ]);
+          if (preg_match('/\{[\s\S]*\}/', $rawBody, $matches)) {
+            $cleanedJson = $matches[0];
+          }
 
-        if ($response->successful()) {
-          $data = $response->json();
-          return $data['candidates'][0]['content']['parts'][0]['text'] ?? 'No response generated.';
+          $data = json_decode($cleanedJson, true);
+
+          if (is_array($data)) {
+            $content = $data['choices'][0]['message']['content'] ?? null;
+
+            if (empty($content) && isset($data['choices'][0]['message']['reasoning_content'])) {
+              $content = $data['choices'][0]['message']['reasoning_content'];
+            }
+
+            if (!empty($content)) {
+              return $content;
+            }
+          }
         }
       } catch (\Throwable $e) {
       }
@@ -370,6 +422,6 @@ class AiAssistant extends Page
       "- **Status**: Task processed successfully\n" .
       "- **Persona**: " . ucfirst($this->systemPersona) . "\n" .
       "- **Model**: " . strtoupper($this->selectedModel) . "\n\n" .
-      "You can configure an API key (`OPENAI_API_KEY` or `GEMINI_API_KEY`) in your settings to connect directly to live cloud models!";
+      "Connected via OpenAI-compatible `CHATBOT_API_URL` and `CHATBOT_API_KEY`.";
   }
 }
