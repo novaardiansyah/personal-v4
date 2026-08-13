@@ -2,7 +2,7 @@
   <div style="display: flex; flex-direction: row; gap: 1.5rem; width: 100%; align-items: stretch; flex-wrap: wrap;">
     <div style="flex: 0 0 320px; width: 320px; box-sizing: border-box;">
       <x-filament::section
-        heading="Chat History"
+        heading="History"
         icon="heroicon-o-chat-bubble-left-ellipsis"
       >
         <div
@@ -36,7 +36,7 @@
               <x-filament::input
                 type="text"
                 wire:model.live="searchQuery"
-                placeholder="Search chats..."
+                placeholder="Search conversations..."
               />
             </x-filament::input.wrapper>
           </div>
@@ -135,7 +135,7 @@
 
     <div style="flex: 1 1 0%; min-width: 320px; box-sizing: border-box;">
       <x-filament::section
-        heading="{{ $sessions[$activeSessionId]['title'] ?? 'AI Chat' }}"
+        heading="{{ $sessions[$activeSessionId]['title'] ?? 'AI Assistant' }}"
         icon="heroicon-o-sparkles"
       >
         <div style="display: flex; flex-direction: column; gap: 16px;">
