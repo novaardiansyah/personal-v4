@@ -66,4 +66,12 @@ return [
     'cdn_url'         => env('CDN_URL'),
     'webhook_secret'  => env('WEBHOOK_SECRET'),
   ],
+
+  'ai_assistant' => [
+    'api_url'     => env('CHATBOT_API_URL', 'https://9router.novaardiansyah.id/v1'),
+    'api_key'     => env('CHATBOT_API_KEY'),
+    'model'       => env('CHATBOT_MODEL', 'general-chat'),
+    'max_tokens'  => (int) env('CHATBOT_MAX_TOKENS', 3072),
+    'temperature' => (float) env('CHATBOT_TEMPERATURE', 0.3),
+  ],
 ];

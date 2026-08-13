@@ -311,11 +311,11 @@ class AiAssistant extends Page
 
   private function fetchAiResponse(string $prompt): array|string
   {
-    $chatbotUrl         = env('CHATBOT_API_URL');
-    $chatbotKey         = env('CHATBOT_API_KEY');
-    $chatbotModel       = env('CHATBOT_MODEL');
-    $chatbotMaxTokens   = (int) env('CHATBOT_MAX_TOKENS', 3072);
-    $chatbotTemperature = (float) env('CHATBOT_TEMPERATURE', 0.3);
+    $chatbotUrl         = config('services.ai_assistant.api_url');
+    $chatbotKey         = config('services.ai_assistant.api_key');
+    $chatbotModel       = config('services.ai_assistant.model');
+    $chatbotMaxTokens   = (int) config('services.ai_assistant.max_tokens', 3072);
+    $chatbotTemperature = (float) config('services.ai_assistant.temperature', 0.3);
 
     if (!empty($chatbotKey) && !empty($chatbotUrl)) {
       try {
@@ -365,63 +365,10 @@ class AiAssistant extends Page
 
   private function generateLocalFallbackResponse(string $prompt): string
   {
-    $lower = strtolower($prompt);
-
-    if (str_contains($lower, 'code') || str_contains($lower, 'php') || str_contains($lower, 'laravel') || str_contains($lower, 'filament') || str_contains($lower, 'function')) {
-      return "Here is a clean implementation example based on your request:\n\n" .
-        "```php\n" .
-        "namespace App\\Services;\n\n" .
-        "class AssistantService\n" .
-        "{\n" .
-        "  public function processTask(array \$data): array\n" .
-        "  {\n" .
-        "    \$formatted = array_map(fn(\$item) => textCapitalize(\$item), \$data);\n" .
-        "    return [\n" .
-        "      'status'  => 'success',\n" .
-        "      'payload' => \$formatted,\n" .
-        "    ];\n" .
-        "  }\n" .
-        "}\n" .
-        "```\n\n" .
-        "This adheres to project conventions with 2 spaces indentation and strict vertical operator alignment.";
-    }
-
-    if (str_contains($lower, 'payment') || str_contains($lower, 'finance') || str_contains($lower, 'debt') || str_contains($lower, 'budget') || str_contains($lower, 'currency')) {
-      return "### Financial Assistant Overview\n\n" .
-        "Here are recommendations for managing your finances:\n\n" .
-        "- **Track Daily Expenses**: Register all payments under the `Payments` module.\n" .
-        "- **Currency Format**: All amounts are formatted in Indonesian Rupiah (e.g. `toIndonesianCurrency(1500000)` = `Rp1.500.000,00`).\n" .
-        "- **Debt Installments**: Keep track of scheduled debt pay-offs using recurring reminders.\n\n" .
-        "> Tip: You can check your financial summary in the main **Dashboard** widgets.";
-    }
-
-    if (str_contains($lower, 'email') || str_contains($lower, 'write') || str_contains($lower, 'draft') || str_contains($lower, 'template')) {
-      return "Here is a professional draft for your message:\n\n" .
-        "**Subject:** Important Update Regarding Project Milestone\n\n" .
-        "Dear Team,\n\n" .
-        "I hope this message finds you well. I wanted to share a quick update regarding our current project status. " .
-        "All planned features have been successfully developed and reviewed.\n\n" .
-        "Please let me know if you need any additional clarification.\n\n" .
-        "Best regards,\n" .
-        "**Nova Ardiansyah**";
-    }
-
-    if (str_contains($lower, 'hello') || str_contains($lower, 'hi') || str_contains($lower, 'halo') || str_contains($lower, 'hey')) {
-      return "Hello! I am your **AI Assistant** inside **Personal V4**.\n\n" .
-        "I can help you with:\n" .
-        "- Writing PHP & Laravel code snippets\n" .
-        "- Designing Filament v5 components\n" .
-        "- Financial calculation & payment summaries\n" .
-        "- Drafting emails, notes & documentations\n\n" .
-        "How can I assist you today?";
-    }
-
-    return "Thank you for your prompt: **\"{$prompt}\"**.\n\n" .
-      "As your personal assistant inside **Personal V4**, I am configured in **{$this->systemPersona}** persona mode using model **{$this->selectedModel}**.\n\n" .
-      "### Quick Summary\n" .
-      "- **Status**: Task processed successfully\n" .
-      "- **Persona**: " . ucfirst($this->systemPersona) . "\n" .
-      "- **Model**: " . strtoupper($this->selectedModel) . "\n\n" .
-      "Connected via OpenAI-compatible `CHATBOT_API_URL` and `CHATBOT_API_KEY`.";
+    return "### ⚠️ AI Assistant Service Unavailable\n\n" .
+      "We apologize, but the **AI Assistant** system is currently experiencing issues or has not been properly configured.\n\n" .
+      "- Please contact the **Technical Team** to verify and check the server configuration.\n" .
+      "- Please check back periodically.\n\n" .
+      "> If the issue persists, please reach out to your system administrator.";
   }
 }
