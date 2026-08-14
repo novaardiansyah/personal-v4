@@ -2,8 +2,10 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\AiAssistantContext;
 use App\Models\AiAssistantMessage;
 use App\Models\AiAssistantSession;
+use App\Services\AiAssistant\AiPaymentContextService;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
@@ -526,15 +528,38 @@ class AiAssistant extends Page
 
     if (!empty($chatbotKey) && !empty($chatbotUrl)) {
       try {
-        $endpoint = rtrim($chatbotUrl, '/') . '/chat/completions';
-        $payload  = [
-          'model'       => $chatbotModel,
-          'max_tokens'  => $chatbotMaxTokens,
-          'temperature' => $chatbotTemperature,
-          'messages'    => array_map(fn($m) => [
+        $paymentService        = app(AiPaymentContextService::class);
+        $dynamicPaymentContext = $paymentService->getPaymentContextForUser(getUser()?->id);
+
+        $contextRecord = AiAssistantContext::active()->where('name', 'Payments Assistant')->first()
+          ?? AiAssistantContext::active()->first();
+
+        $systemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
+
+        if (!empty($dynamicPaymentContext)) {
+          $systemPrompt .= "\n\n" . $dynamicPaymentContext;
+        }
+
+        $formattedMessages = [
+          [
+            'role'    => 'system',
+            'content' => $systemPrompt,
+          ],
+        ];
+
+        foreach (array_slice($this->messages, -10) as $m) {
+          $formattedMessages[] = [
             'role'    => $m['role'],
             'content' => $m['content'],
-          ], array_slice($this->messages, -10)),
+          ];
+        }
+
+        $endpoint = rtrim($chatbotUrl, '/') . '/chat/completions';
+        $payload  = [
+          'model'       => $contextRecord?->default_model ?? $chatbotModel,
+          'max_tokens'  => (int) ($contextRecord?->max_tokens ?? $chatbotMaxTokens),
+          'temperature' => (float) ($contextRecord?->temperature ?? $chatbotTemperature),
+          'messages'    => $formattedMessages,
         ];
 
         $response = Http::withToken($chatbotKey)
@@ -565,6 +590,8 @@ class AiAssistant extends Page
               $cost          = (float) ($data['cost'] ?? 0);
 
               $metadata = array_filter([
+                'context_name'              => $contextRecord?->name ?? null,
+                'injected_context'          => $systemPrompt,
                 'response_id'               => $data['id'] ?? null,
                 'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
                 'cost'                      => $data['cost'] ?? null,
