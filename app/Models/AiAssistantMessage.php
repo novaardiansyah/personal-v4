@@ -25,6 +25,7 @@ class AiAssistantMessage extends Model
     'token_completion',
     'token_total',
     'latency_ms',
+    'cost',
     'model_used',
     'status',
     'error_message',
@@ -36,6 +37,7 @@ class AiAssistantMessage extends Model
     'token_completion' => 'integer',
     'token_total'      => 'integer',
     'latency_ms'       => 'integer',
+    'cost'             => 'float',
     'metadata'         => 'array',
   ];
 
@@ -45,6 +47,7 @@ class AiAssistantMessage extends Model
     'token_completion' => 0,
     'token_total'      => 0,
     'latency_ms'       => 0,
+    'cost'             => 0,
     'status'           => 'processing',
   ];
 
