@@ -59,20 +59,45 @@
 
     @include('filament.pages.ai-assistant.markdown-styles')
 
-    <form wire:submit.prevent="sendMessage" style="display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid rgba(128,128,128,0.2);">
-      <div style="flex: 1 1 0%; min-width: 0;">
-        <x-filament::input.wrapper>
-          <x-filament::input
-            type="text"
-            wire:model="userMessage"
-            placeholder="Type a message..."
-          />
-        </x-filament::input.wrapper>
-      </div>
+    <form wire:submit.prevent="sendMessage" style="width: 100%; padding-top: 12px; border-top: 1px solid rgba(128,128,128,0.2);">
+      <div class="relative flex flex-col w-full rounded-xl border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
+        <textarea
+          wire:model="userMessage"
+          rows="1"
+          placeholder="Type a message..."
+          x-data="{
+            resize() {
+              $el.style.height = 'auto';
+              $el.style.height = Math.min(Math.max($el.scrollHeight, 40), 160) + 'px';
+            }
+          }"
+          x-init="
+            $nextTick(() => resize());
+            $watch('$wire.userMessage', (val) => {
+              if (!val) {
+                $el.style.height = '40px';
+              } else {
+                $nextTick(() => resize());
+              }
+            });
+          "
+          @input="resize()"
+          @keydown.enter.exact.prevent="if (!event.isComposing) $wire.sendMessage()"
+          class="w-full resize-none border-none bg-transparent px-4 pt-3 pb-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-0"
+          style="max-height: 160px; min-height: 40px; overflow-y: auto; box-shadow: none;"
+        ></textarea>
 
-      <x-filament::button type="submit" icon="heroicon-o-paper-airplane">
-        Send
-      </x-filament::button>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 12px 8px 16px;">
+          <span class="text-xs text-gray-400">Shift + Enter for new line</span>
+          <x-filament::icon-button
+            type="submit"
+            icon="heroicon-m-paper-airplane"
+            color="primary"
+            size="md"
+            tooltip="Send message (Enter)"
+          />
+        </div>
+      </div>
     </form>
   </div>
 </x-filament::section>
