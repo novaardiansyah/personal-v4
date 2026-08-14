@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\AiAssistantSession;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
@@ -34,31 +35,73 @@ class AiAssistant extends Page
 
   public function mount(): void
   {
-    $stored = session('ai_assistant_sessions', session('chatbot_sessions', []));
+    $user   = getUser();
+    $userId = $user?->id;
 
-    if (empty($stored)) {
-      $initialSession = $this->makeNewSessionObject('New Conversation');
-      $this->sessions = [$initialSession['id'] => $initialSession];
-      session(['ai_assistant_sessions' => $this->sessions]);
+    if ($userId) {
+      $records = AiAssistantSession::forUser($userId)
+        ->latest('last_interacted_at')
+        ->latest('updated_at')
+        ->get();
+
+      if ($records->isEmpty()) {
+        $newSession = AiAssistantSession::create([
+          'user_id'            => $userId,
+          'uuid'               => uuid7(),
+          'title'              => 'New Conversation',
+          'last_interacted_at' => now(),
+        ]);
+        $records = collect([$newSession]);
+      }
     } else {
-      $this->sessions = $stored;
+      $records = collect();
     }
 
-    $firstKey              = array_key_first($this->sessions);
-    $this->activeSessionId = $firstKey;
-    $this->messages        = $this->sessions[$firstKey]['messages'] ?? [];
+    $this->loadSessionsFromDatabase($records);
   }
 
   public function createNewSession(): void
   {
-    $count                                  = count($this->sessions) + 1;
-    $newSession                             = $this->makeNewSessionObject("Conversation #{$count}");
-    $this->sessions[$newSession['id']]      = $newSession;
-    $this->activeSessionId                  = $newSession['id'];
-    $this->messages                         = [];
-    $this->userMessage                      = '';
+    $user   = getUser();
+    $userId = $user?->id;
+    $count  = count($this->sessions) + 1;
+    $title  = "Conversation #{$count}";
 
-    $this->persistSessions();
+    if ($userId) {
+      $record = AiAssistantSession::create([
+        'user_id'            => $userId,
+        'uuid'               => uuid7(),
+        'title'              => $title,
+        'last_interacted_at' => now(),
+      ]);
+
+      $uuid = $record->uuid;
+      $this->sessions[$uuid] = [
+        'id'                 => $uuid,
+        'db_id'              => $record->id,
+        'title'              => $record->title,
+        'messages'           => [],
+        'total_tokens_used'  => 0,
+        'last_interacted_at' => now()->format('H:i'),
+        'created_at'         => now()->format('H:i'),
+        'updated_at'         => now()->format('H:i'),
+      ];
+      $this->activeSessionId = $uuid;
+    } else {
+      $uuid = uuid7();
+      $newSession = [
+        'id'         => $uuid,
+        'title'      => $title,
+        'messages'   => [],
+        'created_at' => now()->format('H:i'),
+        'updated_at' => now()->format('H:i'),
+      ];
+      $this->sessions[$uuid] = $newSession;
+      $this->activeSessionId = $uuid;
+    }
+
+    $this->messages    = [];
+    $this->userMessage = '';
 
     Notification::make()
       ->title('New conversation started')
@@ -81,7 +124,14 @@ class AiAssistant extends Page
 
     if ($trimmed !== '' && $this->editingSessionId && isset($this->sessions[$this->editingSessionId])) {
       $this->sessions[$this->editingSessionId]['title'] = $trimmed;
-      $this->persistSessions();
+
+      $user   = getUser();
+      $userId = $user?->id;
+      if ($userId) {
+        AiAssistantSession::forUser($userId)
+          ->where('uuid', $this->editingSessionId)
+          ->update(['title' => $trimmed]);
+      }
 
       Notification::make()
         ->title('Title updated')
@@ -113,6 +163,14 @@ class AiAssistant extends Page
   {
     unset($this->sessions[$sessionId]);
 
+    $user   = getUser();
+    $userId = $user?->id;
+    if ($userId) {
+      AiAssistantSession::forUser($userId)
+        ->where('uuid', $sessionId)
+        ->delete();
+    }
+
     if ($this->activeSessionId === $sessionId) {
       if (!empty($this->sessions)) {
         $firstKey              = array_key_first($this->sessions);
@@ -124,8 +182,6 @@ class AiAssistant extends Page
       }
     }
 
-    $this->persistSessions();
-
     Notification::make()
       ->title('Conversation deleted')
       ->info()
@@ -135,6 +191,13 @@ class AiAssistant extends Page
 
   public function clearAllSessions(): void
   {
+    $user   = getUser();
+    $userId = $user?->id;
+
+    if ($userId) {
+      AiAssistantSession::forUser($userId)->delete();
+    }
+
     $this->sessions        = [];
     $this->messages        = [];
     $this->activeSessionId = null;
@@ -167,14 +230,14 @@ class AiAssistant extends Page
     }
 
     $userMsg = [
-      'id'         => Str::uuid()->toString(),
+      'id'         => uuid7(),
       'role'       => 'user',
       'content'    => $trimmed,
       'created_at' => now()->format('H:i'),
     ];
 
     $botPlaceholderMsg = [
-      'id'             => Str::uuid()->toString(),
+      'id'             => uuid7(),
       'role'           => 'assistant',
       'content'        => 'Thinking...',
       'is_placeholder' => true,
@@ -187,15 +250,12 @@ class AiAssistant extends Page
     $this->userMessage  = '';
     $this->isGenerating = true;
 
+    $newTitle = null;
     if (count($this->messages) <= 2 || str_starts_with($this->sessions[$this->activeSessionId]['title'], 'Conversation #') || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
-      $newTitle                                              = Str::limit($trimmed, 30);
-      $this->sessions[$this->activeSessionId]['title']      = $newTitle;
+      $newTitle = Str::limit($trimmed, 30);
     }
 
-    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
-    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
-
-    $this->persistSessions();
+    $this->persistActiveSessionMessages($newTitle);
 
     $this->dispatch('fetch-ai-response');
   }
@@ -228,18 +288,15 @@ class AiAssistant extends Page
       $this->messages[$lastIndex]['is_placeholder'] = false;
     } else {
       $this->messages[] = [
-        'id'         => Str::uuid()->toString(),
+        'id'         => uuid7(),
         'role'       => 'assistant',
         'content'    => $replyText,
         'created_at' => now()->format('H:i'),
       ];
     }
 
-    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
-    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
-    $this->isGenerating                                   = false;
-
-    $this->persistSessions();
+    $this->isGenerating = false;
+    $this->persistActiveSessionMessages();
   }
 
   public function regenerateLastMessage(): void
@@ -261,7 +318,7 @@ class AiAssistant extends Page
 
     if ($lastUserMsg['role'] === 'user') {
       $botPlaceholderMsg = [
-        'id'             => Str::uuid()->toString(),
+        'id'             => uuid7(),
         'role'           => 'assistant',
         'content'        => 'Thinking...',
         'is_placeholder' => true,
@@ -271,9 +328,7 @@ class AiAssistant extends Page
       $this->messages[]   = $botPlaceholderMsg;
       $this->isGenerating = true;
 
-      $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
-      $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
-      $this->persistSessions();
+      $this->persistActiveSessionMessages();
 
       $this->dispatch('fetch-ai-response');
     }
@@ -295,22 +350,59 @@ class AiAssistant extends Page
     });
   }
 
-  private function makeNewSessionObject(string $title): array
+  private function loadSessionsFromDatabase($records): void
   {
-    $id = Str::uuid()->toString();
+    $this->sessions = [];
+    foreach ($records as $record) {
+      $uuid = $record->uuid;
+      $this->sessions[$uuid] = [
+        'id'                 => $uuid,
+        'db_id'              => $record->id,
+        'title'              => $record->title,
+        'messages'           => [],
+        'total_tokens_used'  => $record->total_tokens_used,
+        'last_interacted_at' => $record->last_interacted_at?->format('H:i') ?? $record->updated_at?->format('H:i'),
+        'created_at'         => $record->created_at?->format('H:i'),
+        'updated_at'         => $record->updated_at?->format('H:i'),
+      ];
+    }
 
-    return [
-      'id'         => $id,
-      'title'      => $title,
-      'created_at' => now()->format('H:i'),
-      'updated_at' => now()->format('H:i'),
-      'messages'   => [],
-    ];
+    if (!empty($this->sessions)) {
+      $firstKey              = array_key_first($this->sessions);
+      $this->activeSessionId = $firstKey;
+      $this->messages        = $this->sessions[$firstKey]['messages'] ?? [];
+    }
   }
 
-  private function persistSessions(): void
+  private function persistActiveSessionMessages(?string $title = null): void
   {
-    session(['ai_assistant_sessions' => $this->sessions]);
+    if (!$this->activeSessionId || !isset($this->sessions[$this->activeSessionId])) {
+      return;
+    }
+
+    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
+    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
+
+    if ($title !== null) {
+      $this->sessions[$this->activeSessionId]['title'] = $title;
+    }
+
+    $user   = getUser();
+    $userId = $user?->id;
+
+    if ($userId) {
+      $updateData = [
+        'last_interacted_at' => now(),
+      ];
+
+      if ($title !== null) {
+        $updateData['title'] = $title;
+      }
+
+      AiAssistantSession::forUser($userId)
+        ->where('uuid', $this->activeSessionId)
+        ->update($updateData);
+    }
   }
 
   private function fetchAiResponse(string $prompt): array|string
@@ -376,3 +468,4 @@ class AiAssistant extends Page
       "> If the issue persists, please reach out to your system administrator.";
   }
 }
+
