@@ -534,7 +534,10 @@ class AiAssistant extends Page
         $contextRecord = AiAssistantContext::active()->where('name', 'Payments Assistant')->first()
           ?? AiAssistantContext::active()->first();
 
-        $systemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
+        $baseSystemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
+        $currentDateTime  = now()->translatedFormat('l, d F Y H:i:s (e)');
+
+        $systemPrompt = "Current Date & Time: {$currentDateTime}\n\n{$baseSystemPrompt}";
 
         $formattedMessages = [
           [
