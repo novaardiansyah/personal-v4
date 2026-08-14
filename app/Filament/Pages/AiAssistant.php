@@ -164,6 +164,15 @@ class AiAssistant extends Page
         $messages = AiAssistantMessage::forSession($dbId)
           ->oldest()
           ->get()
+          ->filter(function ($msg) {
+            if ($msg->role === 'tool' || $msg->role === 'system') {
+              return false;
+            }
+            if ($msg->role === 'assistant' && (empty($msg->content) || trim((string) $msg->content) === '')) {
+              return false;
+            }
+            return true;
+          })
           ->map(function ($msg) {
             return [
               'id'                => $msg->uuid,
@@ -176,6 +185,7 @@ class AiAssistant extends Page
               'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
             ];
           })
+          ->values()
           ->toArray();
 
         $this->sessions[$sessionId]['messages'] = $messages;
@@ -455,6 +465,15 @@ class AiAssistant extends Page
       $messages = $record->messages()
         ->oldest()
         ->get()
+        ->filter(function ($msg) {
+          if ($msg->role === 'tool' || $msg->role === 'system') {
+            return false;
+          }
+          if ($msg->role === 'assistant' && (empty($msg->content) || trim((string) $msg->content) === '')) {
+            return false;
+          }
+          return true;
+        })
         ->map(function ($msg) {
           return [
             'id'                => $msg->uuid,
@@ -467,6 +486,7 @@ class AiAssistant extends Page
             'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
           ];
         })
+        ->values()
         ->toArray();
 
       $this->sessions[$uuid] = [
