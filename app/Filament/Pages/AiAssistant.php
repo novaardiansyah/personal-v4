@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\AiAssistantMessage;
 use App\Models\AiAssistantSession;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
@@ -154,18 +155,46 @@ class AiAssistant extends Page
   {
     if (isset($this->sessions[$sessionId])) {
       $this->activeSessionId = $sessionId;
-      $this->messages        = $this->sessions[$sessionId]['messages'] ?? [];
-      $this->userMessage     = '';
+      $dbId = $this->sessions[$sessionId]['db_id'] ?? null;
+
+      if ($dbId) {
+        $messages = AiAssistantMessage::forSession($dbId)
+          ->oldest()
+          ->get()
+          ->map(function ($msg) {
+            return [
+              'id'                => $msg->uuid,
+              'db_id'             => $msg->id,
+              'role'              => $msg->role,
+              'content'           => $msg->content,
+              'reasoning_content' => $msg->reasoning_content,
+              'model_used'        => $msg->model_used,
+              'status'            => $msg->status,
+              'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
+            ];
+          })
+          ->toArray();
+
+        $this->sessions[$sessionId]['messages'] = $messages;
+      }
+
+      $this->messages    = $this->sessions[$sessionId]['messages'] ?? [];
+      $this->userMessage = '';
     }
   }
 
   public function deleteSession(string $sessionId): void
   {
+    $dbSessionId = $this->sessions[$sessionId]['db_id'] ?? null;
     unset($this->sessions[$sessionId]);
 
     $user   = getUser();
     $userId = $user?->id;
     if ($userId) {
+      if ($dbSessionId) {
+        AiAssistantMessage::where('session_id', $dbSessionId)->delete();
+      }
+
       AiAssistantSession::forUser($userId)
         ->where('uuid', $sessionId)
         ->delete();
@@ -195,6 +224,7 @@ class AiAssistant extends Page
     $userId = $user?->id;
 
     if ($userId) {
+      AiAssistantMessage::forUser($userId)->delete();
       AiAssistantSession::forUser($userId)->delete();
     }
 
@@ -229,8 +259,26 @@ class AiAssistant extends Page
       $this->createNewSession();
     }
 
+    $activeSession = $this->sessions[$this->activeSessionId];
+    $dbSessionId   = $activeSession['db_id'] ?? null;
+    $user          = getUser();
+    $userId        = $user?->id;
+
+    $userMsgUuid = uuid7();
+    if ($dbSessionId && $userId) {
+      AiAssistantMessage::create([
+        'uuid'       => $userMsgUuid,
+        'session_id' => $dbSessionId,
+        'user_id'    => $userId,
+        'role'       => 'user',
+        'content'    => $trimmed,
+        'model_used' => $this->selectedModel,
+        'status'     => 'completed',
+      ]);
+    }
+
     $userMsg = [
-      'id'         => uuid7(),
+      'id'         => $userMsgUuid,
       'role'       => 'user',
       'content'    => $trimmed,
       'created_at' => now()->format('H:i'),
@@ -251,7 +299,7 @@ class AiAssistant extends Page
     $this->isGenerating = true;
 
     $newTitle = null;
-    if (count($this->messages) <= 2 || str_starts_with($this->sessions[$this->activeSessionId]['title'], 'Conversation #') || $this->sessions[$this->activeSessionId]['title'] === 'New Conversation') {
+    if (count($this->messages) <= 2 || str_starts_with($activeSession['title'], 'Conversation #') || $activeSession['title'] === 'New Conversation') {
       $newTitle = Str::limit($trimmed, 30);
     }
 
@@ -280,15 +328,56 @@ class AiAssistant extends Page
       return;
     }
 
-    $replyText = $this->fetchAiResponse($userPrompt);
+    $startTime = microtime(true);
+    $reply     = $this->fetchAiResponse($userPrompt);
+    $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+
+    $replyText        = is_array($reply) ? ($reply['content'] ?? '') : $reply;
+    $reasoningContent = is_array($reply) ? ($reply['reasoning_content'] ?? null) : null;
+    $modelUsed        = is_array($reply) ? ($reply['model_used'] ?? $this->selectedModel) : $this->selectedModel;
+    $tokenPrompt      = is_array($reply) ? ($reply['token_prompt'] ?? 0) : 0;
+    $tokenCompletion  = is_array($reply) ? ($reply['token_completion'] ?? 0) : 0;
+    $tokenTotal       = is_array($reply) ? ($reply['token_total'] ?? 0) : 0;
+    $cost             = is_array($reply) ? (float) ($reply['cost'] ?? 0) : 0;
+    $metadata         = is_array($reply) ? ($reply['metadata'] ?? null) : null;
+
+    $activeSession = $this->sessions[$this->activeSessionId] ?? [];
+    $dbSessionId   = $activeSession['db_id'] ?? null;
+    $user          = getUser();
+    $userId        = $user?->id;
+
+    $botMsgUuid = uuid7();
+    if ($dbSessionId && $userId) {
+      AiAssistantMessage::create([
+        'uuid'              => $botMsgUuid,
+        'session_id'        => $dbSessionId,
+        'user_id'           => $userId,
+        'role'              => 'assistant',
+        'content'           => $replyText,
+        'reasoning_content' => $reasoningContent,
+        'token_prompt'      => $tokenPrompt,
+        'token_completion'  => $tokenCompletion,
+        'token_total'       => $tokenTotal,
+        'latency_ms'        => $latencyMs,
+        'cost'              => $cost,
+        'model_used'        => $modelUsed,
+        'status'            => 'completed',
+        'metadata'          => $metadata,
+      ]);
+
+      if ($tokenTotal > 0) {
+        AiAssistantSession::where('id', $dbSessionId)->increment('total_tokens_used', $tokenTotal);
+      }
+    }
 
     $lastIndex = count($this->messages) - 1;
     if ($lastIndex >= 0 && $this->messages[$lastIndex]['role'] === 'assistant') {
+      $this->messages[$lastIndex]['id']             = $botMsgUuid;
       $this->messages[$lastIndex]['content']        = $replyText;
       $this->messages[$lastIndex]['is_placeholder'] = false;
     } else {
       $this->messages[] = [
-        'id'         => uuid7(),
+        'id'         => $botMsgUuid,
         'role'       => 'assistant',
         'content'    => $replyText,
         'created_at' => now()->format('H:i'),
@@ -307,6 +396,10 @@ class AiAssistant extends Page
 
     $lastMsg = end($this->messages);
     if ($lastMsg['role'] === 'assistant') {
+      $lastMsgId = $lastMsg['id'] ?? null;
+      if ($lastMsgId) {
+        AiAssistantMessage::where('uuid', $lastMsgId)->delete();
+      }
       array_pop($this->messages);
     }
 
@@ -355,11 +448,29 @@ class AiAssistant extends Page
     $this->sessions = [];
     foreach ($records as $record) {
       $uuid = $record->uuid;
+
+      $messages = $record->messages()
+        ->oldest()
+        ->get()
+        ->map(function ($msg) {
+          return [
+            'id'                => $msg->uuid,
+            'db_id'             => $msg->id,
+            'role'              => $msg->role,
+            'content'           => $msg->content,
+            'reasoning_content' => $msg->reasoning_content,
+            'model_used'        => $msg->model_used,
+            'status'            => $msg->status,
+            'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
+          ];
+        })
+        ->toArray();
+
       $this->sessions[$uuid] = [
         'id'                 => $uuid,
         'db_id'              => $record->id,
         'title'              => $record->title,
-        'messages'           => [],
+        'messages'           => $messages,
         'total_tokens_used'  => $record->total_tokens_used,
         'last_interacted_at' => $record->last_interacted_at?->format('H:i') ?? $record->updated_at?->format('H:i'),
         'created_at'         => $record->created_at?->format('H:i'),
@@ -441,14 +552,36 @@ class AiAssistant extends Page
           $data = json_decode($cleanedJson, true);
 
           if (is_array($data)) {
-            $content = $data['choices'][0]['message']['content'] ?? null;
+            $content          = $data['choices'][0]['message']['content'] ?? null;
+            $reasoningContent = $data['choices'][0]['message']['reasoning'] ?? $data['choices'][0]['message']['reasoning_content'] ?? null;
 
-            if (empty($content) && isset($data['choices'][0]['message']['reasoning_content'])) {
-              $content = $data['choices'][0]['message']['reasoning_content'];
+            if (empty($content) && !empty($reasoningContent)) {
+              $content = $reasoningContent;
             }
 
             if (!empty($content)) {
-              return $content;
+              $usage         = $data['usage'] ?? [];
+              $returnedModel = $data['model'] ?? $chatbotModel;
+              $cost          = (float) ($data['cost'] ?? 0);
+
+              $metadata = array_filter([
+                'response_id'               => $data['id'] ?? null,
+                'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
+                'cost'                      => $data['cost'] ?? null,
+                'prompt_tokens_details'     => $usage['prompt_tokens_details'] ?? null,
+                'completion_tokens_details' => $usage['completion_tokens_details'] ?? null,
+              ], fn($val) => $val !== null);
+
+              return [
+                'content'           => $content,
+                'reasoning_content' => $reasoningContent,
+                'model_used'        => $returnedModel,
+                'token_prompt'      => $usage['prompt_tokens'] ?? 0,
+                'token_completion'  => $usage['completion_tokens'] ?? 0,
+                'token_total'       => $usage['total_tokens'] ?? 0,
+                'cost'              => $cost,
+                'metadata'          => !empty($metadata) ? $metadata : null,
+              ];
             }
           }
         }
