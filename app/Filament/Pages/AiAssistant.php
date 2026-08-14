@@ -150,8 +150,12 @@ class AiAssistant extends Page
     $this->sendMessage();
   }
 
-  public function sendMessage(): void
+  public function sendMessage(?string $message = null): void
   {
+    if ($message !== null && trim($message) !== '') {
+      $this->userMessage = $message;
+    }
+
     $trimmed = trim($this->userMessage);
 
     if ($trimmed === '') {
