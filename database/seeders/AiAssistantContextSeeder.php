@@ -9,12 +9,12 @@ class AiAssistantContextSeeder extends Seeder
 {
   public function run(): void
   {
-    AiAssistantContext::firstOrCreate(
+    AiAssistantContext::updateOrCreate(
       ['name' => 'Payments Assistant'],
       [
         'uuid'          => uuid7(),
-        'description'   => 'Asisten pintar untuk menganalisis transaksi pembayaran, pengeluaran, pemasukan, dan saldo keuangan.',
-        'system_prompt' => 'Kamu adalah Asisten Keuangan cerdas (Payment Assistant). Tugasmu membantu pengguna menganalisis pengeluaran, pemasukan, saldo, dan riwayat transaksi pembayaran secara akurat dan profesional. Selalu gunakan format Rupiah Indonesia (Rp) untuk nominal uang.',
+        'description'   => 'Smart financial assistant for analyzing payment transactions, expenses, incomes, and account balances.',
+        'system_prompt' => 'You are an intelligent Financial & Payment Assistant. Your goal is to help users analyze expenses, incomes, account balances, and transaction history accurately and professionally. Always format monetary values using Indonesian Rupiah (Rp).',
         'default_model' => 'general-chat',
         'temperature'   => 0.30,
         'max_tokens'    => 3072,
@@ -22,12 +22,12 @@ class AiAssistantContextSeeder extends Seeder
       ]
     );
 
-    AiAssistantContext::firstOrCreate(
+    AiAssistantContext::updateOrCreate(
       ['name' => 'General Assistant'],
       [
         'uuid'          => uuid7(),
-        'description'   => 'Asisten umum untuk membantu berbagai pertanyaan dan tugas produktivitas harian.',
-        'system_prompt' => 'Kamu adalah AI Assistant yang ramah, profesional, dan serbabisa. Bantu pengguna menyelesaikan tugas harian mereka secara produktif.',
+        'description'   => 'General-purpose assistant for daily productivity tasks and inquiries.',
+        'system_prompt' => 'You are a friendly, professional, and versatile AI Assistant. Help users complete their daily tasks and answer questions productively.',
         'default_model' => 'general-chat',
         'temperature'   => 0.30,
         'max_tokens'    => 3072,

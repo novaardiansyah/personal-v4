@@ -6,6 +6,7 @@ use App\Models\AiAssistantContext;
 use App\Models\AiAssistantMessage;
 use App\Models\AiAssistantSession;
 use App\Services\AiAssistant\AiPaymentContextService;
+use App\Services\AiAssistant\AiToolRegistry;
 use Filament\Pages\Page;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\Http;
@@ -528,17 +529,12 @@ class AiAssistant extends Page
 
     if (!empty($chatbotKey) && !empty($chatbotUrl)) {
       try {
-        $paymentService        = app(AiPaymentContextService::class);
-        $dynamicPaymentContext = $paymentService->getPaymentContextForUser(getUser()?->id);
+        $toolRegistry = app(AiToolRegistry::class);
 
         $contextRecord = AiAssistantContext::active()->where('name', 'Payments Assistant')->first()
           ?? AiAssistantContext::active()->first();
 
         $systemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
-
-        if (!empty($dynamicPaymentContext)) {
-          $systemPrompt .= "\n\n" . $dynamicPaymentContext;
-        }
 
         $formattedMessages = [
           [
@@ -560,6 +556,7 @@ class AiAssistant extends Page
           'max_tokens'  => (int) ($contextRecord?->max_tokens ?? $chatbotMaxTokens),
           'temperature' => (float) ($contextRecord?->temperature ?? $chatbotTemperature),
           'messages'    => $formattedMessages,
+          'tools'       => $toolRegistry->getToolsSchema(),
         ];
 
         $response = Http::withToken($chatbotKey)
@@ -577,6 +574,95 @@ class AiAssistant extends Page
           $data = json_decode($cleanedJson, true);
 
           if (is_array($data)) {
+            $messageObj = $data['choices'][0]['message'] ?? [];
+            $toolCalls  = $messageObj['tool_calls'] ?? null;
+
+            if (!empty($toolCalls) && is_array($toolCalls)) {
+              $formattedMessages[] = $messageObj;
+
+              $activeSession = $this->sessions[$this->activeSessionId] ?? [];
+              $dbSessionId   = $activeSession['db_id'] ?? null;
+              $user          = getUser();
+              $userId        = $user?->id;
+
+              if ($dbSessionId && $userId) {
+                AiAssistantMessage::create([
+                  'uuid'       => uuid7(),
+                  'session_id' => $dbSessionId,
+                  'user_id'    => $userId,
+                  'role'       => 'assistant',
+                  'content'    => $messageObj['content'] ?? null,
+                  'model_used' => $data['model'] ?? $chatbotModel,
+                  'status'     => 'completed',
+                  'metadata'   => [
+                    'step'       => 'tool_call_request',
+                    'tool_calls' => $toolCalls,
+                  ],
+                ]);
+              }
+
+              $executedToolsInfo = [];
+              foreach ($toolCalls as $tc) {
+                $toolCallId   = $tc['id'] ?? null;
+                $functionName = $tc['function']['name'] ?? '';
+                $rawArgs      = $tc['function']['arguments'] ?? '{}';
+
+                $arguments = is_string($rawArgs) ? json_decode($rawArgs, true) : (array) $rawArgs;
+                if (!is_array($arguments)) {
+                  $arguments = [];
+                }
+
+                $toolResult = $toolRegistry->executeTool($functionName, $arguments, $userId);
+                $executedToolsInfo[] = [
+                  'name'      => $functionName,
+                  'arguments' => $arguments,
+                  'result'    => $toolResult,
+                ];
+
+                if ($dbSessionId && $userId) {
+                  AiAssistantMessage::create([
+                    'uuid'       => uuid7(),
+                    'session_id' => $dbSessionId,
+                    'user_id'    => $userId,
+                    'role'       => 'tool',
+                    'content'    => json_encode($toolResult),
+                    'model_used' => $data['model'] ?? $chatbotModel,
+                    'status'     => 'completed',
+                    'metadata'   => [
+                      'step'          => 'tool_call_result',
+                      'tool_call_id'  => $toolCallId,
+                      'function_name' => $functionName,
+                      'arguments'     => $arguments,
+                    ],
+                  ]);
+                }
+
+                $formattedMessages[] = [
+                  'role'         => 'tool',
+                  'tool_call_id' => $toolCallId,
+                  'content'      => json_encode($toolResult),
+                ];
+              }
+
+              $payload['messages'] = $formattedMessages;
+              unset($payload['tools']);
+
+              $secondResponse = Http::withToken($chatbotKey)
+                ->timeout(30)
+                ->post($endpoint, $payload);
+
+              if ($secondResponse->successful()) {
+                $secondRaw  = $secondResponse->body();
+                $secondJson = preg_match('/\{[\s\S]*\}/', $secondRaw, $m2) ? $m2[0] : $secondRaw;
+                $secondData = json_decode($secondJson, true);
+
+                if (is_array($secondData)) {
+                  $data                   = $secondData;
+                  $data['executed_tools'] = $executedToolsInfo;
+                }
+              }
+            }
+
             $content          = $data['choices'][0]['message']['content'] ?? null;
             $reasoningContent = $data['choices'][0]['message']['reasoning'] ?? $data['choices'][0]['message']['reasoning_content'] ?? null;
 
@@ -592,6 +678,7 @@ class AiAssistant extends Page
               $metadata = array_filter([
                 'context_name'              => $contextRecord?->name ?? null,
                 'injected_context'          => $systemPrompt,
+                'executed_tools'            => $data['executed_tools'] ?? null,
                 'response_id'               => $data['id'] ?? null,
                 'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
                 'cost'                      => $data['cost'] ?? null,
