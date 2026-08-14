@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             CalendarCategorySeeder::class,
             CalendarEventSeeder::class,
             CalendarTodoSeeder::class,
+            AiAssistantContextSeeder::class,
         ]);
     }
 }
