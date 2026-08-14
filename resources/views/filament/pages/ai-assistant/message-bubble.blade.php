@@ -1,12 +1,12 @@
 @if($msg['role'] === 'user')
   <div wire:key="msg-{{ $msg['id'] }}" style="display: flex; width: 100%; justify-content: flex-end; margin: 10px 0;">
-    <div style="padding: 12px 16px; border-radius: 16px 16px 0px 16px; max-width: 90%; word-break: break-word;" class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border dark:border-gray-700 text-sm leading-relaxed shadow-sm">
+    <div style="padding: 12px 16px; border-radius: 16px 16px 0px 16px; max-width: 100%; word-break: break-word;" class="bg-primary-600 dark:bg-primary-500 text-white border border-primary-600 dark:border-primary-500 text-sm leading-relaxed shadow-sm">
       {!! nl2br(e($msg['content'])) !!}
     </div>
   </div>
 @else
   <div wire:key="msg-{{ $msg['id'] }}" style="display: flex; width: 100%; justify-content: flex-start; margin: 10px 0;">
-    <div style="padding: 14px 18px; border-radius: 16px 16px 16px 0px; max-width: 96%; word-break: break-word;" class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border dark:border-gray-700 text-sm leading-relaxed shadow-sm space-y-2">
+    <div style="padding: 14px 18px; border-radius: 16px 16px 16px 0px; max-width: 100%; word-break: break-word;" class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border dark:border-gray-700 text-sm leading-relaxed shadow-sm space-y-2">
       @if(!empty($msg['is_placeholder']))
         <div
           x-data="{
