@@ -285,7 +285,7 @@ class AiAssistant extends Page
         'user_id'    => $userId,
         'role'       => 'user',
         'content'    => $trimmed,
-        'model_used' => $this->selectedModel,
+        'model_used' => null,
         'status'     => 'completed',
       ]);
     }
@@ -361,6 +361,13 @@ class AiAssistant extends Page
 
     $botMsgUuid = uuid7();
     if ($dbSessionId && $userId) {
+      AiAssistantMessage::where('session_id', $dbSessionId)
+        ->where('role', 'user')
+        ->whereNull('model_used')
+        ->latest('id')
+        ->first()
+        ?->update(['model_used' => $modelUsed]);
+
       AiAssistantMessage::create([
         'uuid'              => $botMsgUuid,
         'session_id'        => $dbSessionId,
