@@ -6,6 +6,7 @@ use App\Observers\AiAssistantSessionObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -40,5 +41,10 @@ class AiAssistantSession extends Model
   public function user(): BelongsTo
   {
     return $this->belongsTo(User::class);
+  }
+
+  public function messages(): HasMany
+  {
+    return $this->hasMany(AiAssistantMessage::class, 'session_id');
   }
 }
