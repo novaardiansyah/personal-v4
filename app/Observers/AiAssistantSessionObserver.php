@@ -1,19 +1,31 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Observers;
 
 use App\Models\AiAssistantSession;
-use Illuminate\Support\Str;
 
 class AiAssistantSessionObserver
 {
-  public function creating(AiAssistantSession $session): void
+  public function saving(AiAssistantSession $session): void
   {
-    if (!$session->uuid) {
+    if (empty($session->uuid)) {
       $session->uuid = uuid7();
     }
 
-    if (!$session->user_id) {
+    if (empty($session->user_id)) {
+      $session->user_id = getUser()?->id;
+    }
+  }
+
+  public function creating(AiAssistantSession $session): void
+  {
+    if (empty($session->uuid)) {
+      $session->uuid = uuid7();
+    }
+
+    if (empty($session->user_id)) {
       $session->user_id = getUser()?->id;
     }
   }
@@ -47,9 +59,9 @@ class AiAssistantSessionObserver
   {
     saveActivityLog([
       'event'        => $event,
-      'model'        => 'AiAssistantSession',
+      'model'        => 'AI Assistant Session',
       'subject_type' => AiAssistantSession::class,
       'subject_id'   => $session->id,
-    ], $session->user);
+    ], $session);
   }
 }
