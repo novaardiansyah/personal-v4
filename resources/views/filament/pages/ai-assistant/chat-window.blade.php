@@ -59,30 +59,50 @@
 
     @include('filament.pages.ai-assistant.markdown-styles')
 
-    <form wire:submit.prevent="sendMessage" style="width: 100%; padding-top: 12px; border-top: 1px solid rgba(128,128,128,0.2);">
+    <form
+      x-data="{
+        resize() {
+          const el = $refs.userTextarea;
+          if (!el) return;
+          el.style.height = 'auto';
+          el.style.height = Math.min(Math.max(el.scrollHeight, 40), 160) + 'px';
+        },
+        submitChat() {
+          const el = $refs.userTextarea;
+          if (!el) return;
+          const text = el.value.trim();
+          if (!text) return;
+
+          $wire.sendMessage(text);
+          el.value = '';
+          el.style.height = '40px';
+        }
+      }"
+      x-init="
+        $nextTick(() => resize());
+        $watch('$wire.userMessage', (v) => {
+          if (!v && $refs.userTextarea) {
+            $refs.userTextarea.value = '';
+            $refs.userTextarea.style.height = '40px';
+          }
+        });
+      "
+      @submit.prevent="submitChat()"
+      style="width: 100%; padding-top: 12px; border-top: 1px solid rgba(128,128,128,0.2);"
+    >
       <div class="relative flex flex-col w-full rounded-xl border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
         <textarea
+          x-ref="userTextarea"
           wire:model="userMessage"
           rows="1"
           placeholder="Type a message..."
-          x-data="{
-            resize() {
-              $el.style.height = 'auto';
-              $el.style.height = Math.min(Math.max($el.scrollHeight, 40), 160) + 'px';
+          @input="resize(); $wire.userMessage = $el.value"
+          @keydown="
+            if ($event.key === 'Enter' && !$event.shiftKey && !$event.isComposing) {
+              $event.preventDefault();
+              submitChat();
             }
-          }"
-          x-init="
-            $nextTick(() => resize());
-            $watch('$wire.userMessage', (val) => {
-              if (!val) {
-                $el.style.height = '40px';
-              } else {
-                $nextTick(() => resize());
-              }
-            });
           "
-          @input="resize()"
-          @keydown.enter.exact.prevent="if (!event.isComposing) $wire.sendMessage()"
           class="w-full resize-none border-none bg-transparent px-4 pt-3 pb-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-0"
           style="max-height: 160px; min-height: 40px; overflow-y: auto; box-shadow: none;"
         ></textarea>
