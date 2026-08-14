@@ -1,4 +1,6 @@
-@if($msg['role'] === 'user')
+@if(in_array($msg['role'] ?? '', ['tool', 'system']) || (empty($msg['content']) && empty($msg['is_placeholder'])))
+  {{-- Skip rendering hidden internal tool/system messages --}}
+@elseif($msg['role'] === 'user')
   <div wire:key="msg-{{ $msg['id'] }}" style="display: flex; width: 100%; justify-content: flex-end; margin: 10px 0;">
     <div style="padding: 12px 16px; border-radius: 16px 16px 0px 16px; max-width: 100%; word-break: break-word;" class="bg-primary-600 dark:bg-primary-500 text-white border border-primary-600 dark:border-primary-500 text-sm leading-relaxed shadow-sm">
       {!! nl2br(e($msg['content'])) !!}
