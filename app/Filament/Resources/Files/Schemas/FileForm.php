@@ -49,8 +49,10 @@ class FileForm
           ->label('File Size')
           ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
           ->maxLength(255)
+          ->live(onBlur: true)
           ->formatStateUsing(fn($state): ?string => $state !== null && $state !== '' ? sizeFormat((float) $state) : null)
-          ->dehydrateStateUsing(fn($state): int => parseSizeToBytes($state)),
+          ->dehydrateStateUsing(fn($state): int => parseSizeToBytes($state))
+          ->suffix(fn(?string $state): string => sizeFormat(parseSizeToBytes($state))),
 
         TextInput::make('file_alias')
           ->label('Display Name')
