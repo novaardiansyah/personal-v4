@@ -2,27 +2,31 @@
 
 namespace App\Filament\Resources\Files\Pages;
 
+use App\Enums\FileType;
+use App\Filament\Resources\Files\Actions\ReplicateAction;
 use App\Filament\Resources\Files\FileResource;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\ViewAction;
 use Filament\Resources\Pages\EditRecord;
-use App\Enums\FileType;
 
 class EditFile extends EditRecord
 {
-	protected static string $resource = FileResource::class;
+  protected static string $resource = FileResource::class;
 
-	protected function getHeaderActions(): array
-	{
-		return [
-			ViewAction::make(),
-			DeleteAction::make(),
-			ForceDeleteAction::make(),
-			RestoreAction::make(),
-		];
-	}
+  protected function getHeaderActions(): array
+  {
+    return [
+      ViewAction::make(),
+      CreateAction::make(),
+      ReplicateAction::make(),
+      DeleteAction::make(),
+      ForceDeleteAction::make(),
+      RestoreAction::make(),
+    ];
+  }
 
 	protected function mutateFormDataBeforeFill(array $data): array
 	{
