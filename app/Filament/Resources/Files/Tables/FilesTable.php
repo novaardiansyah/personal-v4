@@ -8,6 +8,7 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
@@ -105,6 +106,8 @@ class FilesTable
 					ViewAction::make()
 						->modalHeading('View file details')
 						->slideOver(),
+
+					EditAction::make(),
 
 					Action::make('download')
 						->label('Download')
