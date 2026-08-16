@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Files\Tables;
 
+use App\Enums\FileType;
+use App\Filament\Resources\Files\Actions\ReplicateAction;
 use App\Models\File;
 use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
@@ -16,6 +18,7 @@ use Filament\Actions\RestoreBulkAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -80,7 +83,7 @@ class FilesTable
 					->label('Expiry Date')
 					->since()
 					->sortable()
-					->toggleable(),
+					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('deleted_at')
 					->dateTime()
 					->sortable()
@@ -96,6 +99,12 @@ class FilesTable
 					->toggleable(),
 			])
 			->filters([
+				SelectFilter::make('type_id')
+					->label('Type')
+					->relationship('type', 'name')
+					->native(false)
+					->preload()
+					->searchable(),
 				TrashedFilter::make()
 					->native(false),
 			])
@@ -108,6 +117,8 @@ class FilesTable
 						->slideOver(),
 
 					EditAction::make(),
+
+					ReplicateAction::make(),
 
 					Action::make('download')
 						->label('Download')
