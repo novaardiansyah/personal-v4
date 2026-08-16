@@ -9,8 +9,17 @@ class FileDownloadObserver
 {
   public function creating(FileDownload $fileDownload): void
   {
-    $fileDownload->uid = Str::orderedUuid()->toString();
+    if (empty($fileDownload->uid)) {
+      $fileDownload->uid = uuid7();
+    }
     $fileDownload->code = getCode('file_download');
+  }
+
+  public function updating(FileDownload $fileDownload): void
+  {
+    if (empty($fileDownload->uid)) {
+      $fileDownload->uid = uuid7();
+    }
   }
 
   public function created(FileDownload $fileDownload): void

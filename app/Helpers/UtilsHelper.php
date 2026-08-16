@@ -59,7 +59,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 
   $extension                = 'pdf';
   $directory                = 'public/attachments';
-  $filenameWithoutExtension = Str::orderedUuid()->toString();
+  $filenameWithoutExtension = uuid7();
   $filename                 = "{$filenameWithoutExtension}.{$extension}";
   $filepath                 = "{$directory}/{$filename}";
   $fullpath                 = storage_path("app/{$filepath}");

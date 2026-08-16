@@ -32,7 +32,7 @@ class FileAction
         ->directory('attachments')
         ->imageEditor()
         ->getUploadedFileNameForStorageUsing(
-          fn(TemporaryUploadedFile $file): string => Str::orderedUuid()->toString() . '.' . $file->getClientOriginalExtension()
+          fn(TemporaryUploadedFile $file): string => uuid7() . '.' . $file->getClientOriginalExtension()
         ),
 
       Grid::make(3)

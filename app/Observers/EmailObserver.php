@@ -10,9 +10,18 @@ class EmailObserver
 {
   public function creating(Email $email): void
   {
-    $email->uid = Str::orderedUuid()->toString();
+    if (empty($email->uid)) {
+      $email->uid = uuid7();
+    }
     if (!$email->status) {
       $email->status = EmailStatus::Draft;
+    }
+  }
+
+  public function updating(Email $email): void
+  {
+    if (empty($email->uid)) {
+      $email->uid = uuid7();
     }
   }
 
