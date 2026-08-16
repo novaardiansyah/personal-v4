@@ -17,7 +17,7 @@ class File extends Model
 
   protected $table = 'files';
 
-  protected $fillable = ['uid', 'code', 'user_id', 'file_download_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id', 'file_alias'];
+  protected $fillable = ['uid', 'type_id', 'description', 'code', 'user_id', 'file_download_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id', 'file_alias'];
 
   protected $casts = [
     'scheduled_deletion_time' => 'datetime',
@@ -56,4 +56,9 @@ class File extends Model
   {
     return $this->belongsTo(FileDownload::class, 'file_download_id', 'id');
   }
+
+	public function type(): BelongsTo
+	{
+		return $this->belongsTo(FileType::class, 'type_id');
+	}
 }
