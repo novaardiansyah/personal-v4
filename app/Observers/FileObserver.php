@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\FileType;
 use App\Models\File;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,6 +12,10 @@ class FileObserver
   {
     if (empty($file->uid)) {
       $file->uid = uuid7();
+    }
+
+    if (empty($file->type_id)) {
+      $file->type_id = FileType::LocalFile->value;
     }
 
     $file->code = getCode('file');
