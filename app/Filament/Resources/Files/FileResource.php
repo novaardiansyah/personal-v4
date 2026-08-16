@@ -57,9 +57,9 @@ class FileResource extends Resource
   {
     return [
       'index'  => ListFiles::route('/'),
+      'create' => CreateFile::route('/create'),
       'view'   => ViewFile::route('/{record}'),
-      // 'create' => CreateFile::route('/create'),
-      // 'edit'   => EditFile::route('/{record}/edit'),
+      'edit'   => EditFile::route('/{record}/edit'),
     ];
   }
 

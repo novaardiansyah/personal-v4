@@ -4,7 +4,9 @@ namespace App\Observers;
 
 use App\Enums\FileType;
 use App\Models\File;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class FileObserver
 {
@@ -18,9 +20,32 @@ class FileObserver
       $file->type_id = FileType::LocalFile->value;
     }
 
+    if (empty($file->user_id)) {
+      $file->user_id = getUser()?->id;
+    }
+
     $file->code = getCode('file');
+
+    if ($file->file_path) {
+      if (empty($file->file_name)) {
+        $file->file_name = pathinfo($file->file_path, PATHINFO_BASENAME);
+      }
+
+      if (empty($file->download_url)) {
+        $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
+        $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
+        $expirationCarbon = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
+
+        $file->download_url = URL::temporarySignedRoute(
+          'download',
+          $expirationCarbon,
+          ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+        );
+      }
+    }
+
     $file->file_size = 0;
-    
+
     foreach (['public', 'local', 'app'] as $disk) {
       if (Storage::disk($disk)->exists($file->file_path)) {
         $file->file_size = Storage::disk($disk)->size($file->file_path);
@@ -33,6 +58,29 @@ class FileObserver
   {
     if (empty($file->uid)) {
       $file->uid = uuid7();
+    }
+
+    if ($file->isDirty('file_path') && $file->file_path) {
+      if (empty($file->file_name) || $file->isDirty('file_name')) {
+        $file->file_name = pathinfo($file->file_path, PATHINFO_BASENAME);
+      }
+
+      $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
+      $extension = pathinfo($file->file_name, PATHINFO_EXTENSION);
+      $expirationCarbon = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
+
+      $file->download_url = URL::temporarySignedRoute(
+        'download',
+        $expirationCarbon,
+        ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+      );
+
+      foreach (['public', 'local', 'app'] as $disk) {
+        if (Storage::disk($disk)->exists($file->file_path)) {
+          $file->file_size = Storage::disk($disk)->size($file->file_path);
+          break;
+        }
+      }
     }
   }
 
