@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Observers\FileObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -23,6 +24,14 @@ class File extends Model
     'scheduled_deletion_time' => 'datetime',
     'has_been_deleted' => 'boolean',
   ];
+
+  protected function uid(): Attribute
+  {
+    return Attribute::make(
+      get: fn(?string $value): ?string => $value ? strtolower($value) : null,
+      set: fn(?string $value): ?string => $value ? strtolower($value) : null,
+    );
+  }
 
   public function user(): BelongsTo
   {
