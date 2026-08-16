@@ -9,6 +9,10 @@ class FileObserver
 {
   public function creating(File $file): void
   {
+    if (empty($file->uid)) {
+      $file->uid = uuid7();
+    }
+
     $file->code = getCode('file');
     $file->file_size = 0;
     
@@ -17,6 +21,13 @@ class FileObserver
         $file->file_size = Storage::disk($disk)->size($file->file_path);
         break;
       }
+    }
+  }
+
+  public function updating(File $file): void
+  {
+    if (empty($file->uid)) {
+      $file->uid = uuid7();
     }
   }
 

@@ -6,17 +6,19 @@ use App\Models\PaymentType;
 
 class PaymentTypeObserver
 {
-	public function creating(PaymentType $paymentType): void
-	{
-		$paymentType->uid = uuid7();
-	}
+  public function creating(PaymentType $paymentType): void
+  {
+    if (empty($paymentType->uid)) {
+      $paymentType->uid = uuid7();
+    }
+  }
 
-	public function updating(PaymentType $paymentType): void
-	{
-		if (!$paymentType->uid) {
-			$paymentType->uid = uuid7();
-		}
-	}
+  public function updating(PaymentType $paymentType): void
+  {
+    if (empty($paymentType->uid)) {
+      $paymentType->uid = uuid7();
+    }
+  }
 
   public function created(PaymentType $paymentType): void
   {

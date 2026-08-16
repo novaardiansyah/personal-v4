@@ -15,7 +15,7 @@ class FileDownloadForm
   public static function configure(Schema $schema): Schema
   {
     $file_id = getCode('file_download', false);
-    $uid = Str::orderedUuid()->toString();
+    $uid = uuid7();
     $download_url = getSetting('portfolio_url') . '/files/d/' . $uid;
 
     return $schema

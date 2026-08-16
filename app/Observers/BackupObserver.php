@@ -15,7 +15,7 @@ class BackupObserver
   public function creating(Backup $backup): void
   {
     if (empty($backup->uid)) {
-      $backup->uid = (string) Str::uuid7();
+      $backup->uid = uuid7();
     }
 
     if (empty($backup->started_at)) {
@@ -24,6 +24,13 @@ class BackupObserver
 
     if (empty($backup->server_name)) {
       $backup->server_name = gethostname() ?: config('app.name', 'laravel');
+    }
+  }
+
+  public function updating(Backup $backup): void
+  {
+    if (empty($backup->uid)) {
+      $backup->uid = uuid7();
     }
   }
 

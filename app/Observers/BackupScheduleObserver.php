@@ -13,7 +13,7 @@ class BackupScheduleObserver
   public function saving(BackupSchedule $backupSchedule): void
   {
     if (empty($backupSchedule->uid)) {
-      $backupSchedule->uid = (string) Str::uuid7();
+      $backupSchedule->uid = uuid7();
     }
 
     if (empty($backupSchedule->local_destination_path)) {
@@ -24,7 +24,14 @@ class BackupScheduleObserver
   public function creating(BackupSchedule $backupSchedule): void
   {
     if (empty($backupSchedule->uid)) {
-      $backupSchedule->uid = (string) Str::uuid7();
+      $backupSchedule->uid = uuid7();
+    }
+  }
+
+  public function updating(BackupSchedule $backupSchedule): void
+  {
+    if (empty($backupSchedule->uid)) {
+      $backupSchedule->uid = uuid7();
     }
   }
 

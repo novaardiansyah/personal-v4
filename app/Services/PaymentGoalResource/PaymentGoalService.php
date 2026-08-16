@@ -44,7 +44,7 @@ class PaymentGoalService
 		$extension = 'xlsx';
 		$directory = 'public/attachments';
 
-		$filenameWithoutExtension = Str::orderedUuid()->toString();
+		$filenameWithoutExtension = uuid7();
 		$filename                 = "{$filenameWithoutExtension}.{$extension}";
 		$filepath                 = "{$directory}/{$filename}";
 
@@ -157,7 +157,7 @@ class PaymentGoalService
 	{
 		$extension                = 'pdf';
 		$directory                = 'public/attachments';
-		$filenameWithoutExtension = Str::orderedUuid()->toString();
+		$filenameWithoutExtension = uuid7();
 		$filename                 = "{$filenameWithoutExtension}.{$extension}";
 		$filepath                 = "{$directory}/{$filename}";
 		$fullPath                 = storage_path("app/{$filepath}");
