@@ -505,6 +505,44 @@ function sizeFormat(float $size): string
   return round($size / pow(1024, $i), 2) . ' ' . $units[$i];
 }
 
+function parseSizeToBytes(string|int|float|null $input): int
+{
+  if (empty($input)) {
+    return 0;
+  }
+
+  $input = trim((string) $input);
+
+  if (is_numeric($input)) {
+    return (int) round((float) $input);
+  }
+
+  if (preg_match('/^([\d\.,]+)\s*([a-zA-Z]+)?$/i', $input, $matches)) {
+    $value = (float) str_replace(',', '', $matches[1]);
+    $unit  = strtoupper(trim($matches[2] ?? 'B'));
+
+    switch ($unit) {
+      case 'TB':
+      case 'T':
+        return (int) round($value * 1024 * 1024 * 1024 * 1024);
+      case 'GB':
+      case 'G':
+        return (int) round($value * 1024 * 1024 * 1024);
+      case 'MB':
+      case 'M':
+        return (int) round($value * 1024 * 1024);
+      case 'KB':
+      case 'K':
+        return (int) round($value * 1024);
+      case 'B':
+      default:
+        return (int) round($value);
+    }
+  }
+
+  return (int) round((float) $input);
+}
+
 function secondsToHumanReadable(?int $seconds): string
 {
   if (!$seconds) {
