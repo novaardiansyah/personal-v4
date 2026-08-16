@@ -30,7 +30,7 @@ class FilesTable
 				TextColumn::make('index')
 					->label('#')
 					->rowIndex(),
-				TextColumn::make('code')
+				TextColumn::make('uid')
 					->label('File ID')
 					->searchable()
 					->badge()
@@ -99,6 +99,7 @@ class FilesTable
 					->native(false),
 			])
 			->defaultSort('updated_at', 'desc')
+			->recordAction(null)
 			->recordActions([
 				ActionGroup::make([
 					ViewAction::make()
@@ -109,9 +110,9 @@ class FilesTable
 						->label('Download')
 						->icon('heroicon-s-arrow-down-tray')
 						->color('success')
-						->url(fn(File $record): string => $record->download_url)
+						->url(fn(File $record): ?string => $record->download_url)
 						->openUrlInNewTab()
-						->visible(fn(File $record): bool => !$record->has_been_deleted),
+						->visible(fn(File $record): bool => !$record->has_been_deleted && !empty($record->download_url)),
 
 					DeleteAction::make(),
 					RestoreAction::make(),

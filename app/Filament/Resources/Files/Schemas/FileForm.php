@@ -24,15 +24,48 @@ class FileForm
           ->preload()
           ->live()
           ->default(FileType::LocalFile->value)
+					->disabledOn('edit')
           ->required(),
 
-        Select::make('user_id')
-          ->relationship('user', 'name')
-          ->searchable()
-          ->required()
-          ->default(fn() => getUser()?->id),
+				TextInput::make('uid')
+					->label('Unique ID')
+					->maxLength(255)
+					->default(fn(): string => uuid7())
+					->readOnly()
+					->required(),
 
-        FileUpload::make('file_path')
+				TextInput::make('file_name')
+					->label('File Name')
+					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+					->maxLength(255),
+					
+				TextInput::make('file_path')
+					->label('File Path')
+					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+					->maxLength(255),
+
+				TextInput::make('file_size')
+					->label('File Size')
+					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+					->maxLength(255)
+					->live(onBlur: true)
+					->suffix(fn(?string $state): string => sizeFormat(floatval($state ?? 0))), 
+
+        TextInput::make('file_alias')
+          ->label('Display Name')
+          ->maxLength(255),
+
+        DateTimePicker::make('scheduled_deletion_time')
+          ->label('Expiry Date')
+          ->default(now()->addMonth())
+					->native(false)
+					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value),
+
+        Textarea::make('description')
+          ->label('Description')
+          ->columnSpanFull(),
+
+				FileUpload::make('file_path')
           ->label('File Upload')
           ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value)
           ->required(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value)
@@ -43,30 +76,6 @@ class FileForm
           ->getUploadedFileNameForStorageUsing(
             fn(TemporaryUploadedFile $file): string => uuid7() . '.' . $file->getClientOriginalExtension()
           )
-          ->columnSpanFull(),
-
-        TextInput::make('file_name')
-          ->label('File Name')
-          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-          ->required(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-          ->maxLength(255),
-
-        TextInput::make('file_path_text')
-          ->label('File Path')
-          ->statePath('file_path')
-          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-          ->maxLength(255),
-
-        TextInput::make('file_alias')
-          ->label('Display Name')
-          ->maxLength(255),
-
-        DateTimePicker::make('scheduled_deletion_time')
-          ->label('Expiry Date')
-          ->default(now()->addMonth()),
-
-        Textarea::make('description')
-          ->label('Description')
           ->columnSpanFull(),
       ]);
   }
