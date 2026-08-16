@@ -24,32 +24,33 @@ class FileForm
           ->preload()
           ->live()
           ->default(FileType::LocalFile->value)
-					->disabledOn('edit')
+          ->disabledOn('edit')
+					->dehydrated()
           ->required(),
 
-				TextInput::make('uid')
-					->label('Unique ID')
-					->maxLength(255)
-					->default(fn(): string => uuid7())
-					->readOnly()
-					->required(),
+        TextInput::make('uid')
+          ->label('Unique ID')
+          ->maxLength(255)
+          ->default(fn(): string => uuid7())
+          ->readOnly()
+          ->required(),
 
-				TextInput::make('file_name')
-					->label('File Name')
-					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-					->maxLength(255),
-					
-				TextInput::make('file_path')
-					->label('File Path')
-					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-					->maxLength(255),
+        TextInput::make('file_name')
+          ->label('File Name')
+          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+          ->maxLength(255),
 
-				TextInput::make('file_size')
-					->label('File Size')
-					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
-					->maxLength(255)
-					->live(onBlur: true)
-					->suffix(fn(?string $state): string => sizeFormat(floatval($state ?? 0))), 
+        TextInput::make('file_path_text')
+          ->label('File Path')
+          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+          ->maxLength(255),
+
+        TextInput::make('file_size')
+          ->label('File Size')
+          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+          ->maxLength(255)
+          ->live(onBlur: true)
+          ->suffix(fn(?string $state): string => sizeFormat(floatval($state ?? 0))),
 
         TextInput::make('file_alias')
           ->label('Display Name')
@@ -58,14 +59,14 @@ class FileForm
         DateTimePicker::make('scheduled_deletion_time')
           ->label('Expiry Date')
           ->default(now()->addMonth())
-					->native(false)
-					->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value),
+          ->native(false)
+          ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value),
 
         Textarea::make('description')
           ->label('Description')
           ->columnSpanFull(),
 
-				FileUpload::make('file_path')
+        FileUpload::make('file_path')
           ->label('File Upload')
           ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value)
           ->required(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) === FileType::LocalFile->value)
