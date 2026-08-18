@@ -37,7 +37,7 @@ class ReplicateAction
         }
 
         $replica->uid        = $newUid;
-        $replica->file_alias = ($record->file_alias ?: $record->file_name) . ' (copy)';
+        $replica->file_alias = ($record->file_alias ?: $record->file_name);
         $replica->save();
 
         Notification::make()

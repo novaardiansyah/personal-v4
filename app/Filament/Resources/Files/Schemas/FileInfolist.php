@@ -20,14 +20,17 @@ class FileInfolist
           ->description('File Information')
           ->components([
             TextEntry::make('file_name')
-              ->label('File Name'),
+              ->label('File Name')
+              ->copyable(),
             TextEntry::make('file_alias')
-              ->label('Display Name'),
+              ->label('Display Name')
+              ->copyable(),
             TextEntry::make('type.name')
               ->label('Type')
               ->placeholder('-'),
             TextEntry::make('file_path')
               ->label('File Path')
+              ->copyable()
               ->columnSpanFull(),
             TextEntry::make('download_url')
               ->label('Download URL')

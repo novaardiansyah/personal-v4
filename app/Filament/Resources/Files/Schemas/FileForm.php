@@ -32,16 +32,19 @@ class FileForm
           ->label('Unique ID')
           ->maxLength(255)
           ->default(fn(): string => uuid7())
+					->copyable()
           ->readOnly()
           ->required(),
 
         TextInput::make('file_name')
           ->label('File Name')
           ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
+					->copyable()
           ->maxLength(255),
 
         TextInput::make('file_path_text')
           ->label('File Path')
+					->copyable()
           ->visible(fn(Get $get): bool => (int) ($get('type_id') ?? FileType::LocalFile->value) !== FileType::LocalFile->value)
           ->maxLength(255),
 
@@ -56,6 +59,7 @@ class FileForm
 
         TextInput::make('file_alias')
           ->label('Display Name')
+					->copyable()
           ->maxLength(255),
 
         DateTimePicker::make('scheduled_deletion_time')
