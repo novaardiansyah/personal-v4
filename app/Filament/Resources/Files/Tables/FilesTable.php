@@ -55,8 +55,18 @@ class FilesTable
 					->tooltip(fn(File $record): string => $record->file_alias ? $record->file_alias : '')
 					->searchable()
 					->toggleable(),
+				TextColumn::make('file_path')
+					->label('File Path')
+					->searchable()
+					->limit(50)
+					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('file_alias')
 					->label('Display Name')
+					->searchable()
+					->toggleable(isToggledHiddenByDefault: true),
+				TextColumn::make('description')
+					->label('Description')
+					->limit(50)
 					->searchable()
 					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('type.name')
