@@ -15,6 +15,7 @@ Route::prefix('v2')->group(function () {
 	require __DIR__ . '/api/v2/main.php';
 	require __DIR__ . '/api/v2/auth.php';
 	require __DIR__ . '/api/v2/backup.php';
+	require __DIR__ . '/api/v2/file.php';
 });
 
 Route::get('/health', function () {
