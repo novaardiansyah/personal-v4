@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->prefix('files')->group(function () {
   Route::get('/', [FileController::class, 'index']);
   Route::post('/', [FileController::class, 'store']);
+  Route::post('/batch', [FileController::class, 'storeBatch']);
   Route::get('/{id}', [FileController::class, 'show']);
   Route::put('/{id}', [FileController::class, 'update']);
   Route::patch('/{id}', [FileController::class, 'update']);
