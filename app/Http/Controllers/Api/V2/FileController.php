@@ -11,6 +11,7 @@ use App\Http\Resources\Api\V2\FileResource;
 use App\Models\File;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class FileController extends Controller
@@ -79,6 +80,26 @@ class FileController extends Controller
       ], 422);
     }
 
+    if ($request->filled('uid')) {
+      $existingFile = File::query()
+        ->where('uid', strtolower((string) $request->input('uid')))
+        ->first();
+
+      if ($existingFile) {
+        return response()->json([
+          'success' => false,
+          'message' => 'Validation error',
+          'errors'  => [
+            'uid' => ['The uid has already been taken.'],
+          ],
+          'data'    => [
+            'id'  => $existingFile->id,
+            'uid' => $existingFile->uid,
+          ],
+        ], 422);
+      }
+    }
+
     $fileSize = 0;
     if ($request->has('file_size') && $request->input('file_size') !== null) {
       $fileSize = parseSizeToBytes($request->input('file_size'));
@@ -98,6 +119,118 @@ class FileController extends Controller
       'success' => true,
       'message' => 'Device file created successfully',
       'data'    => new FileResource($file),
+    ], 201);
+  }
+
+  public function storeBatch(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'files'               => 'required|array|min:1',
+      'files.*.uid'         => 'nullable|string|max:255',
+      'files.*.file_name'   => 'nullable|string|max:255',
+      'files.*.file_path'   => 'nullable|string|max:255',
+      'files.*.file_size'   => 'nullable',
+      'files.*.file_alias'  => 'nullable|string|max:255',
+      'files.*.description' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors'  => $validator->errors(),
+      ], 422);
+    }
+
+    $items        = $request->input('files');
+    $providedUids = [];
+
+    foreach ($items as $item) {
+      if (!empty($item['uid'])) {
+        $providedUids[] = strtolower((string) $item['uid']);
+      }
+    }
+
+    $existingMap = [];
+    if (!empty($providedUids)) {
+      $existingFiles = File::query()
+        ->whereIn('uid', $providedUids)
+        ->get(['id', 'uid']);
+
+      foreach ($existingFiles as $file) {
+        $existingMap[strtolower((string) $file->uid)] = $file->id;
+      }
+    }
+
+    $now             = now();
+    $userId          = getUser()?->id;
+    $recordsToInsert = [];
+    $newUids         = [];
+    $seenUids        = [];
+    $skippedItems    = [];
+
+    foreach ($items as $item) {
+      $rawUid = $item['uid'] ?? null;
+      $uid    = $rawUid ? strtolower((string) $rawUid) : uuid7();
+
+      if (isset($existingMap[$uid])) {
+        $skippedItems[] = [
+          'id'  => $existingMap[$uid],
+          'uid' => $uid,
+        ];
+        continue;
+      }
+
+      if (in_array($uid, $seenUids, true)) {
+        $skippedItems[] = [
+          'id'  => null,
+          'uid' => $uid,
+        ];
+        continue;
+      }
+
+      $seenUids[] = $uid;
+      $newUids[]  = $uid;
+
+      $fileSize = 0;
+      if (isset($item['file_size']) && $item['file_size'] !== null) {
+        $fileSize = parseSizeToBytes($item['file_size']);
+      }
+
+      $recordsToInsert[] = [
+        'type_id'     => FileType::DeviceFile->value,
+        'uid'         => $uid,
+        'code'        => getCode('file'),
+        'user_id'     => $userId,
+        'file_name'   => $item['file_name'] ?? null,
+        'file_path'   => $item['file_path'] ?? null,
+        'file_size'   => $fileSize,
+        'file_alias'  => $item['file_alias'] ?? null,
+        'description' => $item['description'] ?? null,
+        'created_at'  => $now,
+        'updated_at'  => $now,
+      ];
+    }
+
+    $createdFiles = collect();
+    if (!empty($recordsToInsert)) {
+      $createdFiles = DB::transaction(function () use ($recordsToInsert, $newUids) {
+        File::insert($recordsToInsert);
+
+        return File::query()->whereIn('uid', $newUids)->get();
+      });
+    }
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Device files batch processed successfully',
+      'data'    => FileResource::collection($createdFiles),
+      'meta'    => [
+        'total'          => count($items),
+        'inserted_count' => count($createdFiles),
+        'skipped_count'  => count($skippedItems),
+        'skipped'        => $skippedItems,
+      ],
     ], 201);
   }
 
