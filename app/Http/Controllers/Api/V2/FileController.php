@@ -11,6 +11,7 @@ use App\Http\Resources\Api\V2\FileResource;
 use App\Models\File;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 
 class FileController extends Controller
@@ -98,6 +99,56 @@ class FileController extends Controller
       'success' => true,
       'message' => 'Device file created successfully',
       'data'    => new FileResource($file),
+    ], 201);
+  }
+
+  public function storeBatch(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'files'               => 'required|array|min:1',
+      'files.*.uid'         => 'nullable|string|max:255',
+      'files.*.file_name'   => 'nullable|string|max:255',
+      'files.*.file_path'   => 'nullable|string|max:255',
+      'files.*.file_size'   => 'nullable',
+      'files.*.file_alias'  => 'nullable|string|max:255',
+      'files.*.description' => 'nullable|string',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors'  => $validator->errors(),
+      ], 422);
+    }
+
+    $createdFiles = [];
+
+    DB::transaction(function () use ($request, &$createdFiles) {
+      foreach ($request->input('files', []) as $item) {
+        $fileSize = 0;
+        if (isset($item['file_size']) && $item['file_size'] !== null) {
+          $fileSize = parseSizeToBytes($item['file_size']);
+        }
+
+        $file = File::create([
+          'type_id'     => FileType::DeviceFile->value,
+          'uid'         => ($item['uid'] ?? null) ?: uuid7(),
+          'file_name'   => $item['file_name'] ?? null,
+          'file_path'   => $item['file_path'] ?? null,
+          'file_size'   => $fileSize,
+          'file_alias'  => $item['file_alias'] ?? null,
+          'description' => $item['description'] ?? null,
+        ]);
+
+        $createdFiles[] = $file;
+      }
+    });
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Device files batch created successfully',
+      'data'    => FileResource::collection(collect($createdFiles)),
     ], 201);
   }
 
