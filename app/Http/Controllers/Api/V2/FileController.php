@@ -8,7 +8,9 @@ use App\Enums\FileType;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V2\FileCollection;
 use App\Http\Resources\Api\V2\FileResource;
+use App\Models\ActivityLog;
 use App\Models\File;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -214,10 +216,36 @@ class FileController extends Controller
 
     $createdFiles = collect();
     if (!empty($recordsToInsert)) {
-      $createdFiles = DB::transaction(function () use ($recordsToInsert, $newUids) {
+      $createdFiles = DB::transaction(function () use ($recordsToInsert, $newUids, $now) {
         File::insert($recordsToInsert);
 
-        return File::query()->whereIn('uid', $newUids)->get();
+        $files        = File::query()->whereIn('uid', $newUids)->get();
+        $causer       = getUser();
+        $batchUuid    = uuid7();
+        $activityLogs = [];
+
+        foreach ($files as $file) {
+          $activityLogs[] = [
+            'log_name'        => 'Resource',
+            'description'     => "File Created by {$causer?->name}",
+            'event'           => 'Created',
+            'subject_type'    => File::class,
+            'subject_id'      => $file->id,
+            'causer_type'     => User::class,
+            'causer_id'       => $causer?->id,
+            'batch_uuid'      => $batchUuid,
+            'prev_properties' => json_encode([]),
+            'properties'      => json_encode($file->getAttributes()),
+            'created_at'      => $now,
+            'updated_at'      => $now,
+          ];
+        }
+
+        if (!empty($activityLogs)) {
+          ActivityLog::insert($activityLogs);
+        }
+
+        return $files;
       });
     }
 
