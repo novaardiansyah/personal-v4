@@ -63,6 +63,7 @@ class FilesTable
 				TextColumn::make('file_alias')
 					->label('Display Name')
 					->searchable()
+					->orderable()
 					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('description')
 					->label('Description')
@@ -76,6 +77,7 @@ class FilesTable
 				TextColumn::make('file_size')
 					->label('File Size')
 					->formatStateUsing(fn(string $state): string => sizeFormat(floatval($state ?? 0)))
+					->orderable()
 					->toggleable(),
 				TextColumn::make('subject_id')
 					->label('Subject')
