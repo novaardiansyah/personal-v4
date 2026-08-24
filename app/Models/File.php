@@ -18,11 +18,11 @@ class File extends Model
 
   protected $table = 'files';
 
-  protected $fillable = ['uid', 'type_id', 'description', 'code', 'user_id', 'file_download_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id', 'file_alias'];
+  protected $fillable = ['uid', 'type_id', 'description', 'code', 'user_id', 'file_download_id', 'file_name', 'file_path', 'file_size', 'download_url', 'scheduled_deletion_time', 'has_been_deleted', 'subject_type', 'subject_id', 'file_alias', 'encrypt_key'];
 
   protected $casts = [
     'scheduled_deletion_time' => 'datetime',
-    'has_been_deleted' => 'boolean',
+    'has_been_deleted'        => 'boolean',
   ];
 
   protected function uid(): Attribute
