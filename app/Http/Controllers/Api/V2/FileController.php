@@ -334,4 +334,49 @@ class FileController extends Controller
       'message' => 'Device file deleted successfully',
     ]);
   }
+
+  public function encryptKeys(Request $request): JsonResponse
+  {
+    $validator = Validator::make($request->all(), [
+      'uids'   => 'required',
+      'uids.*' => 'string|max:255',
+    ]);
+
+    if ($validator->fails()) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors'  => $validator->errors(),
+      ], 422);
+    }
+
+    $uids = $request->input('uids');
+    if (is_string($uids)) {
+      $uids = array_filter(array_map('trim', explode(',', $uids)));
+    }
+
+    if (!is_array($uids) || empty($uids)) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Validation error',
+        'errors'  => ['uids' => ['The uids field must be a non-empty array or list.']],
+      ], 422);
+    }
+
+    $uids = array_map('strtolower', $uids);
+
+    $files = File::query()
+      ->where('type_id', FileType::DeviceFile->value)
+      ->whereIn('uid', $uids)
+      ->get(['uid', 'encrypt_key']);
+
+    $data = $files->map(fn (File $file) => [
+      'uid'         => $file->uid,
+      'encrypt_key' => $file->encrypt_key,
+    ]);
+
+    return response()->json([
+      'data' => $data,
+    ]);
+  }
 }
