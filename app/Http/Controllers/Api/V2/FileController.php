@@ -65,63 +65,11 @@ class FileController extends Controller
 
   public function store(Request $request): JsonResponse
   {
-    $validator = Validator::make($request->all(), [
-      'uid'         => 'nullable|string|max:255',
-      'file_name'   => 'nullable|string|max:255',
-      'file_path'   => 'nullable|string|max:255',
-      'file_size'   => 'nullable',
-      'file_alias'  => 'nullable|string|max:255',
-      'description' => 'nullable|string',
-    ]);
+    $data = $request->except(['files']);
 
-    if ($validator->fails()) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Validation error',
-        'errors'  => $validator->errors(),
-      ], 422);
-    }
-
-    if ($request->filled('uid')) {
-      $existingFile = File::query()
-        ->where('uid', strtolower((string) $request->input('uid')))
-        ->first();
-
-      if ($existingFile) {
-        return response()->json([
-          'success' => false,
-          'message' => 'Validation error',
-          'errors'  => [
-            'uid' => ['The uid has already been taken.'],
-          ],
-          'data'    => [
-            'id'  => $existingFile->id,
-            'uid' => $existingFile->uid,
-          ],
-        ], 422);
-      }
-    }
-
-    $fileSize = 0;
-    if ($request->has('file_size') && $request->input('file_size') !== null) {
-      $fileSize = parseSizeToBytes($request->input('file_size'));
-    }
-
-    $file = File::create([
-      'type_id'     => FileType::DeviceFile->value,
-      'uid'         => $request->input('uid') ?: uuid7(),
-      'file_name'   => $request->input('file_name'),
-      'file_path'   => $request->input('file_path'),
-      'file_size'   => $fileSize,
-      'file_alias'  => $request->input('file_alias'),
-      'description' => $request->input('description'),
-    ]);
-
-    return response()->json([
-      'success' => true,
-      'message' => 'Device file created successfully',
-      'data'    => new FileResource($file),
-    ], 201);
+    return $this->storeBatch($request->duplicate(
+      request: ['files' => [$data]]
+    ));
   }
 
   public function storeBatch(Request $request): JsonResponse
@@ -134,6 +82,7 @@ class FileController extends Controller
       'files.*.file_size'   => 'nullable',
       'files.*.file_alias'  => 'nullable|string|max:255',
       'files.*.description' => 'nullable|string',
+			'files.*.encrypt_key' => 'nullable|string|max:255',
     ]);
 
     if ($validator->fails()) {
@@ -208,6 +157,7 @@ class FileController extends Controller
         'file_path'   => $item['file_path'] ?? null,
         'file_size'   => $fileSize,
         'file_alias'  => $item['file_alias'] ?? null,
+        'encrypt_key' => $item['encrypt_key'] ?? null,
         'description' => $item['description'] ?? null,
         'created_at'  => $now,
         'updated_at'  => $now,
@@ -306,6 +256,7 @@ class FileController extends Controller
       'file_path'   => 'nullable|string|max:255',
       'file_size'   => 'nullable',
       'file_alias'  => 'nullable|string|max:255',
+      'encrypt_key' => 'nullable|string|max:255',
       'description' => 'nullable|string',
     ]);
 
@@ -337,6 +288,10 @@ class FileController extends Controller
 
     if ($request->has('file_alias')) {
       $data['file_alias'] = $request->input('file_alias');
+    }
+
+    if ($request->has('encrypt_key')) {
+      $data['encrypt_key'] = $request->input('encrypt_key');
     }
 
     if ($request->has('description')) {

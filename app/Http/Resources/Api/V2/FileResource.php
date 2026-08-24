@@ -29,6 +29,7 @@ class FileResource extends JsonResource
       'file_size'           => $this->file_size,
       'file_size_formatted' => sizeFormat((float) ($this->file_size ?? 0)),
       'file_alias'          => $this->file_alias,
+      'encrypt_key'         => $this->encrypt_key,
       'description'         => $this->description,
       'user_id'             => $this->user_id,
       'download_url'        => $this->download_url,
