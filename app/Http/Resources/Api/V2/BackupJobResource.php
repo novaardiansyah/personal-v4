@@ -13,11 +13,12 @@ class BackupJobResource extends JsonResource
 {
   public function toArray(Request $request): array
   {
-		$filename = BackupSchedule::generateFilename($this->backupSchedule?->filename_pattern, '-' . $this->id . '.zip');
+    $filename = BackupSchedule::generateFilename($this->backupSchedule?->filename_pattern, '-' . $this->id . '.zip');
 
     return [
       'id'                     => $this->id,
       'backup_schedule_id'     => $this->backup_schedule_id,
+      'storage_id'             => $this->backupSchedule?->storage_id,
       'status'                 => $this->status?->getLabel(),
       'message'                => $this->message,
       'started_at'             => $this->started_at?->format('Y-m-d H:i:s'),

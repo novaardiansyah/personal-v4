@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Models;
 
 use App\Enums\BackupScheduleIntervalUnit;
@@ -7,6 +9,7 @@ use App\Enums\BackupType;
 use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -20,6 +23,7 @@ class BackupSchedule extends Model
 
   protected $fillable = [
     'uid',
+    'storage_id',
     'name',
     'type',
     'drivers',
@@ -45,6 +49,7 @@ class BackupSchedule extends Model
 
   protected $casts = [
     'uid'                    => 'string',
+    'storage_id'             => 'integer',
     'name'                   => 'string',
     'type'                   => BackupType::class,
     'drivers'                => 'string',
@@ -74,6 +79,11 @@ class BackupSchedule extends Model
     return $this->local_destination_path ?? $this->attributes['destination_path'] ?? null;
   }
 
+  public function storage(): BelongsTo
+  {
+    return $this->belongsTo(BackupStorage::class, 'storage_id');
+  }
+
   public function backupJobs(): HasMany
   {
     return $this->hasMany(BackupJob::class);
@@ -84,20 +94,20 @@ class BackupSchedule extends Model
     return $this->hasManyThrough(Backup::class, BackupJob::class);
   }
 
-	public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
-	{
-		if (empty($pattern)) {
-			return '-';
-		}
+  public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
+  {
+    if (empty($pattern)) {
+      return '-';
+    }
 
-		$preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
-			try {
-				return now()->format($matches[1]);
-			} catch (\Throwable $e) {
-				return $matches[0];
-			}
-		}, $pattern);
+    $preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
+      try {
+        return now()->format($matches[1]);
+      } catch (\Throwable $e) {
+        return $matches[0];
+      }
+    }, $pattern);
 
-		return $preview . $extension;
-	}
+    return $preview . $extension;
+  }
 }
