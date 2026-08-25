@@ -10,9 +10,11 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\Api\V2\BackupCollection;
 use App\Http\Resources\Api\V2\BackupJobResource;
 use App\Http\Resources\Api\V2\BackupResource;
+use App\Http\Resources\Api\V2\BackupStorageResource;
 use App\Models\Backup;
 use App\Models\BackupJob;
 use App\Models\BackupSchedule;
+use App\Models\BackupStorage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -486,5 +488,25 @@ class BackupController extends Controller
         'backup' => new BackupResource($backup),
       ],
     ], 201);
+  }
+
+  public function showStorage(string $id): JsonResponse
+  {
+    $storage = BackupStorage::where('id', $id)
+      ->orWhere('uid', $id)
+      ->orWhere('slug', $id)
+      ->first();
+
+    if (!$storage) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Backup storage not found',
+      ], 404);
+    }
+
+    return response()->json([
+      'success' => true,
+      'data'    => new BackupStorageResource($storage),
+    ]);
   }
 }
