@@ -34,6 +34,9 @@ class BackupStorageInfolist
                 ->badge()
                 ->copyable()
                 ->placeholder('N/A'),
+							IconEntry::make('active')
+								->label('Active')
+								->boolean(),
               KeyValueEntry::make('keys')
                 ->label('Storage Keys')
                 ->keyLabel('Key')
@@ -48,9 +51,6 @@ class BackupStorageInfolist
           ->description('Status & Timestamps')
           ->collapsible()
           ->schema([
-            IconEntry::make('active')
-              ->label('Active')
-              ->boolean(),
             TextEntry::make('created_at')
               ->label('Created At')
               ->dateTime()
@@ -63,10 +63,9 @@ class BackupStorageInfolist
               ->label('Deleted At')
               ->dateTime()
               ->sinceTooltip()
-              ->visible(fn(BackupStorage $record): bool => $record->trashed())
               ->placeholder('Active'),
           ])
-          ->columns(1)
+          ->columns(3)
           ->columnSpan(['default' => 3, '2xl' => 1]),
       ])
       ->columns(['default' => 1, '2xl' => 3]);
