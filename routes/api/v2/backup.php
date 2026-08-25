@@ -12,7 +12,7 @@ Route::middleware('auth:sanctum')->prefix('backups')->group(function () {
   Route::patch('/jobs/{id}', [BackupController::class, 'updateJob']);
   Route::post('/jobs/{id}/report', [BackupController::class, 'storeJobReport']);
 
-  Route::get('/storages/{id}', [BackupController::class, 'showStorage']);
+  Route::get('/storages/{backupStorage}', [BackupController::class, 'showStorage']);
 
   Route::post('/', [BackupController::class, 'store']);
   Route::get('/{id}', [BackupController::class, 'show']);

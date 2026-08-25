@@ -490,23 +490,11 @@ class BackupController extends Controller
     ], 201);
   }
 
-  public function showStorage(string $id): JsonResponse
+  public function showStorage(BackupStorage $backupStorage): JsonResponse
   {
-    $storage = BackupStorage::where('id', $id)
-      ->orWhere('uid', $id)
-      ->orWhere('slug', $id)
-      ->first();
-
-    if (!$storage) {
-      return response()->json([
-        'success' => false,
-        'message' => 'Backup storage not found',
-      ], 404);
-    }
-
     return response()->json([
       'success' => true,
-      'data'    => new BackupStorageResource($storage),
+      'data'    => new BackupStorageResource($backupStorage),
     ]);
   }
 }
