@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Observers\BackupStorageProviderObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupStorageProviderObserver::class])]
@@ -27,4 +28,9 @@ class BackupStorageProvider extends Model
     'name' => 'string',
     'slug' => 'string',
   ];
+
+  public function storages(): HasMany
+  {
+    return $this->hasMany(BackupStorage::class);
+  }
 }

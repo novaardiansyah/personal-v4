@@ -46,6 +46,11 @@ class BackupStoragesTable
           ->copyable()
           ->badge()
           ->toggleable(),
+				TextColumn::make('provider.name')
+					->label('Provider')
+					->badge()
+					->color('info')
+					->toggleable(),
         IconColumn::make('active')
           ->label('Active')
           ->boolean()

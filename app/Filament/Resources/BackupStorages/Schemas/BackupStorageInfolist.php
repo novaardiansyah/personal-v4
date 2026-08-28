@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\BackupStorages\Schemas;
 
-use App\Models\BackupStorage;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -44,8 +43,7 @@ class BackupStorageInfolist
                 ->columnSpanFull(),
             ])
             ->columns(2),
-        ])
-          ->columnSpan(['default' => 3, '2xl' => 2]),
+					]),
 
         Section::make('')
           ->description('Status & Timestamps')
@@ -66,8 +64,7 @@ class BackupStorageInfolist
               ->placeholder('Active'),
           ])
           ->columns(3)
-          ->columnSpan(['default' => 3, '2xl' => 1]),
       ])
-      ->columns(['default' => 1, '2xl' => 3]);
+      ->columns(1);
   }
 }
