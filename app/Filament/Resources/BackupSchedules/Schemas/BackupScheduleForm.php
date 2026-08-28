@@ -97,8 +97,21 @@ class BackupScheduleForm
 											->label('Sync Cloud')
 											->default(false)
 											->live()
-											->afterStateUpdated(fn(Set $set, $state) => ! $state ? $set('r2_destination_path', null) : null),
+											->afterStateUpdated(function (Set $set, $state) {
+												if (! $state) {
+													$set('storage_id', null);
+													$set('r2_destination_path', null);
+												}
+											}),
 									]),
+								Select::make('storage_id')
+									->label('Storage')
+									->relationship('storage', 'name')
+									->searchable()
+									->preload()
+									->native(false)
+									->required(fn(Get $get): bool => (bool) $get('is_sync_cloud'))
+									->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
 								TextInput::make('r2_destination_path')
 									->label('Cloud Destination Path')
 									->placeholder('/backups/others')
