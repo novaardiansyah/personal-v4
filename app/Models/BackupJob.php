@@ -19,6 +19,7 @@ class BackupJob extends Model
 
   protected $fillable = [
     'backup_schedule_id',
+    'storage_id',
     'status',
     'assigned_at',
     'started_at',
@@ -28,6 +29,7 @@ class BackupJob extends Model
 
   protected $casts = [
     'backup_schedule_id' => 'integer',
+    'storage_id'         => 'integer',
     'status'             => BackupJobStatus::class,
     'assigned_at'        => 'datetime',
     'started_at'         => 'datetime',
@@ -39,6 +41,11 @@ class BackupJob extends Model
   public function backupSchedule(): BelongsTo
   {
     return $this->belongsTo(BackupSchedule::class);
+  }
+
+  public function storage(): BelongsTo
+  {
+    return $this->belongsTo(BackupStorage::class, 'storage_id');
   }
 
   public function backups(): HasMany

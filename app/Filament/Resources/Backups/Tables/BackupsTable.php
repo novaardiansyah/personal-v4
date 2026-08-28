@@ -9,7 +9,6 @@ use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ForceDeleteAction;
 use Filament\Actions\ForceDeleteBulkAction;
 use Filament\Actions\RestoreAction;
@@ -40,7 +39,7 @@ class BackupsTable
           ->searchable()
           ->limit(30)
           ->tooltip(fn($state) => $state)
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_path')
           ->label('File Path')
           ->searchable()
@@ -52,7 +51,13 @@ class BackupsTable
           ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
-          ->toggleable(isToggledHiddenByDefault: true),
+          ->toggleable(),
+        TextColumn::make('storage.name')
+          ->label('Storage')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('type')
           ->label('Type')
           ->badge()
@@ -91,13 +96,13 @@ class BackupsTable
           ->dateTime('M d, Y H:i')
           ->sinceTooltip()
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('completed_at')
           ->label('Completed At')
           ->dateTime('M d, Y H:i')
           ->sinceTooltip()
           ->sortable()
-          ->toggleable(),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')
           ->label('Created At')
           ->dateTime()
@@ -122,6 +127,12 @@ class BackupsTable
           ->label('Type')
           ->options(BackupType::class)
           ->native(false),
+        SelectFilter::make('storage_id')
+          ->label('Storage')
+          ->relationship('storage', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
         SelectFilter::make('status')
           ->label('Status')
           ->options(BackupStatus::class)
@@ -135,7 +146,6 @@ class BackupsTable
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
-          EditAction::make(),
           DownloadCloudBackupAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),

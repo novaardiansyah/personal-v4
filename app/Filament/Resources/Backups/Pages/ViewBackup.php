@@ -4,7 +4,9 @@ namespace App\Filament\Resources\Backups\Pages;
 
 use App\Filament\Resources\Backups\Actions\DownloadCloudBackupAction;
 use App\Filament\Resources\Backups\BackupResource;
-use Filament\Actions\EditAction;
+use Filament\Actions\DeleteAction;
+use Filament\Actions\ForceDeleteAction;
+use Filament\Actions\RestoreAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewBackup extends ViewRecord
@@ -15,7 +17,9 @@ class ViewBackup extends ViewRecord
   {
     return [
       DownloadCloudBackupAction::make(),
-      EditAction::make(),
+      DeleteAction::make(),
+      ForceDeleteAction::make(),
+      RestoreAction::make(),
     ];
   }
 }
