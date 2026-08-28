@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\BackupJobs\Schemas;
 
 use Filament\Infolists\Components\TextEntry;
-use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
 
@@ -13,48 +12,52 @@ class BackupJobInfolist
   {
     return $schema
       ->components([
-        Group::make([
-          Section::make('')
-            ->description('Job Information')
-            ->schema([
-              TextEntry::make('backupSchedule.name')
-                ->label('Backup Schedule')
-                ->placeholder('N/A'),
-              TextEntry::make('status')
-                ->label('Status')
-                ->badge(),
-              TextEntry::make('message')
-                ->label('Message')
-                ->placeholder('N/A')
-                ->columnSpanFull(),
-            ])
-            ->columns(['xl' => 2, '2xl' => 2]),
+        Section::make('')
+          ->description('Job Information')
+          ->collapsible()
+          ->schema([
+            TextEntry::make('backupSchedule.name')
+              ->label('Backup Schedule')
+              ->placeholder('N/A'),
+            TextEntry::make('storage.name')
+              ->label('Storage')
+              ->badge()
+              ->placeholder('N/A'),
+            TextEntry::make('status')
+              ->label('Status')
+              ->badge(),
+            TextEntry::make('message')
+              ->label('Message')
+              ->placeholder('N/A')
+              ->columnSpanFull(),
+          ])
+          ->columns(3),
 
-          Section::make('')
-            ->description('Execution Timestamps')
-            ->schema([
-              TextEntry::make('assigned_at')
-                ->label('Assigned At')
-                ->dateTime('M d, Y H:i:s')
-                ->sinceTooltip()
-                ->placeholder('N/A'),
-              TextEntry::make('started_at')
-                ->label('Started At')
-                ->dateTime('M d, Y H:i:s')
-                ->sinceTooltip()
-                ->placeholder('N/A'),
-              TextEntry::make('finished_at')
-                ->label('Finished At')
-                ->dateTime('M d, Y H:i:s')
-                ->sinceTooltip()
-                ->placeholder('N/A'),
-            ])
-            ->columns(['xl' => 3, '2xl' => 3]),
-        ])
-          ->columnSpan(['sm' => 3, 'md' => 2]),
+        Section::make('')
+          ->description('Execution Timestamps')
+          ->collapsible()
+          ->schema([
+            TextEntry::make('assigned_at')
+              ->label('Assigned At')
+              ->dateTime('M d, Y H:i:s')
+              ->sinceTooltip()
+              ->placeholder('N/A'),
+            TextEntry::make('started_at')
+              ->label('Started At')
+              ->dateTime('M d, Y H:i:s')
+              ->sinceTooltip()
+              ->placeholder('N/A'),
+            TextEntry::make('finished_at')
+              ->label('Finished At')
+              ->dateTime('M d, Y H:i:s')
+              ->sinceTooltip()
+              ->placeholder('N/A'),
+          ])
+          ->columns(3),
 
         Section::make('')
           ->description('System Information')
+          ->collapsible()
           ->schema([
             TextEntry::make('created_at')
               ->label('Created At')
@@ -70,9 +73,8 @@ class BackupJobInfolist
               ->sinceTooltip()
               ->placeholder('Active'),
           ])
-          ->columns(1)
-          ->columnSpan(['sm' => 3, 'md' => 1]),
+          ->columns(3),
       ])
-      ->columns(3);
+      ->columns(1);
   }
 }
