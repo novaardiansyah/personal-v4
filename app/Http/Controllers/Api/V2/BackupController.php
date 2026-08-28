@@ -492,6 +492,8 @@ class BackupController extends Controller
 
   public function showStorage(BackupStorage $backupStorage): JsonResponse
   {
+    $backupStorage->loadMissing('provider');
+
     return response()->json([
       'success' => true,
       'data'    => new BackupStorageResource($backupStorage),

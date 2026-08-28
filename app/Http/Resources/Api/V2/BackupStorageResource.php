@@ -14,8 +14,8 @@ class BackupStorageResource extends JsonResource
     return [
       'id'         => $this->id,
       'uid'        => $this->uid,
+      'provider'   => $this->provider?->slug,
       'name'       => $this->name,
-      'slug'       => $this->slug,
       'keys'       => $this->keys,
       'active'     => (bool) $this->active,
       'created_at' => $this->created_at?->format('Y-m-d H:i:s'),
