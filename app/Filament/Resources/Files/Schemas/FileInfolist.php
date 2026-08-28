@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Files\Schemas;
 
+use App\Enums\FileType;
 use App\Models\File;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
@@ -45,6 +46,7 @@ class FileInfolist
           ->columns(3),
         Section::make('')
           ->description('Subject Information')
+          ->visible(fn(?File $record): bool => (int) $record?->type_id !== FileType::DeviceFile->value)
           ->components([
             TextEntry::make('subject_id')
               ->label('Subject')
