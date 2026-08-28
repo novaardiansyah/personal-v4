@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupStorages\Schemas;
 
 use Filament\Forms\Components\KeyValue;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Grid;
@@ -52,6 +53,15 @@ class BackupStorageForm
               ->disabled()
               ->dehydrated(false)
               ->visible(fn($record) => $record !== null),
+
+						Select::make('provider_id')
+							->label('Provider')
+							->relationship('provider', 'name')
+							->native(false)
+							->preload()
+							->searchable()
+							->required(),
+
             Toggle::make('active')
               ->label('Active')
               ->default(true),
