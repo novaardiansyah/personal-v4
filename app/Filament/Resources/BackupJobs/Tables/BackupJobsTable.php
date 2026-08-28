@@ -32,6 +32,12 @@ class BackupJobsTable
           ->searchable()
           ->sortable()
           ->toggleable(),
+        TextColumn::make('storage.name')
+          ->label('Storage')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('status')
           ->label('Status')
           ->badge()
@@ -86,6 +92,12 @@ class BackupJobsTable
           ->label('Backup Schedule')
           ->relationship('backupSchedule', 'name')
           ->native(false),
+        SelectFilter::make('storage_id')
+          ->label('Storage')
+          ->relationship('storage', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
         SelectFilter::make('status')
           ->label('Status')
           ->options(BackupJobStatus::class)

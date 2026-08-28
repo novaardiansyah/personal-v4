@@ -2,11 +2,8 @@
 
 namespace App\Filament\Resources\Backups;
 
-use App\Filament\Resources\Backups\Pages\CreateBackup;
-use App\Filament\Resources\Backups\Pages\EditBackup;
 use App\Filament\Resources\Backups\Pages\ListBackups;
 use App\Filament\Resources\Backups\Pages\ViewBackup;
-use App\Filament\Resources\Backups\Schemas\BackupForm;
 use App\Filament\Resources\Backups\Schemas\BackupInfolist;
 use App\Filament\Resources\Backups\Tables\BackupsTable;
 use App\Models\Backup;
@@ -16,6 +13,7 @@ use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use UnitEnum;
 
@@ -38,9 +36,9 @@ class BackupResource extends Resource
     return false;
   }
 
-  public static function form(Schema $schema): Schema
+  public static function canEdit(Model $record): bool
   {
-    return BackupForm::configure($schema);
+    return false;
   }
 
   public static function infolist(Schema $schema): Schema
@@ -61,10 +59,8 @@ class BackupResource extends Resource
   public static function getPages(): array
   {
     return [
-      'index'  => ListBackups::route('/'),
-      'create' => CreateBackup::route('/create'),
-      'view'   => ViewBackup::route('/{record}'),
-      'edit'   => EditBackup::route('/{record}/edit'),
+      'index' => ListBackups::route('/'),
+      'view'  => ViewBackup::route('/{record}'),
     ];
   }
 

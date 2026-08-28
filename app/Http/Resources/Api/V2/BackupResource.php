@@ -15,6 +15,7 @@ class BackupResource extends JsonResource
       'id'              => $this->id,
       'uid'             => $this->uid,
       'backup_job_id'   => $this->backup_job_id,
+      'storage_id'      => $this->storage_id,
       'file_name'       => $this->file_name,
       'file_path'       => $this->file_path,
       'cloud_file_path' => $this->cloud_file_path,

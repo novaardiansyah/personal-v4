@@ -6,19 +6,7 @@ use App\Http\Controllers\Api\V2\BackupController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('auth:sanctum')->prefix('backups')->group(function () {
-  Route::get('/', [BackupController::class, 'index']);
-
   Route::get('/check-schedule', [BackupController::class, 'checkSchedule']);
-  Route::patch('/jobs/{id}', [BackupController::class, 'updateJob']);
   Route::post('/jobs/{id}/report', [BackupController::class, 'storeJobReport']);
-
   Route::get('/storages/{backupStorage}', [BackupController::class, 'showStorage']);
-
-  Route::post('/', [BackupController::class, 'store']);
-  Route::get('/{id}', [BackupController::class, 'show']);
-  Route::put('/{id}', [BackupController::class, 'update']);
-  Route::patch('/{id}', [BackupController::class, 'update']);
-  Route::delete('/{id}', [BackupController::class, 'destroy']);
-  Route::post('/{id}/restore', [BackupController::class, 'restore']);
-  Route::get('/{id}/download', [BackupController::class, 'download']);
 });

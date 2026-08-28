@@ -55,6 +55,12 @@ class BackupInfolist
                 ->copyable()
                 ->placeholder('N/A')
                 ->columnSpanFull(),
+              TextEntry::make('storage.name')
+                ->label('Storage')
+                ->copyable()
+                ->badge()
+                ->placeholder('N/A')
+                ->columnSpanFull(),
               TextEntry::make('message')
                 ->label('Message')
                 ->placeholder('N/A')

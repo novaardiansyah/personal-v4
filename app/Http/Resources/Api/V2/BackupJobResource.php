@@ -18,7 +18,7 @@ class BackupJobResource extends JsonResource
     return [
       'id'                     => $this->id,
       'backup_schedule_id'     => $this->backup_schedule_id,
-      'storage_id'             => $this->backupSchedule?->storage_id,
+      'storage_id'             => $this->storage_id,
       'status'                 => $this->status?->getLabel(),
       'message'                => $this->message,
       'started_at'             => $this->started_at?->format('Y-m-d H:i:s'),
