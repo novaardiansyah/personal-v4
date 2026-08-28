@@ -83,6 +83,12 @@ class BackupSchedulesTable
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('storage.name')
+          ->label('Storage')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         IconColumn::make('keep_local_backup')
           ->label('Keep Local Backup')
           ->boolean()
@@ -133,7 +139,7 @@ class BackupSchedulesTable
           ->dateTime()
           ->sinceTooltip()
           ->sortable()
-          ->toggleable(isToggledHiddenByDefault: false),
+          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('deleted_at')
           ->dateTime()
 					->sinceTooltip()
