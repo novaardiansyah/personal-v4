@@ -1,0 +1,137 @@
+<?php
+
+namespace App\Filament\Resources\Files\Pages;
+
+use App\Filament\Resources\Files\FileResource;
+use App\Models\File;
+use Filament\Resources\Pages\Page;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
+use Livewire\Attributes\Url;
+
+class FileDetails extends Page implements HasTable
+{
+  use InteractsWithTable;
+
+  protected static string $resource = FileResource::class;
+
+  protected string $view = 'filament.resources.files.pages.file-details';
+
+  protected static ?string $title = 'File Details';
+
+  #[Url]
+  public string $ids = '';
+
+  public array $recordIds = [];
+
+  public function mount(): void
+  {
+    $this->recordIds = array_filter(explode(',', $this->ids));
+  }
+
+  public function getTitle(): string
+  {
+    return 'File Details';
+  }
+
+  public function table(Table $table): Table
+  {
+    return $table
+      ->query(
+        File::query()->whereIn('id', $this->recordIds)
+      )
+      ->columns([
+        TextColumn::make('index')
+          ->label('#')
+          ->rowIndex(),
+        TextColumn::make('uid')
+          ->label('File ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
+        TextColumn::make('fileDownload.code')
+          ->label('File Download ID')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('user.name')
+          ->label('User')
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('file_name')
+          ->label('File')
+          ->tooltip(fn(File $record): string => $record->file_alias ? $record->file_alias : '')
+          ->searchable()
+          ->toggleable(),
+        TextColumn::make('file_path')
+          ->label('File Path')
+          ->searchable()
+          ->limit(50)
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('file_alias')
+          ->label('Display Name')
+          ->searchable()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('description')
+          ->label('Description')
+          ->limit(50)
+          ->searchable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('type.name')
+          ->label('Type')
+          ->searchable()
+          ->badge()
+          ->toggleable(),
+        TextColumn::make('file_size')
+          ->label('File Size')
+          ->formatStateUsing(fn(string $state): string => sizeFormat(floatval($state ?? 0)))
+          ->sortable()
+          ->toggleable(),
+        TextColumn::make('encrypt_key')
+          ->label('Encrypt Key')
+          ->formatStateUsing(fn(?string $state): ?string => decryptFernet($state))
+          ->copyable()
+          ->badge()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('subject_id')
+          ->label('Subject')
+          ->formatStateUsing(function ($state, Model $record) {
+            if (!$state)
+              return;
+            return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
+          })
+          ->toggleable(isToggledHiddenByDefault: true),
+        IconColumn::make('has_been_deleted')
+          ->label('File Deleted')
+          ->boolean()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('scheduled_deletion_time')
+          ->label('Expiry Date')
+          ->since()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('deleted_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('created_at')
+          ->dateTime()
+          ->sortable()
+          ->toggleable(isToggledHiddenByDefault: true),
+        TextColumn::make('updated_at')
+          ->dateTime()
+          ->sortable()
+          ->sinceTooltip()
+          ->toggleable(),
+      ])
+      ->defaultSort('updated_at', 'desc');
+  }
+}

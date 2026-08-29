@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Files\Tables;
 
 use App\Enums\FileType;
+use App\Filament\Resources\Files\Actions\FileAction;
 use App\Filament\Resources\Files\Actions\ReplicateAction;
 use App\Models\File;
 use Filament\Actions\Action;
@@ -154,6 +155,7 @@ class FilesTable
 			])
 			->toolbarActions([
 				BulkActionGroup::make([
+					FileAction::detailsBulk(),
 					DeleteBulkAction::make(),
 					RestoreBulkAction::make(),
 					ForceDeleteBulkAction::make(),
