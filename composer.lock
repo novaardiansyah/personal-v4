@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "ccc9672a4e01033cdb1026ad82755eaf",
+    "content-hash": "85e5e2b7e05510e81763a258bc1895f1",
     "packages": [
         {
             "name": "amirezaeb/heroqr",
@@ -2715,6 +2715,60 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "kelvinmo/fernet-php",
+            "version": "v1.0.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/kelvinmo/fernet-php.git",
+                "reference": "215fa5d80b758715b8d72e5e457a6d20aee6757e"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/kelvinmo/fernet-php/zipball/215fa5d80b758715b8d72e5e457a6d20aee6757e",
+                "reference": "215fa5d80b758715b8d72e5e457a6d20aee6757e",
+                "shasum": ""
+            },
+            "require": {
+                "ext-hash": "*",
+                "php": "^7.0 || ^8.0"
+            },
+            "require-dev": {
+                "phpstan/phpstan": "^1.4",
+                "phpunit/phpunit": "^6.0 || ^9.0"
+            },
+            "suggest": {
+                "ext-mcrypt": "This package requires either the mcrypt or openssl extension.",
+                "ext-openssl": "This package requires either the mcrypt or openssl extension."
+            },
+            "type": "library",
+            "autoload": {
+                "classmap": [
+                    "src/"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "authors": [
+                {
+                    "name": "Kelvin Mo",
+                    "email": "kmo@users.sourceforge.net"
+                }
+            ],
+            "description": "An implementation of the Fernet token specification in PHP.",
+            "homepage": "https://github.com/kelvinmo/fernet-php",
+            "keywords": [
+                "fernet",
+                "token"
+            ],
+            "support": {
+                "issues": "https://github.com/kelvinmo/fernet-php/issues",
+                "source": "https://github.com/kelvinmo/fernet-php/tree/v1.0.1"
+            },
+            "time": "2022-02-22T07:18:43+00:00"
         },
         {
             "name": "kirschbaum-development/eloquent-power-joins",
