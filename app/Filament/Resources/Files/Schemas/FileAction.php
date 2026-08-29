@@ -75,11 +75,12 @@ class FileAction
       );
 
       $fileData = [
-        'file_alias' => $file_alias ? $file_alias . '.' . $extension : null,
-        'user_id' => $user->id,
-        'file_name' => $filename,
-        'file_path' => $file,
-        'download_url' => $fileUrl,
+        'uid'                     => $filenameWithoutExtension,
+        'file_alias'              => $file_alias ? $file_alias . '.' . $extension : null,
+        'user_id'                 => $user->id,
+        'file_name'               => $filename,
+        'file_path'               => $file,
+        'download_url'            => $fileUrl,
         'scheduled_deletion_time' => $expirationCarbon,
       ];
 

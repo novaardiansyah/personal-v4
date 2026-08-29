@@ -81,7 +81,7 @@ class FileForm
           ->moveFiles()
           ->imageEditor()
           ->getUploadedFileNameForStorageUsing(
-            fn(TemporaryUploadedFile $file): string => uuid7() . '.' . $file->getClientOriginalExtension()
+            fn(TemporaryUploadedFile $file, Get $get): string => ($get('uid') ?: uuid7()) . '.' . $file->getClientOriginalExtension()
           )
           ->columnSpanFull(),
       ]);
