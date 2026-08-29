@@ -113,6 +113,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   }
 
   File::create([
+    'uid'                     => $filenameWithoutExtension,
     'user_id'                 => $user->id,
     'file_name'               => $filename,
     'file_path'               => $filepath,

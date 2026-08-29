@@ -93,10 +93,11 @@ class PaymentReportExcelJob implements ShouldQueue
     }
 
     File::create([
-      'user_id' => $causer->id,
-      'file_name' => $filename,
-      'file_path' => $filepath,
-      'download_url' => $fileUrl,
+      'uid'                     => pathinfo($filename, PATHINFO_FILENAME),
+      'user_id'                 => $causer->id,
+      'file_name'               => $filename,
+      'file_path'               => $filepath,
+      'download_url'            => $fileUrl,
       'scheduled_deletion_time' => $expiration,
     ]);
 
