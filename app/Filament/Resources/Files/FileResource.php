@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Files;
 
 use App\Filament\Resources\Files\Pages\CreateFile;
 use App\Filament\Resources\Files\Pages\EditFile;
+use App\Filament\Resources\Files\Pages\FileDetails;
 use App\Filament\Resources\Files\Pages\ListFiles;
 use App\Filament\Resources\Files\Pages\ViewFile;
 use App\Filament\Resources\Files\Schemas\FileForm;
@@ -49,17 +50,17 @@ class FileResource extends Resource
   public static function getRelations(): array
   {
     return [
-      //
     ];
   }
 
   public static function getPages(): array
   {
     return [
-      'index'  => ListFiles::route('/'),
-      'create' => CreateFile::route('/create'),
-      'view'   => ViewFile::route('/{record}'),
-      'edit'   => EditFile::route('/{record}/edit'),
+      'index'   => ListFiles::route('/'),
+      'create'  => CreateFile::route('/create'),
+      'details' => FileDetails::route('/details'),
+      'view'    => ViewFile::route('/{record}'),
+      'edit'    => EditFile::route('/{record}/edit'),
     ];
   }
 
