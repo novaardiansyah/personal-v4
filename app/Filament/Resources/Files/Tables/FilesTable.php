@@ -73,12 +73,19 @@ class FilesTable
 				TextColumn::make('type.name')
 					->label('Type')
 					->searchable()
+					->badge()
 					->toggleable(),
 				TextColumn::make('file_size')
 					->label('File Size')
 					->formatStateUsing(fn(string $state): string => sizeFormat(floatval($state ?? 0)))
 					->sortable()
 					->toggleable(),
+				TextColumn::make('encrypt_key')
+					->label('Encrypt Key')
+					->formatStateUsing(fn(?string $state): ?string => decryptFernet($state))
+					->copyable()
+					->badge()
+					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('subject_id')
 					->label('Subject')
 					->formatStateUsing(function ($state, Model $record) {

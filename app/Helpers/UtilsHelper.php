@@ -23,6 +23,7 @@ use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 use \Mpdf\Mpdf;
 use App\Events\TelegramNotificationEvent;
 use \GuzzleHttp\Psr7\Response;
+use Fernet\Fernet;
 
 function getSetting(string $key, $default = null)
 {
@@ -580,3 +581,24 @@ function uuid7(): string
   $string = Str::uuid7()->toString();
 	return trim($string);
 }
+
+function decryptFernet(?string $token, ?string $secretKey = null): ?string
+{
+  if (empty($token)) {
+    return null;
+  }
+
+  $secretKey = $secretKey ?? getSetting('file_secret_encrypt_key');
+
+  if (empty($secretKey)) {
+    return $token;
+  }
+
+  try {
+    $fernet = new Fernet($secretKey);
+    return $fernet->decode($token) ?? $token;
+  } catch (\Throwable) {
+    return $token;
+  }
+}
+

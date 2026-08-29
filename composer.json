@@ -14,6 +14,7 @@
     "dedoc/scramble": "^0.13.22",
     "filament/filament": "^5.0",
     "guzzlehttp/guzzle": "^7.10",
+    "kelvinmo/fernet-php": "^1.0",
     "laravel-notification-channels/telegram": "^6.0",
     "laravel/framework": "^12.0",
     "laravel/sanctum": "^4.2",
