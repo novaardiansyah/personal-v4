@@ -75,6 +75,7 @@ class AdminPanelProvider extends PanelProvider
         'File Manager',
         'Blog',
         'Backup',
+        'Discord',
         'Settings',
         'Logs',
       ])
