@@ -8,6 +8,20 @@ use App\Models\DiscordChannel;
 
 class DiscordChannelObserver
 {
+  public function creating(DiscordChannel $discordChannel): void
+  {
+    if (empty($discordChannel->uid)) {
+      $discordChannel->uid = uuid7();
+    }
+  }
+
+  public function updating(DiscordChannel $discordChannel): void
+  {
+    if (empty($discordChannel->uid)) {
+      $discordChannel->uid = uuid7();
+    }
+  }
+
   public function created(DiscordChannel $discordChannel): void
   {
     $this->_log('Created', $discordChannel);

@@ -8,6 +8,20 @@ use App\Models\DiscordServer;
 
 class DiscordServerObserver
 {
+  public function creating(DiscordServer $discordServer): void
+  {
+    if (empty($discordServer->uid)) {
+      $discordServer->uid = uuid7();
+    }
+  }
+
+  public function updating(DiscordServer $discordServer): void
+  {
+    if (empty($discordServer->uid)) {
+      $discordServer->uid = uuid7();
+    }
+  }
+
   public function created(DiscordServer $discordServer): void
   {
     $this->_log('Created', $discordServer);

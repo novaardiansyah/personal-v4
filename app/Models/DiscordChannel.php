@@ -16,6 +16,7 @@ class DiscordChannel extends Model
   protected $table = 'discord_channels';
 
   protected $fillable = [
+    'uid',
     'server_id',
     'name',
     'channel_id',

@@ -28,6 +28,15 @@ class DiscordServersTable
         TextColumn::make('index')
           ->rowIndex()
           ->label('#'),
+        TextColumn::make('uid')
+          ->label('UID')
+          ->searchable()
+          ->copyable()
+          ->badge()
+          ->color('info')
+          ->limit(8)
+          ->tooltip(fn($state) => $state . ' (click to copy)')
+          ->toggleable(),
         TextColumn::make('name')
           ->label('Name')
           ->searchable()

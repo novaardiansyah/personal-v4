@@ -43,6 +43,13 @@ class DiscordServerForm
           ->collapsible()
           ->columnSpan(['sm' => 3, 'md' => 1])
           ->schema([
+            TextInput::make('uid')
+              ->label('UID')
+              ->disabled()
+              ->dehydrated(false)
+              ->visible(fn($record) => $record !== null)
+              ->copyable(),
+
             Toggle::make('is_active')
               ->label('Active')
               ->default(true),
