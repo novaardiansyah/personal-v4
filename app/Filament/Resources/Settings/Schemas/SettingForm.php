@@ -81,6 +81,17 @@ class SettingForm
               });
             }),
 
+          Grid::make(2)
+            ->schema([
+              TextInput::make('subject_type')
+                ->label('Subject Type')
+                ->maxLength(255),
+
+              TextInput::make('subject_id')
+                ->label('Subject ID')
+                ->numeric(),
+            ]),
+
           Textarea::make('description')
             ->label('Description')
             ->maxLength(1000)
