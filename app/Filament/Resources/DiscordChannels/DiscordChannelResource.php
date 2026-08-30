@@ -6,6 +6,7 @@ use App\Filament\Resources\DiscordChannels\Pages\CreateDiscordChannel;
 use App\Filament\Resources\DiscordChannels\Pages\EditDiscordChannel;
 use App\Filament\Resources\DiscordChannels\Pages\ListDiscordChannels;
 use App\Filament\Resources\DiscordChannels\Pages\ViewDiscordChannel;
+use App\Filament\Resources\DiscordChannels\RelationManagers\WebhooksRelationManager;
 use App\Filament\Resources\DiscordChannels\Schemas\DiscordChannelForm;
 use App\Filament\Resources\DiscordChannels\Schemas\DiscordChannelInfolist;
 use App\Filament\Resources\DiscordChannels\Tables\DiscordChannelsTable;
@@ -50,7 +51,9 @@ class DiscordChannelResource extends Resource
 
   public static function getRelations(): array
   {
-    return [];
+    return [
+      WebhooksRelationManager::class,
+    ];
   }
 
   public static function getPages(): array
