@@ -18,6 +18,12 @@ class DiscordChannelInfolist
             ->description('Channel Information')
             ->collapsible()
             ->schema([
+              TextEntry::make('uid')
+                ->label('UID')
+                ->badge()
+                ->copyable()
+                ->color('info')
+                ->placeholder('N/A'),
               TextEntry::make('server.name')
                 ->label('Server')
                 ->badge()
@@ -35,7 +41,7 @@ class DiscordChannelInfolist
               TextEntry::make('description')
                 ->label('Description')
                 ->placeholder('N/A')
-                ->columnSpanFull(),
+                ->columnSpan(2),
             ])
             ->columns(3),
         ]),

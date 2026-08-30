@@ -16,6 +16,7 @@ class DiscordServer extends Model
   protected $table = 'discord_servers';
 
   protected $fillable = [
+    'uid',
     'name',
     'server_id',
     'server_icon',

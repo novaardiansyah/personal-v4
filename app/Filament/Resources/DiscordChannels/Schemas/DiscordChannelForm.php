@@ -42,6 +42,19 @@ class DiscordChannelForm
                   ->columnSpanFull(),
               ]),
           ]),
+
+        Section::make()
+          ->description('Status & Metadata')
+          ->collapsible()
+          ->columnSpan(['sm' => 3, 'md' => 1])
+          ->schema([
+            TextInput::make('uid')
+              ->label('UID')
+              ->disabled()
+              ->dehydrated(false)
+              ->visible(fn($record) => $record !== null)
+              ->copyable(),
+          ]),
       ])
       ->columns(3);
   }

@@ -20,6 +20,12 @@ class DiscordServerInfolist
             ->description('Server Information')
             ->collapsible()
             ->schema([
+              TextEntry::make('uid')
+                ->label('UID')
+                ->badge()
+                ->copyable()
+                ->color('info')
+                ->placeholder('N/A'),
               TextEntry::make('name')
                 ->label('Name')
                 ->placeholder('N/A'),
