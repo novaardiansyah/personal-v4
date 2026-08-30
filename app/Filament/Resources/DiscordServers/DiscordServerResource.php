@@ -6,6 +6,7 @@ use App\Filament\Resources\DiscordServers\Pages\CreateDiscordServer;
 use App\Filament\Resources\DiscordServers\Pages\EditDiscordServer;
 use App\Filament\Resources\DiscordServers\Pages\ListDiscordServers;
 use App\Filament\Resources\DiscordServers\Pages\ViewDiscordServer;
+use App\Filament\Resources\DiscordServers\RelationManagers\ChannelsRelationManager;
 use App\Filament\Resources\DiscordServers\Schemas\DiscordServerForm;
 use App\Filament\Resources\DiscordServers\Schemas\DiscordServerInfolist;
 use App\Filament\Resources\DiscordServers\Tables\DiscordServersTable;
@@ -50,7 +51,9 @@ class DiscordServerResource extends Resource
 
   public static function getRelations(): array
   {
-    return [];
+    return [
+      ChannelsRelationManager::class,
+    ];
   }
 
   public static function getPages(): array
