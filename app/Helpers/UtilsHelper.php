@@ -25,10 +25,14 @@ use App\Events\TelegramNotificationEvent;
 use \GuzzleHttp\Psr7\Response;
 use Fernet\Fernet;
 
-function getSetting(string $key, $default = null)
+function getSetting(string $key, $default = null, ?string $subjectType = null)
 {
-  return cache()->rememberForever("setting.{$key}", function () use ($key, $default) {
-    return Setting::where('key', $key)->first()?->value ?? $default;
+  $cacheKey = $subjectType ? "setting.{$subjectType}.{$key}" : "setting.{$key}";
+
+  return cache()->rememberForever($cacheKey, function () use ($key, $default, $subjectType) {
+    return Setting::where('key', $key)
+      ->when($subjectType, fn($query) => $query->where('subject_type', $subjectType), fn($query) => $query->whereNull('subject_type'))
+      ->first()?->value ?? $default;
   });
 }
 
