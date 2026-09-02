@@ -607,3 +607,33 @@ function decryptFernet(?string $token, ?string $secretKey = null): ?string
   }
 }
 
+function toJsonPretty(mixed $data): string
+{
+  if (empty($data)) {
+    return '';
+  }
+
+  if (is_string($data)) {
+    $decoded = json_decode($data, true);
+    if (json_last_error() === JSON_ERROR_NONE) {
+      $data = $decoded;
+    } else {
+      return $data;
+    }
+  }
+
+  return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '';
+}
+
+function formatJsonPre(mixed $data, int $maxHeight = 400): string
+{
+  if (empty($data)) {
+    return '-';
+  }
+
+  $json = toJsonPretty($data);
+
+  return '<pre style="max-height: ' . $maxHeight . 'px; overflow-y: auto; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><code>' . e($json) . '</code></pre>';
+}
+
+
