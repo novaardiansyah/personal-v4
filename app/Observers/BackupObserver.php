@@ -6,9 +6,11 @@ namespace App\Observers;
 
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
-use App\Jobs\BackupResource\SendBackupDiscordNotificationJob;
+use App\Enums\DiscordMessageStatus;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Models\Backup;
+use App\Models\DiscordMessage;
+use App\Services\DiscordWebhookService;
 use Illuminate\Support\Facades\DB;
 
 class BackupObserver
@@ -106,8 +108,8 @@ class BackupObserver
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
     $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
 
-    $text = "Schedule Backup Report\n\n" 
-			. "name: {$scheduleName}\n"
+    $text = "Schedule Backup Report\n\n"
+      . "name: {$scheduleName}\n"
       . "size: {$fileSize}\n"
       . "type: {$type}\n"
       . "duration: {$duration}\n"
@@ -127,7 +129,25 @@ class BackupObserver
       return;
     }
 
-    SendBackupDiscordNotificationJob::dispatch($backup);
+    $webhookSetting = getSetting('discord_webhook_report', null, Backup::class);
+    if (empty($webhookSetting)) {
+      return;
+    }
+
+    $service = app(DiscordWebhookService::class);
+    $webhook = $service->resolveWebhook($webhookSetting);
+
+    if (!$webhook) {
+      return;
+    }
+
+    $payload = $service->buildBackupReportPayload($backup);
+
+    DiscordMessage::create([
+      'webhook_id' => $webhook->id,
+      'content'    => $payload,
+      'status'     => DiscordMessageStatus::Pending,
+    ]);
   }
 
   private function _log(string $event, Backup $backup): void
@@ -140,4 +160,3 @@ class BackupObserver
     ], $backup);
   }
 }
-
