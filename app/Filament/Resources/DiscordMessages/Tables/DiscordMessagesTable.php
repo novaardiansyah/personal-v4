@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\DiscordMessages\Tables;
 
 use App\Enums\DiscordMessageStatus;
+use App\Models\DiscordMessage;
+use App\Models\DiscordWebhook;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -37,11 +39,18 @@ class DiscordMessagesTable
           ->copyableState(fn($state) => $state)
           ->tooltip(fn($state) => $state)
           ->toggleable(),
+        TextColumn::make('webhook.name')
+          ->label('Webhook')
+          ->formatStateUsing(fn(DiscordMessage $record) => $record->webhook ? "{$record->webhook->name} (" . ($record->webhook->channel?->name ?? '-') . ")" : '-')
+          ->badge()
+          ->color('info')
+          ->searchable()
+          ->sortable()
+          ->toggleable(),
         TextColumn::make('content')
           ->label('Content')
-          ->searchable()
+          ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_SLASHES) : $state)
           ->limit(50)
-          ->sortable()
           ->toggleable(),
         TextColumn::make('status')
           ->label('Status')
@@ -51,7 +60,7 @@ class DiscordMessagesTable
           ->toggleable(),
         TextColumn::make('response')
           ->label('Response')
-          ->searchable()
+          ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_SLASHES) : $state)
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')
@@ -71,6 +80,13 @@ class DiscordMessagesTable
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
+        SelectFilter::make('webhook_id')
+          ->label('Webhook')
+          ->relationship('webhook', 'name', fn($query) => $query->with('channel'))
+          ->getOptionLabelFromRecordUsing(fn(DiscordWebhook $record) => "{$record->name} (" . ($record->channel?->name ?? '-') . ")")
+          ->searchable()
+          ->preload()
+          ->native(false),
         SelectFilter::make('status')
           ->label('Status')
           ->options(DiscordMessageStatus::class)
