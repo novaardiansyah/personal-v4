@@ -4,8 +4,8 @@ namespace App\Filament\Resources\DiscordMessages\Schemas;
 
 use App\Enums\DiscordMessageStatus;
 use App\Models\DiscordWebhook;
-use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -33,12 +33,24 @@ class DiscordMessageForm
                   ->preload()
                   ->native(false)
                   ->required(),
-                KeyValue::make('content')
+                Textarea::make('content')
                   ->label('Content / Embed Payload')
+                  ->rows(6)
+                  ->formatStateUsing(fn($state) => toJsonPretty($state))
+                  ->mutateDehydratedStateUsing(function ($state) {
+                    if (empty($state)) {
+                      return null;
+                    }
+
+                    $decoded = json_decode((string) $state, true);
+                    return json_last_error() === JSON_ERROR_NONE ? $decoded : ['content' => $state];
+                  })
                   ->columnSpanFull(),
-                KeyValue::make('response')
+                Textarea::make('response')
                   ->label('Response Data')
+                  ->rows(6)
                   ->disabled()
+                  ->formatStateUsing(fn($state) => toJsonPretty($state))
                   ->visible(fn($record) => $record !== null)
                   ->columnSpanFull(),
               ]),
@@ -49,7 +61,7 @@ class DiscordMessageForm
           ->collapsible()
           ->columnSpan(['sm' => 3, 'md' => 1])
           ->schema([
-						TextInput::make('uid')
+            TextInput::make('uid')
               ->label('UID')
               ->disabled()
               ->dehydrated(false)

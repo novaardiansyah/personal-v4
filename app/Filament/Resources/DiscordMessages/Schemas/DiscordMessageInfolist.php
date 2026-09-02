@@ -3,7 +3,6 @@
 namespace App\Filament\Resources\DiscordMessages\Schemas;
 
 use App\Models\DiscordMessage;
-use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -36,11 +35,19 @@ class DiscordMessageInfolist
                 ->label('Status')
                 ->badge()
                 ->placeholder('N/A'),
-              KeyValueEntry::make('content')
+              TextEntry::make('content')
                 ->label('Content / Embed')
+                ->formatStateUsing(fn($state) => formatJsonPre($state))
+                ->html()
+                ->copyable()
+                ->copyableState(fn($state) => toJsonPretty($state))
                 ->columnSpanFull(),
-              KeyValueEntry::make('response')
+              TextEntry::make('response')
                 ->label('Response Data')
+                ->formatStateUsing(fn($state) => formatJsonPre($state))
+                ->html()
+                ->copyable()
+                ->copyableState(fn($state) => toJsonPretty($state))
                 ->columnSpanFull(),
             ])
             ->columns(3),
