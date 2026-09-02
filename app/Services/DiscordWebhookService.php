@@ -14,18 +14,47 @@ use Illuminate\Support\Str;
 
 class DiscordWebhookService
 {
-  public function send(string $webhookUrl, array $payload): bool
+  public function send(string $webhookUrl, array $payload): array
   {
     try {
-      $response = Http::timeout(60)->post($webhookUrl, $payload);
-      return $response->successful();
+      $response = Http::timeout(30)->post($webhookUrl, $payload);
+
+      $responseData = $response->json() ?? [
+        'status' => $response->status(),
+        'body'   => $response->body(),
+      ];
+
+      return [
+        'success'  => $response->successful(),
+        'response' => is_array($responseData) ? $responseData : ['data' => $responseData],
+      ];
     } catch (\Throwable $e) {
       Log::error('Failed sending Discord webhook: ' . $e->getMessage(), [
         'webhook_url' => $webhookUrl,
         'error'       => $e->getMessage(),
       ]);
-      return false;
+
+      return [
+        'success'  => false,
+        'response' => ['error' => $e->getMessage()],
+      ];
     }
+  }
+
+  public function resolveWebhook(?string $webhookSetting): ?DiscordWebhook
+  {
+    if (empty($webhookSetting)) {
+      return null;
+    }
+
+    $webhookQuery = DiscordWebhook::where('uid', $webhookSetting)
+      ->orWhere('uid', strtolower($webhookSetting));
+
+    if (is_numeric($webhookSetting)) {
+      $webhookQuery->orWhere('id', (int) $webhookSetting);
+    }
+
+    return $webhookQuery->first();
   }
 
   public function resolveWebhookUrl(?string $webhookSetting): ?string
@@ -38,14 +67,7 @@ class DiscordWebhookService
       return $webhookSetting;
     }
 
-    $webhookQuery = DiscordWebhook::where('uid', $webhookSetting)
-      ->orWhere('uid', strtolower($webhookSetting));
-
-    if (is_numeric($webhookSetting)) {
-      $webhookQuery->orWhere('id', (int) $webhookSetting);
-    }
-
-    return $webhookQuery->first()?->url;
+    return $this->resolveWebhook($webhookSetting)?->url;
   }
 
   public function buildBackupReportPayload(Backup $backup): array
