@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\DiscordMessages\Schemas;
 
+use App\Models\DiscordMessage;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -24,20 +26,24 @@ class DiscordMessageInfolist
                 ->copyable()
                 ->color('info')
                 ->placeholder('N/A'),
+              TextEntry::make('webhook.name')
+                ->label('Webhook')
+                ->formatStateUsing(fn(DiscordMessage $record) => $record->webhook ? "{$record->webhook->name} (" . ($record->webhook->channel?->name ?? '-') . ")" : '-')
+                ->badge()
+                ->color('info')
+                ->placeholder('N/A'),
               TextEntry::make('status')
                 ->label('Status')
                 ->badge()
                 ->placeholder('N/A'),
-              TextEntry::make('content')
-                ->label('Content')
-                ->placeholder('N/A')
+              KeyValueEntry::make('content')
+                ->label('Content / Embed')
                 ->columnSpanFull(),
-              TextEntry::make('response')
-                ->label('Response')
-                ->placeholder('N/A')
+              KeyValueEntry::make('response')
+                ->label('Response Data')
                 ->columnSpanFull(),
             ])
-            ->columns(2),
+            ->columns(3),
         ]),
 
         Section::make('')
