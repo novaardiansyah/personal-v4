@@ -7,7 +7,10 @@ namespace App\Observers;
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
 use App\Models\Backup;
+use App\Models\DiscordWebhook;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class BackupObserver
@@ -39,6 +42,7 @@ class BackupObserver
     $this->_log('Created', $backup);
     $this->_syncScheduleCount($backup);
     $this->_sendTelegramNotification($backup);
+    $this->_sendDiscordNotification($backup);
   }
 
   public function updated(Backup $backup): void
@@ -48,6 +52,7 @@ class BackupObserver
 
     if ($backup->wasChanged('status')) {
       $this->_sendTelegramNotification($backup);
+      $this->_sendDiscordNotification($backup);
     }
   }
 
@@ -114,6 +119,68 @@ class BackupObserver
       . "message: {$message}";
 
     sendTelegramNotification($text);
+  }
+
+  private function _sendDiscordNotification(Backup $backup): void
+  {
+    $statusVal = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
+
+    if (!in_array($statusVal, ['success', 'failed'], true)) {
+      return;
+    }
+
+    $webhookSetting = getSetting('discord_webhook_report', null, Backup::class);
+
+    if (empty($webhookSetting)) {
+      return;
+    }
+
+    $webhookUrl = null;
+    if (str_starts_with($webhookSetting, 'http://') || str_starts_with($webhookSetting, 'https://')) {
+      $webhookUrl = $webhookSetting;
+    } else {
+      $webhook = DiscordWebhook::where('uid', $webhookSetting)
+        ->orWhere('uid', strtolower($webhookSetting))
+        ->orWhere('id', $webhookSetting)
+        ->first();
+      $webhookUrl = $webhook?->url;
+    }
+
+    if (empty($webhookUrl)) {
+      return;
+    }
+
+    $backup->loadMissing('backupJob.backupSchedule');
+
+    $scheduleName = $backup->backupJob?->backupSchedule?->name ?? '-';
+    $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
+    $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
+    $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
+    $status       = $statusVal;
+    $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
+    $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
+    $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
+
+    $text = "Schedule Backup Report\n\n"
+      . "name: {$scheduleName}\n"
+      . "size: {$fileSize}\n"
+      . "type: {$type}\n"
+      . "duration: {$duration}\n"
+      . "status: {$status}\n"
+      . "started at: {$startedAt}\n"
+      . "completed at: {$completedAt}\n"
+      . "message: {$message}";
+
+    try {
+      Http::timeout(60)->post($webhookUrl, [
+        'content' => $text,
+      ]);
+    } catch (\Throwable $e) {
+      Log::error('Failed sending discord webhook for backup report: ' . $e->getMessage(), [
+        'backup_id' => $backup->id,
+        'error'     => $e->getMessage(),
+      ]);
+    }
   }
 
   private function _log(string $event, Backup $backup): void
