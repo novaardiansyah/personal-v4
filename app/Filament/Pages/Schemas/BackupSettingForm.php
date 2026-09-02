@@ -86,26 +86,19 @@ class BackupSettingForm
               });
             }),
 
-          Grid::make(2)
-            ->schema([
-              Select::make('subject_type')
-                ->label('Subject Type')
-                ->options([
-                  Backup::class                => 'Backup',
-                  BackupSchedule::class        => 'Backup Schedule',
-                  BackupJob::class             => 'Backup Job',
-                  BackupStorage::class         => 'Backup Storage',
-                  BackupStorageProvider::class => 'Backup Storage Provider',
-                ])
-                ->default(Backup::class)
-                ->required()
-                ->native(false)
-                ->searchable(),
-
-              TextInput::make('subject_id')
-                ->label('Subject ID')
-                ->numeric(),
-            ]),
+					Select::make('subject_type')
+						->label('Subject Type')
+						->options([
+							Backup::class                => 'Backup',
+							BackupSchedule::class        => 'Backup Schedule',
+							BackupJob::class             => 'Backup Job',
+							BackupStorage::class         => 'Backup Storage',
+							BackupStorageProvider::class => 'Backup Storage Provider',
+						])
+						->default(Backup::class)
+						->required()
+						->native(false)
+						->searchable(),
 
           Textarea::make('description')
             ->label('Description')
