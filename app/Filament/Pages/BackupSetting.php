@@ -92,6 +92,7 @@ class BackupSetting extends Page implements HasTable
           ->label('Subject')
           ->formatStateUsing(fn($state) => Str::of($state)->afterLast('\\')->headline())
           ->searchable()
+					->badge()
 					->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('description')
           ->label('Description')

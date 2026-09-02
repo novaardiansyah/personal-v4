@@ -43,14 +43,13 @@ class SettingsTable
           ->searchable()
           ->toggleable()
           ->badge(),
-        TextColumn::make('subject_id')
+        TextColumn::make('subject_type')
           ->label('Subject')
-          ->formatStateUsing(function ($state, Setting $record) {
-            if (!$state) return '-';
-            return Str::of($record->subject_type)->afterLast('\\')->headline() . ' # ' . $state;
-          })
-          ->toggleable()
-          ->searchable(),
+          ->searchable()
+          ->formatStateUsing(fn ($state) => Str::of($state)->afterLast('\\')->headline())
+          ->copyable()
+          ->badge()
+          ->toggleable(),
         TextColumn::make('description')
           ->label('Description')
           ->limit(50)
