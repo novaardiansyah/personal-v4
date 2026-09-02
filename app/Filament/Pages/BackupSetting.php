@@ -88,17 +88,11 @@ class BackupSetting extends Page implements HasTable
           ->searchable()
           ->toggleable()
           ->badge(),
-        TextColumn::make('subject_id')
+        TextColumn::make('subject_type')
           ->label('Subject')
-          ->formatStateUsing(function ($state, Setting $record) {
-            if (!$record->subject_type) {
-              return '-';
-            }
-            $subjectName = Str::of($record->subject_type)->afterLast('\\')->headline();
-            return $state ? "{$subjectName} # {$state}" : (string) $subjectName;
-          })
-          ->toggleable()
-          ->searchable(),
+          ->formatStateUsing(fn($state) => Str::of($state)->afterLast('\\')->headline())
+          ->searchable()
+					->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('description')
           ->label('Description')
           ->limit(50)
@@ -107,10 +101,12 @@ class BackupSetting extends Page implements HasTable
         TextColumn::make('deleted_at')
           ->dateTime()
           ->sortable()
+					->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')
           ->dateTime()
           ->sortable()
+          ->sinceTooltip()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('updated_at')
           ->dateTime()
@@ -119,7 +115,8 @@ class BackupSetting extends Page implements HasTable
           ->toggleable(isToggledHiddenByDefault: false),
       ])
       ->filters([
-        TrashedFilter::make(),
+        TrashedFilter::make()
+					->native(false),
       ])
       ->headerActions([
         CreateAction::make()
@@ -138,11 +135,11 @@ class BackupSetting extends Page implements HasTable
       ->recordActions([
         ActionGroup::make([
           ViewAction::make()
-            ->modalWidth(Width::Large)
+            ->modalWidth(Width::FiveExtraLarge)
             ->schema(fn(Schema $schema) => SettingInfolist::configure($schema)),
 
           EditAction::make()
-            ->modalWidth(Width::Large)
+            ->modalWidth(Width::FiveExtraLarge)
             ->schema(fn(Schema $schema) => BackupSettingForm::configure($schema))
             ->mutateRecordDataUsing(function (array $data, Setting $record): array {
               if ($data['has_options'] ?? $record->has_options) {
@@ -150,7 +147,7 @@ class BackupSetting extends Page implements HasTable
               }
               return $data;
             })
-            ->mutateFormDataUsing(function (array $data, Setting $record): array {
+            ->mutateDataUsing(function (array $data, Setting $record): array {
               if ($data['has_options'] ?? $record->has_options) {
                 $data['value'] = $data['value_option'] ?? $data['value'];
               }
