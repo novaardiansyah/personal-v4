@@ -31,7 +31,7 @@ class DiscordMessageResource extends Resource
 
   protected static ?string $navigationLabel = 'Messages';
 
-  protected static ?string $recordTitleAttribute = 'content';
+  protected static ?string $recordTitleAttribute = 'uid';
 
   public static function form(Schema $schema): Schema
   {
