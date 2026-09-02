@@ -2,6 +2,7 @@
 
 use App\Jobs\BackupResource\CleanExcessBackupsJob;
 use App\Jobs\CleanExpiredTokens;
+use App\Jobs\DiscordResource\SendPendingDiscordMessagesJob;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\DraftPaymentReminderJob;
@@ -56,3 +57,7 @@ Schedule::job(new SubscriptionReminderJob())
 // ! Clean Excess Backups
 Schedule::job(new CleanExcessBackupsJob())
   ->dailyAt('23:59');
+
+// ! Send Pending Discord Messages
+Schedule::job(new SendPendingDiscordMessagesJob())
+  ->everyFiveMinutes();
