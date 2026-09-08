@@ -56,4 +56,4 @@ Schedule::job(new SubscriptionReminderJob())
 
 // ! Clean Excess Backups
 Schedule::job(new CleanExcessBackupsJob())
-  ->dailyAt('23:59');
+  ->everyTwoHours();
