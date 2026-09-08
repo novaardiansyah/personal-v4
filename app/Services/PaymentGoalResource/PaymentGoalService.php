@@ -211,6 +211,7 @@ class PaymentGoalService
 		}
 
 		File::create([
+			'uid'                     => pathinfo($fileMeta['filename'], PATHINFO_FILENAME),
 			'user_id'                 => $user->id,
 			'file_name'               => $fileMeta['filename'],
 			'file_path'               => $fileMeta['filepath'],
@@ -259,6 +260,7 @@ class PaymentGoalService
 			$relativePath = str_replace(storage_path('app/public/'), '', $fullPath);
 
 			File::create([
+				'uid'          => pathinfo($fullPath, PATHINFO_FILENAME),
 				'user_id'      => $user->id,
 				'file_name'    => basename($fullPath),
 				'file_path'    => $relativePath,

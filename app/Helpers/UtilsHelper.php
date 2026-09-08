@@ -23,11 +23,16 @@ use Spatie\LaravelImageOptimizer\Facades\ImageOptimizer;
 use \Mpdf\Mpdf;
 use App\Events\TelegramNotificationEvent;
 use \GuzzleHttp\Psr7\Response;
+use Fernet\Fernet;
 
-function getSetting(string $key, $default = null)
+function getSetting(string $key, $default = null, ?string $subjectType = null)
 {
-  return cache()->rememberForever("setting.{$key}", function () use ($key, $default) {
-    return Setting::where('key', $key)->first()?->value ?? $default;
+  $cacheKey = $subjectType ? "setting.{$subjectType}.{$key}" : "setting.{$key}";
+
+  return cache()->rememberForever($cacheKey, function () use ($key, $default, $subjectType) {
+    return Setting::where('key', $key)
+      ->when($subjectType, fn($query) => $query->where('subject_type', $subjectType), fn($query) => $query->whereNull('subject_type'))
+      ->first()?->value ?? $default;
   });
 }
 
@@ -112,6 +117,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
   }
 
   File::create([
+    'uid'                     => $filenameWithoutExtension,
     'user_id'                 => $user->id,
     'file_name'               => $filename,
     'file_path'               => $filepath,
@@ -580,3 +586,54 @@ function uuid7(): string
   $string = Str::uuid7()->toString();
 	return trim($string);
 }
+
+function decryptFernet(?string $token, ?string $secretKey = null): ?string
+{
+  if (empty($token)) {
+    return null;
+  }
+
+  $secretKey = $secretKey ?? getSetting('file_secret_encrypt_key');
+
+  if (empty($secretKey)) {
+    return $token;
+  }
+
+  try {
+    $fernet = new Fernet($secretKey);
+    return $fernet->decode($token) ?? $token;
+  } catch (\Throwable) {
+    return $token;
+  }
+}
+
+function toJsonPretty(mixed $data): string
+{
+  if (empty($data)) {
+    return '';
+  }
+
+  if (is_string($data)) {
+    $decoded = json_decode($data, true);
+    if (json_last_error() === JSON_ERROR_NONE) {
+      $data = $decoded;
+    } else {
+      return $data;
+    }
+  }
+
+  return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) ?: '';
+}
+
+function formatJsonPre(mixed $data, int $maxHeight = 400): string
+{
+  if (empty($data)) {
+    return '-';
+  }
+
+  $json = toJsonPretty($data);
+
+  return '<pre style="max-height: ' . $maxHeight . 'px; overflow-y: auto; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px;"><code>' . e($json) . '</code></pre>';
+}
+
+

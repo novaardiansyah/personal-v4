@@ -6,9 +6,12 @@ namespace App\Observers;
 
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
+use App\Enums\DiscordMessageStatus;
+use App\Jobs\SendTelegramNotificationJob;
 use App\Models\Backup;
+use App\Models\DiscordMessage;
+use App\Services\DiscordWebhookService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class BackupObserver
 {
@@ -39,6 +42,7 @@ class BackupObserver
     $this->_log('Created', $backup);
     $this->_syncScheduleCount($backup);
     $this->_sendTelegramNotification($backup);
+    $this->_sendDiscordNotification($backup);
   }
 
   public function updated(Backup $backup): void
@@ -48,6 +52,7 @@ class BackupObserver
 
     if ($backup->wasChanged('status')) {
       $this->_sendTelegramNotification($backup);
+      $this->_sendDiscordNotification($backup);
     }
   }
 
@@ -103,8 +108,8 @@ class BackupObserver
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
     $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
 
-    $text = "Schedule Backup Report\n\n" 
-			. "name: {$scheduleName}\n"
+    $text = "Schedule Backup Report\n\n"
+      . "name: {$scheduleName}\n"
       . "size: {$fileSize}\n"
       . "type: {$type}\n"
       . "duration: {$duration}\n"
@@ -113,7 +118,36 @@ class BackupObserver
       . "completed at: {$completedAt}\n"
       . "message: {$message}";
 
-    sendTelegramNotification($text);
+    SendTelegramNotificationJob::dispatch($text);
+  }
+
+  private function _sendDiscordNotification(Backup $backup): void
+  {
+    $statusVal = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
+
+    if (!in_array($statusVal, ['success', 'failed'], true)) {
+      return;
+    }
+
+    $webhookSetting = getSetting('discord_webhook_report', null, Backup::class);
+    if (empty($webhookSetting)) {
+      return;
+    }
+
+    $service = app(DiscordWebhookService::class);
+    $webhook = $service->resolveWebhook($webhookSetting);
+
+    if (!$webhook) {
+      return;
+    }
+
+    $payload = $service->buildBackupReportPayload($backup);
+
+    DiscordMessage::create([
+      'webhook_id' => $webhook->id,
+      'content'    => $payload,
+      'status'     => DiscordMessageStatus::Pending,
+    ]);
   }
 
   private function _log(string $event, Backup $backup): void
@@ -126,4 +160,3 @@ class BackupObserver
     ], $backup);
   }
 }
-

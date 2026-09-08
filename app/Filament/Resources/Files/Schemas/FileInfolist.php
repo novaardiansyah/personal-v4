@@ -28,11 +28,14 @@ class FileInfolist
               ->copyable(),
             TextEntry::make('type.name')
               ->label('Type')
+							->badge()
               ->placeholder('-'),
-            TextEntry::make('file_path')
-              ->label('File Path')
+						TextEntry::make('encrypt_key')
+              ->label('Encrypt Key')
+							->badge()
+              ->formatStateUsing(fn(?string $state): ?string => decryptFernet($state))
               ->copyable()
-              ->columnSpanFull(),
+              ->placeholder('-'),
             TextEntry::make('download_url')
               ->label('Download URL')
               ->url(fn(File $record): ?string => !$record->has_been_deleted ? $record->download_url : null)
@@ -41,6 +44,10 @@ class FileInfolist
             TextEntry::make('description')
               ->label('Description')
               ->placeholder('-')
+              ->columnSpanFull(),
+						TextEntry::make('file_path')
+              ->label('File Path')
+              ->copyable()
               ->columnSpanFull(),
           ])
           ->columns(3),
