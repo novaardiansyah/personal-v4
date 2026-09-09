@@ -70,7 +70,8 @@ class SettingsTable
           ->toggleable(isToggledHiddenByDefault: false),
       ])
       ->filters([
-        TrashedFilter::make(),
+        TrashedFilter::make()
+					->native(false),
       ])
       ->recordAction('change_value')
       ->recordUrl(null)
