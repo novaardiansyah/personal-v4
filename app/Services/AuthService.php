@@ -15,12 +15,12 @@ class AuthService
 {
 	public function sendLoginTelegramNotification(User $user, array $context): void
 	{
-		$enableTelegram = textLower(getSetting('enable_login_telegram_notification', 'Yes')) === 'yes' ? true : false;
+		$enableTelegram = textLower(getSetting('enable_login_telegram_notification', 'Yes', User::class)) === 'yes' ? true : false;
 		$ip_address = $context['device_info']['ip_address'] ?? null;
 
 		if (!$enableTelegram) return;
 
-		$interval = getSetting('interval_login_telegram_notification', '60 Minutes');
+		$interval = getSetting('interval_login_telegram_notification', '60 Minutes', User::class);
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
 		$existingLog = ActivityLog::where('ip_address', $ip_address)
@@ -59,12 +59,12 @@ class AuthService
 
 	public function sendLoginEmailNotification(User $user, array $context): void
 	{
-		$enableEmail = textLower(getSetting('enable_login_email_notification', 'Yes')) === 'yes' ? true : false;
+		$enableEmail = textLower(getSetting('enable_login_email_notification', 'Yes', User::class)) === 'yes' ? true : false;
 		$ip_address = $context['device_info']['ip_address'] ?? null;
 
 		if (!$enableEmail) return;
 
-		$interval = getSetting('interval_login_email_notification', '60 Minutes');
+		$interval = getSetting('interval_login_email_notification', '60 Minutes', User::class);
 		$interval = (int) preg_replace('/\D/', '', $interval);
 
 		$existingLog = ActivityLog::where('ip_address', $ip_address)
@@ -91,7 +91,7 @@ class AuthService
 		}
 
 		$author_name   = getSetting('author_name');
-		$author_email  = getSetting('login_email_notification');
+		$author_email  = getSetting('login_email_notification', null, User::class);
 
 		$placeholders = array_merge($template->placeholders ?? [], [
 			'user_email'  => $user->email,
