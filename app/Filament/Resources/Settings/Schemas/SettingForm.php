@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Settings\Schemas;
 
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -12,10 +13,40 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class SettingForm
 {
+  protected static ?array $subjectTypeOptions = null;
+
+  public static function getSubjectTypeOptions(): array
+  {
+    if (static::$subjectTypeOptions !== null) {
+      return static::$subjectTypeOptions;
+    }
+
+    $options = [];
+    $files   = File::files(app_path('Models'));
+
+    foreach ($files as $file) {
+      $class = 'App\\Models\\' . $file->getFilenameWithoutExtension();
+      if (class_exists($class) && is_subclass_of($class, Model::class)) {
+        $reflection = new \ReflectionClass($class);
+        if (!$reflection->isAbstract()) {
+          $options[$class] = Str::of($file->getFilenameWithoutExtension())->headline()->toString();
+        }
+      }
+    }
+
+    asort($options);
+
+    static::$subjectTypeOptions = $options;
+
+    return static::$subjectTypeOptions;
+  }
+
   public static function configure(Schema $schema): Schema
   {
     return $schema
@@ -81,16 +112,14 @@ class SettingForm
               });
             }),
 
-          Grid::make(2)
-            ->schema([
-              TextInput::make('subject_type')
-                ->label('Subject Type')
-                ->maxLength(255),
+          Select::make('subject_type')
+            ->label('Subject Type')
+            ->options(self::getSubjectTypeOptions())
+            ->native(false)
+            ->searchable()
+            ->preload(),
 
-              TextInput::make('subject_id')
-                ->label('Subject ID')
-                ->numeric(),
-            ]),
+          Hidden::make('subject_id'),
 
           Textarea::make('description')
             ->label('Description')
