@@ -176,7 +176,7 @@ class AuthService
 		saveActivityLog(array_merge([
 			'log_name'     => 'Notification',
 			'event'        => 'Discord Login Notification',
-			'description'  => 'Discord login notification for ' . $user->email . ' will be sent to webhook ' . $webhook->name . ' (' . $webhook->uid . ')',
+			'description'  => 'Discord login notification for ' . $user->email . ' will be sent by ' . $webhook->name . ' (' . $webhook->uid . ')',
 			'subject_id'   => $user->id,
 			'subject_type' => User::class,
 			'causer_id'    => $user->id,
