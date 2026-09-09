@@ -49,7 +49,7 @@ class DiscordMessagesTable
           ->toggleable(),
         TextColumn::make('content')
           ->label('Content')
-          ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_SLASHES) : $state)
+          ->state(fn(?DiscordMessage $record) => filled($record?->content) ? (is_array($record->content) ? json_encode($record->content, JSON_UNESCAPED_SLASHES) : $record->content) : null)
           ->limit(50)
           ->toggleable(),
         TextColumn::make('status')
@@ -65,7 +65,7 @@ class DiscordMessagesTable
           ->toggleable(),
         TextColumn::make('response')
           ->label('Response')
-          ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_SLASHES) : $state)
+          ->state(fn(?DiscordMessage $record) => filled($record?->response) ? (is_array($record->response) ? json_encode($record->response, JSON_UNESCAPED_SLASHES) : $record->response) : null)
           ->limit(50)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('created_at')

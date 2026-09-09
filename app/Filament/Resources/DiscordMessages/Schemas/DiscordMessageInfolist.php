@@ -41,17 +41,21 @@ class DiscordMessageInfolist
                 ->placeholder('0'),
               TextEntry::make('content')
                 ->label('Content / Embed')
+                ->state(fn(?DiscordMessage $record) => filled($record?->content) ? toJsonPretty($record->content) : null)
                 ->formatStateUsing(fn($state) => formatJsonPre($state))
                 ->html()
                 ->copyable()
-                ->copyableState(fn($state) => toJsonPretty($state))
+                ->copyableState(fn($state) => $state)
+                ->placeholder('-')
                 ->columnSpanFull(),
               TextEntry::make('response')
                 ->label('Response Data')
+                ->state(fn(?DiscordMessage $record) => filled($record?->response) ? toJsonPretty($record->response) : null)
                 ->formatStateUsing(fn($state) => formatJsonPre($state))
                 ->html()
                 ->copyable()
-                ->copyableState(fn($state) => toJsonPretty($state))
+                ->copyableState(fn($state) => $state)
+                ->placeholder('-')
                 ->columnSpanFull(),
             ])
             ->columns(4),
