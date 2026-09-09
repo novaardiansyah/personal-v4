@@ -8,6 +8,7 @@ use App\Enums\BackupStatus;
 use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\DiscordWebhook;
+use App\Models\User;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -144,6 +145,80 @@ class DiscordWebhookService
             'text' => config('app.name', 'Personal V4') . ' • Backup Notification',
           ],
           'timestamp' => $backup->completed_at?->toISOString() ?? now()->toISOString(),
+        ],
+      ],
+    ];
+  }
+
+  public function buildLoginReportPayload(User $user, array $context): array
+  {
+    $ipAddress   = $context['device_info']['ip_address'] ?? '-';
+    $address     = $context['address'] ?? '-';
+    $geolocation = $context['device_info']['geolocation'] ?? '-';
+    $timezone    = $context['device_info']['timezone'] ?? '-';
+    $userAgent   = $context['device_info']['user_agent'] ?? '-';
+    $loginDate   = $context['now_formatted'] ?? now()->format('d M Y, H:i');
+    $referer     = $context['device_info']['referer'] ?? '-';
+    $guard       = strtoupper($context['guard'] ?? 'web');
+
+    $fields = [
+      [
+        'name'   => 'User',
+        'value'  => $user->name . ' (' . $user->email . ')',
+        'inline' => false,
+      ],
+      [
+        'name'   => 'IP Address',
+        'value'  => (string) $ipAddress,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Location',
+        'value'  => (string) $address,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Timezone',
+        'value'  => (string) $timezone,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Login Time',
+        'value'  => $loginDate . ' WIB',
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Guard',
+        'value'  => (string) $guard,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Geolocation',
+        'value'  => (string) $geolocation,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Referer',
+        'value'  => (string) $referer,
+        'inline' => false,
+      ],
+      [
+        'name'   => 'Device',
+        'value'  => (string) $userAgent,
+        'inline' => false,
+      ],
+    ];
+
+    return [
+      'embeds' => [
+        [
+          'title'     => '🔐 User Login Notification',
+          'color'     => 0x3B82F6,
+          'fields'    => $fields,
+          'footer'    => [
+            'text' => config('app.name', 'Personal V4') . ' • Login Notification',
+          ],
+          'timestamp' => now()->toISOString(),
         ],
       ],
     ];
