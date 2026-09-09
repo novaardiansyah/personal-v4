@@ -9,7 +9,6 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
 /.zed
 /.antigravity
 /.agent
@@ -34,5 +33,3 @@ AGENTS.md
 .opencode/
 CLAUDE.md
 /obsidian
-
-personal-v4.code-workspace

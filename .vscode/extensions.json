@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "google.google-antigravity",
+		"aaron-bond.better-comments",
+		"chouzz.vscode-better-align",
+		"shufo.vscode-blade-formatter",
+		"onecentlin.laravel-blade",
+		"codingyu.laravel-goto-view",
+		"bmewburn.vscode-intelephense-client",
+		"github.github-vscode-theme"
+  ]
+}
