@@ -58,6 +58,11 @@ class DiscordMessagesTable
           ->searchable()
           ->sortable()
           ->toggleable(),
+        TextColumn::make('count_retry')
+          ->label('Retry Count')
+          ->badge()
+          ->sortable()
+          ->toggleable(),
         TextColumn::make('response')
           ->label('Response')
           ->formatStateUsing(fn($state) => is_array($state) ? json_encode($state, JSON_UNESCAPED_SLASHES) : $state)

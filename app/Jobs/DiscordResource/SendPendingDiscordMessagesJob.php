@@ -12,11 +12,22 @@ class SendPendingDiscordMessagesJob implements ShouldQueue
 {
   use Queueable;
 
+  public function __construct(
+    public int $delaySeconds = 5,
+    public int $maxRetries = 3
+  ) {}
+
   public function handle(DiscordWebhookService $service): void
   {
     DiscordMessage::query()
-      ->where('status', DiscordMessageStatus::Pending)
       ->whereNotNull('webhook_id')
+      ->where(function ($query) {
+        $query->where('status', DiscordMessageStatus::Pending)
+          ->orWhere(function ($query) {
+            $query->where('status', DiscordMessageStatus::Failed)
+              ->where('count_retry', '<', $this->maxRetries);
+          });
+      })
       ->with('webhook')
       ->chunkById(10, function ($messages) use ($service) {
         foreach ($messages as $message) {
@@ -30,10 +41,16 @@ class SendPendingDiscordMessagesJob implements ShouldQueue
     $webhook = $message->webhook;
 
     if (!$webhook || empty($webhook->url)) {
-      $message->update([
+      $updates = [
         'status'   => DiscordMessageStatus::Failed,
         'response' => ['error' => 'Webhook URL not found or webhook missing'],
-      ]);
+      ];
+
+      if ($message->status === DiscordMessageStatus::Failed) {
+        $updates['count_retry'] = $message->count_retry + 1;
+      }
+
+      $message->update($updates);
 
       return;
     }
@@ -45,9 +62,19 @@ class SendPendingDiscordMessagesJob implements ShouldQueue
 
     $result = $service->send($webhook->url, $payload);
 
-    $message->update([
+    $updates = [
       'status'   => $result['success'] ? DiscordMessageStatus::Success : DiscordMessageStatus::Failed,
       'response' => $result['response'],
-    ]);
+    ];
+
+    if ($message->status === DiscordMessageStatus::Failed) {
+      $updates['count_retry'] = $message->count_retry + 1;
+    }
+
+    $message->update($updates);
+
+    if ($this->delaySeconds > 0) {
+      sleep($this->delaySeconds);
+    }
   }
 }
