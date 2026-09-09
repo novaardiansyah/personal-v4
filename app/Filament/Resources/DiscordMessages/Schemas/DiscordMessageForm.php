@@ -73,6 +73,12 @@ class DiscordMessageForm
               ->default(DiscordMessageStatus::Pending)
               ->required()
               ->native(false),
+            TextInput::make('count_retry')
+              ->label('Retry Count')
+              ->numeric()
+              ->default(0)
+              ->minValue(0)
+              ->required(),
           ]),
       ])
       ->columns(3);

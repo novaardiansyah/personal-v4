@@ -35,6 +35,10 @@ class DiscordMessageInfolist
                 ->label('Status')
                 ->badge()
                 ->placeholder('N/A'),
+              TextEntry::make('count_retry')
+                ->label('Retry Count')
+                ->badge()
+                ->placeholder('0'),
               TextEntry::make('content')
                 ->label('Content / Embed')
                 ->formatStateUsing(fn($state) => formatJsonPre($state))
@@ -50,7 +54,7 @@ class DiscordMessageInfolist
                 ->copyableState(fn($state) => toJsonPretty($state))
                 ->columnSpanFull(),
             ])
-            ->columns(3),
+            ->columns(4),
         ]),
 
         Section::make('')
