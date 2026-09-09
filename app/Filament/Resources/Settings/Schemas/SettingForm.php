@@ -13,122 +13,92 @@ use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class SettingForm
 {
-  protected static ?array $subjectTypeOptions = null;
+	public static function configure(Schema $schema): Schema
+	{
+		return $schema
+			->components([
+				Section::make([
+					TextInput::make('name')
+						->label('Name')
+						->required()
+						->live(onBlur: true)
+						->afterStateUpdated(function (Set $set, Get $get) {
+							$name = $get('name') ?? '';
+							$slug = Str::of($name)->slug('_');
+							$set('key', $slug);
+						}),
 
-  public static function getSubjectTypeOptions(): array
-  {
-    if (static::$subjectTypeOptions !== null) {
-      return static::$subjectTypeOptions;
-    }
+					TextInput::make('key')
+						->label('Alias')
+						->required()
+						->maxLength(255)
+						->unique(ignoreRecord: true)
+						->helperText('Only letters, numbers, and underscores are allowed. Example: site_name, max_upload_size'),
 
-    $options = [];
-    $files   = File::files(app_path('Models'));
+					Grid::make([
+						'default' => 3
+					])
+						->schema([
+							TagsInput::make('options')
+								->label('Value options')
+								->placeholder('Enter option values, separated by commas.')
+								->separator(',')
+								->visible(fn(Get $get) => $get('has_options'))
+								->helperText('Press Enter to add a new option.')
+								->live(onBlur: true)
+								->columnSpan(2),
 
-    foreach ($files as $file) {
-      $class = 'App\\Models\\' . $file->getFilenameWithoutExtension();
-      if (class_exists($class) && is_subclass_of($class, Model::class)) {
-        $reflection = new \ReflectionClass($class);
-        if (!$reflection->isAbstract()) {
-          $options[$class] = Str::of($file->getFilenameWithoutExtension())->headline()->toString();
-        }
-      }
-    }
+							Toggle::make('has_options')
+								->label('Has options')
+								->inline(false)
+								->live(),
+						])
+				])
+					->columns(1)
+					->description('Setting details'),
 
-    asort($options);
+				Section::make([
+					Textarea::make('value')
+						->label('Value')
+						->required()
+						->rows(3)
+						->visible(fn(Get $get) => !$get('has_options'))
+						->maxLength(255),
 
-    static::$subjectTypeOptions = $options;
+					Select::make('value_option')
+						->label('Choose value')
+						->required()
+						->visible(fn(Get $get) => $get('has_options'))
+						->native(false)
+						->searchable()
+						->options(function (Get $get) {
+							$options = $get('options') ?? [];
+							return collect($options)->mapWithKeys(function ($option) {
+								return [$option => $option];
+							});
+						}),
 
-    return static::$subjectTypeOptions;
-  }
+					Select::make('subject_type')
+						->label('Subject Type')
+						->options(getSubjectTypeOptions())
+						->native(false)
+						->searchable()
+						->preload(),
 
-  public static function configure(Schema $schema): Schema
-  {
-    return $schema
-      ->components([
-        Section::make([
-          TextInput::make('name')
-            ->label('Name')
-            ->required()
-            ->live(onBlur: true)
-            ->afterStateUpdated(function (Set $set, Get $get) {
-              $name = $get('name') ?? '';
-              $slug = Str::of($name)->slug('_');
-              $set('key', $slug);
-            }),
+					Hidden::make('subject_id'),
 
-          TextInput::make('key')
-            ->label('Alias')
-            ->required()
-            ->maxLength(255)
-            ->unique(ignoreRecord: true)
-            ->helperText('Only letters, numbers, and underscores are allowed. Example: site_name, max_upload_size'),
-
-          Grid::make([
-            'default' => 3
-          ])
-            ->schema([
-              TagsInput::make('options')
-                ->label('Value options')
-                ->placeholder('Enter option values, separated by commas.')
-                ->separator(',')
-                ->visible(fn(Get $get) => $get('has_options'))
-                ->helperText('Press Enter to add a new option.')
-                ->live(onBlur: true)
-                ->columnSpan(2),
-              
-              Toggle::make('has_options')
-                ->label('Has options')
-                ->inline(false)
-                ->live(),
-            ])
-        ])
-          ->columns(1)
-          ->description('Setting details'),
-
-        Section::make([
-          Textarea::make('value')
-            ->label('Value')
-            ->required()
-            ->rows(3)
-            ->visible(fn(Get $get) => !$get('has_options'))
-            ->maxLength(255),
-
-          Select::make('value_option')
-            ->label('Choose value')
-            ->required()
-            ->visible(fn(Get $get) => $get('has_options'))
-            ->native(false)
-            ->searchable()
-            ->options(function (Get $get) {
-              $options = $get('options') ?? [];
-              return collect($options)->mapWithKeys(function ($option) {
-                return [$option => $option];
-              });
-            }),
-
-          Select::make('subject_type')
-            ->label('Subject Type')
-            ->options(self::getSubjectTypeOptions())
-            ->native(false)
-            ->searchable()
-            ->preload(),
-
-          Hidden::make('subject_id'),
-
-          Textarea::make('description')
-            ->label('Description')
-            ->maxLength(1000)
-            ->rows(4)
-            ->placeholder('Enter a description for this setting.'),
-        ])
-          ->description('Other details'),
-      ])
-        ->columns(2);
-  }
+					Textarea::make('description')
+						->label('Description')
+						->maxLength(1000)
+						->rows(4)
+						->placeholder('Enter a description for this setting.'),
+				])
+					->description('Other details'),
+			])
+			->columns(2);
+	}
 }
