@@ -21,5 +21,6 @@ class SendLoginNotificationJob implements ShouldQueue
 		$authService = new AuthService();
 		$authService->sendLoginTelegramNotification($this->user, $this->context);
 		$authService->sendLoginEmailNotification($this->user, $this->context);
+		$authService->sendLoginDiscordNotification($this->user, $this->context);
 	}
 }
