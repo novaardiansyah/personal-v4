@@ -56,7 +56,7 @@ Schedule::job(new SubscriptionReminderJob())
 
 // ! Clean Excess Backups
 Schedule::job(new CleanExcessBackupsJob())
-  ->everyFifteenMinutes();
+  ->everyTenMinutes();
 
 // ! Send Pending Discord Messages
 Schedule::job(new SendPendingDiscordMessagesJob())
