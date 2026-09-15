@@ -6,12 +6,12 @@
 	],
 	"settings": {
 		"workbench.colorCustomizations": {
-			"statusBar.background": "#010f3d"
+			"statusBar.background": "#038159"
 		},
 		"editor.tabSize": 2,
 		"editor.lineHeight": 22,
 		"editor.fontFamily": "Hack",
-		"editor.fontSize": 11,
+		"editor.fontSize": 10,
 		"window.zoomLevel": 0.2,
 	},
 }
