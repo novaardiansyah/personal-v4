@@ -14,4 +14,15 @@
 		"editor.fontSize": 10,
 		"window.zoomLevel": 0.2,
 	},
+	"extensions": {
+		"recommendations": [
+			"chouzz.vscode-better-align",
+			"aaron-bond.better-comments",
+			"shufo.vscode-blade-formatter",
+			"onecentlin.laravel-blade",
+			"codingyu.laravel-goto-view",
+			"bmewburn.vscode-intelephense-client",
+			"carlwr.better-makefile"
+		]
+	},
 }
