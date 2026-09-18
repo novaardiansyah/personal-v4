@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Subscriptions\Tables;
 
 use App\Filament\Resources\Subscriptions\Actions\DraftPaymentAction;
+use App\Filament\Resources\Subscriptions\Actions\PauseResumeAction;
 use App\Filament\Resources\Subscriptions\Filters\SubscriptionsFilter;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
@@ -11,6 +12,7 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -53,6 +55,13 @@ class SubscriptionsTable
           ->badge()
           ->toggleable(),
 
+        TextColumn::make('is_paused')
+          ->label('Status')
+          ->badge()
+          ->formatStateUsing(fn(bool $state): string => $state ? 'Paused' : 'Active')
+          ->color(fn(bool $state): string => $state ? 'warning' : 'success')
+          ->toggleable(),
+
         TextColumn::make('category.name')
           ->label('Category')
           ->toggleable(),
@@ -78,8 +87,10 @@ class SubscriptionsTable
       ])
       ->recordActions([
         ActionGroup::make([
+          ViewAction::make(),
           EditAction::make(),
           DraftPaymentAction::make(),
+          PauseResumeAction::make(),
           DeleteAction::make(),
           RestoreAction::make(),
         ])
