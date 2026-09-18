@@ -2,9 +2,12 @@
 
 namespace App\Jobs\BackupResource;
 
+use App\Enums\DiscordMessageStatus;
 use App\Models\Backup;
 use App\Models\BackupSchedule;
 use App\Models\BackupStorage;
+use App\Models\DiscordMessage;
+use App\Services\DiscordWebhookService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
@@ -90,6 +93,30 @@ class CleanExcessBackupsJob implements ShouldQueue
     }
 
     sendTelegramNotification($message);
+    $this->sendDiscordNotification($totalDeletedFiles, $totalDeletedSize);
+  }
+
+  private function sendDiscordNotification(int $totalDeletedFiles, int $totalDeletedSize): void
+  {
+    $webhookSetting = getSetting('discord_webhook_report', null, Backup::class);
+    if (empty($webhookSetting)) {
+      return;
+    }
+
+    $service = app(DiscordWebhookService::class);
+    $webhook = $service->resolveWebhook($webhookSetting);
+
+    if (!$webhook) {
+      return;
+    }
+
+    $payload = $service->buildBackupCleanupReportPayload($totalDeletedFiles, $totalDeletedSize);
+
+    DiscordMessage::create([
+      'webhook_id' => $webhook->id,
+      'content'    => $payload,
+      'status'     => DiscordMessageStatus::Pending,
+    ]);
   }
 
   private function deleteCloudFile(Backup $backup, ?BackupSchedule $schedule = null): void
