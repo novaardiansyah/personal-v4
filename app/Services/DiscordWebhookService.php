@@ -223,4 +223,52 @@ class DiscordWebhookService
       ],
     ];
   }
+
+  public function buildBackupCleanupReportPayload(int $totalDeletedFiles, int $totalDeletedSize): array
+  {
+    $formattedSize = sizeFormat((float) $totalDeletedSize);
+    $serverName    = gethostname() ?: config('app.name', 'laravel');
+
+    $fields = [
+      [
+        'name'   => 'Server',
+        'value'  => (string) $serverName,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Status',
+        'value'  => $totalDeletedFiles > 0 ? '🧹 Cleaned' : '✅ No Excess Files',
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Files Deleted',
+        'value'  => (string) $totalDeletedFiles,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Size Deleted',
+        'value'  => (string) $formattedSize,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Executed At',
+        'value'  => now()->format('Y-m-d H:i:s'),
+        'inline' => true,
+      ],
+    ];
+
+    return [
+      'embeds' => [
+        [
+          'title'     => '🧹 Schedule Backup Cleanup Report',
+          'color'     => $totalDeletedFiles > 0 ? 0x3B82F6 : 0x22C55E,
+          'fields'    => $fields,
+          'footer'    => [
+            'text' => config('app.name', 'Personal V4') . ' • Backup Notification',
+          ],
+          'timestamp' => now()->toISOString(),
+        ],
+      ],
+    ];
+  }
 }
