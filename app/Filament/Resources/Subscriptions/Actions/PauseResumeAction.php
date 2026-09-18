@@ -14,17 +14,18 @@ class PauseResumeAction
     return Action::make('pause_resume')
       ->label(fn(Subscription $record): string => $record->is_paused ? 'Resume' : 'Pause')
       ->icon(fn(Subscription $record) => $record->is_paused ? Heroicon::OutlinedPlayCircle : Heroicon::OutlinedPauseCircle)
-      ->color(fn(Subscription $record): string => $record->is_paused ? 'success' : 'warning')
+      ->color(fn(Subscription $record): string => $record->is_paused ? 'primary' : 'warning')
       ->requiresConfirmation()
       ->modalHeading(fn(Subscription $record): string => $record->is_paused ? 'Resume Subscription' : 'Pause Subscription')
       ->modalDescription(fn(Subscription $record): string => $record->is_paused ? 'Are you sure you want to resume this subscription?' : 'Are you sure you want to pause this subscription?')
       ->action(function (Subscription $record): void {
-        $record->update(['is_paused' => !$record->is_paused]);
+        $isPaused = !$record->is_paused;
+        $record->update(['is_paused' => $isPaused]);
 
         Notification::make()
           ->success()
-          ->title($record->is_paused ? 'Subscription Resumed' : 'Subscription Paused')
-          ->body($record->is_paused ? 'Subscription has been resumed successfully.' : 'Subscription has been paused successfully.')
+          ->title($isPaused ? 'Subscription Paused' : 'Subscription Resumed')
+          ->body($isPaused ? 'Subscription has been paused successfully.' : 'Subscription has been resumed successfully.')
           ->send();
       });
   }

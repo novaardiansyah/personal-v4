@@ -72,6 +72,10 @@ class SubscriptionForm
             ->numeric()
             ->minValue(0)
             ->default(3),
+
+          Toggle::make('is_paused')
+            ->label('Pause Subscription')
+            ->default(false),
         ])
           ->description('Subscription information')
           ->columns(2)

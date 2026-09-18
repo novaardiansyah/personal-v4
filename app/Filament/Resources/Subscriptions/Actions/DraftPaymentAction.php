@@ -27,6 +27,7 @@ class DraftPaymentAction
       ->color('info')
       ->modalHeading('Draft Payment')
       ->modalWidth(Width::Medium)
+      ->visible(fn (Subscription $record): bool => !$record->is_paused)
       ->schema([
         DatePicker::make('date')
           ->label('Date')
@@ -58,6 +59,16 @@ class DraftPaymentAction
         'payment_account_id' => $record->payment_account_id,
       ])
       ->action(function (Subscription $record, array $data): void {
+        if ($record->is_paused) {
+          Notification::make()
+            ->warning()
+            ->title('Subscription Paused')
+            ->body('Cannot create draft payment for a paused subscription.')
+            ->send();
+
+          return;
+        }
+
         $period = $record->getPeriodForDate($data['date']);
 
         if ($record->hasDraftPaymentForPeriod($period)) {
