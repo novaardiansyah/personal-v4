@@ -2,8 +2,7 @@
 
 namespace App\Filament\Resources\Subscriptions\Tables;
 
-use App\Filament\Resources\Subscriptions\Actions\PauseResumeAction;
-use App\Filament\Resources\Subscriptions\Actions\MarkAsPaidAction;
+use App\Filament\Resources\Subscriptions\Actions\DraftPaymentAction;
 use App\Filament\Resources\Subscriptions\Filters\SubscriptionsFilter;
 use App\Models\Setting;
 use Filament\Actions\ActionGroup;
@@ -12,7 +11,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Actions\RestoreAction;
 use Filament\Actions\RestoreBulkAction;
-use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Filament\Tables\Table;
@@ -63,11 +61,6 @@ class SubscriptionsTable
           ->label('Payment Account')
           ->toggleable(),
 
-        IconColumn::make('is_paused')
-          ->label('Paused')
-          ->boolean()
-          ->toggleable(),
-
         TextColumn::make('updated_at')
           ->label('Updated')
           ->sinceTooltip()
@@ -86,8 +79,7 @@ class SubscriptionsTable
       ->recordActions([
         ActionGroup::make([
           EditAction::make(),
-          PauseResumeAction::make(),
-          MarkAsPaidAction::make(),
+          DraftPaymentAction::make(),
           DeleteAction::make(),
           RestoreAction::make(),
         ])
