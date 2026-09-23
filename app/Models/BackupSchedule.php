@@ -94,20 +94,36 @@ class BackupSchedule extends Model
     return $this->hasManyThrough(Backup::class, BackupJob::class);
   }
 
-  public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
+  public static function parsePattern(?string $pattern): ?string
   {
     if (empty($pattern)) {
-      return '-';
+      return $pattern;
     }
 
-    $preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
+    return preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
       try {
         return now()->format($matches[1]);
       } catch (\Throwable $e) {
         return $matches[0];
       }
     }, $pattern);
+  }
 
-    return $preview . $extension;
+  public static function generateFilename(?string $pattern, ?string $extension = '.zip'): string
+  {
+    if (empty($pattern)) {
+      return '-';
+    }
+
+    return (static::parsePattern($pattern) ?? '') . $extension;
+  }
+
+  public static function generateDestinationPath(?string $path): ?string
+  {
+    if (empty($path)) {
+      return $path;
+    }
+
+    return static::parsePattern($path);
   }
 }

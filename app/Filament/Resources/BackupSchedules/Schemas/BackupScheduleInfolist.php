@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupSchedules\Schemas;
 
 use App\Enums\BackupType;
+use App\Models\BackupSchedule;
 use Filament\Infolists\Components\IconEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
@@ -41,7 +42,7 @@ class BackupScheduleInfolist
                 ->placeholder('N/A'),
               TextEntry::make('filename_pattern')
                 ->label('Filename Pattern')
-                ->formatStateUsing(fn(?string $state) => $state ? static::previewFilenamePattern($state) : 'N/A')
+                ->formatStateUsing(fn(?string $state) => $state ? BackupSchedule::generateFilename($state) : 'N/A')
                 ->placeholder('N/A'),
               TextEntry::make('source_path')
                 ->label('Source Path')
@@ -63,6 +64,7 @@ class BackupScheduleInfolist
                 ->placeholder('N/A'),
               TextEntry::make('r2_destination_path')
                 ->label('Cloud Destination Path')
+                ->formatStateUsing(fn(?string $state) => $state ? BackupSchedule::generateDestinationPath($state) : 'N/A')
                 ->copyable()
                 ->placeholder('N/A'),
             ])
@@ -133,21 +135,4 @@ class BackupScheduleInfolist
       ])
       ->columns(['default' => 1, '2xl' => 3]);
   }
-
-	private static function previewFilenamePattern(?string $pattern): string
-	{
-		if (empty($pattern)) {
-			return '-';
-		}
-
-		$preview = preg_replace_callback('/\{([^}]+)\}/', function ($matches) {
-			try {
-				return now()->format($matches[1]);
-			} catch (\Throwable $e) {
-				return $matches[0];
-			}
-		}, $pattern);
-
-		return $preview . '.zip';
-	}
 }
