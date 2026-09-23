@@ -117,6 +117,8 @@ class BackupScheduleForm
 									->placeholder('/backups/others')
 									->datalist(['/backups/projects', '/backups/database', '/backups/others'])
 									->autocomplete(false)
+									->live(onBlur: true)
+									->hint(fn(?string $state): ?string => BackupSchedule::generateDestinationPath($state))
 									->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
 							]),
 					]),
