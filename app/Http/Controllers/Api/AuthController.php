@@ -170,12 +170,12 @@ class AuthController extends Controller
     $validated = $validator->validated();
 
     if (!empty($validated['avatar_base64'])) {
-      if ($user->avatar_url) {
-        $oldPath = str_replace(Storage::url(''), '', $user->avatar_url);
-        Storage::disk('public')->delete($oldPath);
+      if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
+        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
+        Storage::disk('rustfs')->delete($oldPath);
       }
 
-      $path = processBase64Image($validated['avatar_base64'], 'images/avatar');
+      $path = processBase64Image($validated['avatar_base64'], 'images/avatar', 'rustfs');
 
       if ($path) {
         $validated['avatar_url'] = $path;
@@ -185,7 +185,9 @@ class AuthController extends Controller
     $user->update($validated);
 
     $user = $user->fresh();
-    $user->avatar_url = asset("storage/{$user->avatar_url}");
+    if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
+      $user->avatar_url = Storage::disk('rustfs')->url($user->avatar_url);
+    }
 
     return response()->json([
       'success' => true,

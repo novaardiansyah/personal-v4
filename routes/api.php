@@ -35,8 +35,10 @@ Route::post('/auth/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->group(function () {
   Route::get('/user', function (Request $request) {
     $user = $request->user();
-    if ($user) {
-      $user->avatar_url = Storage::disk('public')->url($user->avatar_url);
+    if ($user && $user->avatar_url) {
+      if (!str_starts_with($user->avatar_url, 'http://') && !str_starts_with($user->avatar_url, 'https://')) {
+        $user->avatar_url = Storage::disk('rustfs')->url($user->avatar_url);
+      }
     }
     return $user;
   });

@@ -34,7 +34,7 @@ class AuthController extends Controller
     $avatarUrl = $user->avatar_url;
     if (!empty($avatarUrl)) {
       if (!str_starts_with($avatarUrl, 'http://') && !str_starts_with($avatarUrl, 'https://')) {
-        $avatarUrl = asset('storage/' . ltrim($avatarUrl, '/'));
+        $avatarUrl = Storage::disk('rustfs')->url($avatarUrl);
       }
     }
 
@@ -213,18 +213,18 @@ class AuthController extends Controller
 
     if (!empty($avatarBase64)) {
       if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
-        $oldPath = str_replace(Storage::url(''), '', $user->avatar_url);
-        Storage::disk('public')->delete($oldPath);
+        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
+        Storage::disk('rustfs')->delete($oldPath);
       }
 
-      $path = processBase64Image($avatarBase64, 'images/avatar');
+      $path = processBase64Image($avatarBase64, 'images/avatar', 'rustfs');
       if ($path) {
         $user->avatar_url = $path;
       }
     } elseif ($request->has('avatar_url') && empty($avatarUrlInput)) {
       if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
-        $oldPath = str_replace(Storage::url(''), '', $user->avatar_url);
-        Storage::disk('public')->delete($oldPath);
+        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
+        Storage::disk('rustfs')->delete($oldPath);
       }
       $user->avatar_url = null;
     }

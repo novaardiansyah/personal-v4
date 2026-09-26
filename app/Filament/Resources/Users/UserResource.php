@@ -57,12 +57,11 @@ class UserResource extends Resource
           ->required(fn (string $operation): bool => $operation === 'create'),
         FileUpload::make('avatar_url')
           ->label('Profile picture')
-          ->disk('public')
+          ->disk('rustfs')
           ->directory('images/avatar')
           ->image()
           ->imageEditor()
-          ->enableDownload()
-          ->enableOpen()
+          ->downloadable()
           ->columnSpanFull(),
       ]);
   }
@@ -108,7 +107,7 @@ class UserResource extends Resource
           ->searchable(),
         ImageColumn::make('avatar_url')
           ->label('Profile picture')
-          ->disk('public')
+          ->disk('rustfs')
           ->circular()
           ->size(30)
           ->toggleable(),

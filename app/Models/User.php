@@ -79,11 +79,15 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail, Has
   {
     $avatar = $this->avatar_url ?? null;
 
-    if (Str::contains($avatar, 'https')) {
+    if (!$avatar) {
+      return null;
+    }
+
+    if (Str::startsWith($avatar, ['http://', 'https://'])) {
       return $avatar;
     }
 
-    return Storage::url($avatar);
+    return Storage::disk('rustfs')->url($avatar);
   }
 
   public function getAppAuthenticationSecret(): ?string

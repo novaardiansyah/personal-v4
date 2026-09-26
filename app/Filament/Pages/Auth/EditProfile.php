@@ -17,9 +17,9 @@ class EditProfile extends BaseEditProfile
         $this->getPasswordFormComponent(),
         $this->getPasswordConfirmationFormComponent(),
         $this->getCurrentPasswordFormComponent(),
-				FileUpload::make('avatar_url')
+        FileUpload::make('avatar_url')
           ->label('Profile picture')
-          ->disk('public')
+          ->disk('rustfs')
           ->directory('images/avatar')
           ->image()
           ->imageEditor()

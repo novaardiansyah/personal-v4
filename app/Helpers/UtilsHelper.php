@@ -412,28 +412,28 @@ function sendTelegramNotification(string $message, array $options = []): void
 	}
 }
 
-function processBase64Image(?string $base64Data, string $storagePath): ?string
+function processBase64Image(?string $base64Data, string $storagePath, string $disk = 'public'): ?string
 {
-	if (empty($base64Data)) {
-		return null;
-	}
+  if (empty($base64Data)) {
+    return null;
+  }
 
-	if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
-		$extension = strtolower($matches[1]);
-		$base64Image = substr($base64Data, strpos($base64Data, ',') + 1);
-		$imageData = base64_decode($base64Image);
+  if (preg_match('/^data:image\/(\w+);base64,/', $base64Data, $matches)) {
+    $extension   = strtolower($matches[1]);
+    $base64Image = substr($base64Data, strpos($base64Data, ',') + 1);
+    $imageData   = base64_decode($base64Image);
 
-		if ($imageData !== false) {
-			$filename = Str::random(25) . '.' . $extension;
-			$fullPath = $storagePath . '/' . $filename;
+    if ($imageData !== false) {
+      $filename = Str::random(25) . '.' . $extension;
+      $fullPath = $storagePath . '/' . $filename;
 
-			Storage::disk('public')->put($fullPath, $imageData);
+      Storage::disk($disk)->put($fullPath, $imageData);
 
-			return $fullPath;
-		}
-	}
+      return $fullPath;
+    }
+  }
 
-	return null;
+  return null;
 }
 
 function uploadAndOptimize($file, string $disk = 'public', string $folder = 'images'): array
