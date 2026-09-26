@@ -93,8 +93,9 @@ class AuthController extends Controller
       'success' => true,
       'message' => 'Login berhasil',
       'data' => [
-        'token' => $token,
-        'user'  => $this->formatUserResponse($user),
+        'token'      => $token,
+        'user'       => $this->formatUserResponse($user),
+        'expires_at' => $expiration->toIso8601String(),
       ]
     ]);
   }
@@ -141,8 +142,9 @@ class AuthController extends Controller
       'success' => true,
       'message' => 'Pendaftaran akun berhasil',
       'data' => [
-        'token' => $token,
-        'user'  => $this->formatUserResponse($user),
+        'token'      => $token,
+        'user'       => $this->formatUserResponse($user),
+        'expires_at' => $expiration->toIso8601String(),
       ]
     ], 201);
   }
@@ -294,8 +296,9 @@ class AuthController extends Controller
       'success' => true,
       'message' => 'Kata sandi berhasil diperbarui.',
       'data'    => [
-        'token' => $token,
-        'user'  => $this->formatUserResponse($user),
+        'token'      => $token,
+        'user'       => $this->formatUserResponse($user),
+        'expires_at' => $expiration->toIso8601String(),
       ]
     ]);
   }
