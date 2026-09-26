@@ -23,8 +23,8 @@ class EditProfile extends BaseEditProfile
           ->directory('images/avatar')
           ->image()
           ->imageEditor()
-          ->enableDownload()
-          ->enableOpen(),
+          ->downloadable()
+          ->openable(),
       ]);
   }
 }

@@ -170,9 +170,8 @@ class AuthController extends Controller
     $validated = $validator->validated();
 
     if (!empty($validated['avatar_base64'])) {
-      if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
-        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
-        Storage::disk('rustfs')->delete($oldPath);
+      if (!empty($user->avatar_url) && !str_starts_with($user->avatar_url, 'http')) {
+        Storage::disk('rustfs')->delete(ltrim($user->avatar_url, '/'));
       }
 
       $path = processBase64Image($validated['avatar_base64'], 'images/avatar', 'rustfs');

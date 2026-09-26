@@ -212,9 +212,8 @@ class AuthController extends Controller
     $user->name = $name;
 
     if (!empty($avatarBase64)) {
-      if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
-        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
-        Storage::disk('rustfs')->delete($oldPath);
+      if (!empty($user->avatar_url) && !str_starts_with($user->avatar_url, 'http')) {
+        Storage::disk('rustfs')->delete(ltrim($user->avatar_url, '/'));
       }
 
       $path = processBase64Image($avatarBase64, 'images/avatar', 'rustfs');
@@ -222,9 +221,8 @@ class AuthController extends Controller
         $user->avatar_url = $path;
       }
     } elseif ($request->has('avatar_url') && empty($avatarUrlInput)) {
-      if ($user->avatar_url && !str_starts_with($user->avatar_url, 'http')) {
-        $oldPath = str_replace(Storage::disk('rustfs')->url(''), '', $user->avatar_url);
-        Storage::disk('rustfs')->delete($oldPath);
+      if (!empty($user->avatar_url) && !str_starts_with($user->avatar_url, 'http')) {
+        Storage::disk('rustfs')->delete(ltrim($user->avatar_url, '/'));
       }
       $user->avatar_url = null;
     }
