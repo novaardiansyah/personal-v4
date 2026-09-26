@@ -18,6 +18,11 @@ Route::prefix('v2')->group(function () {
 	require __DIR__ . '/api/v2/file.php';
 });
 
+Route::prefix('mobile')->group(function () {
+	require __DIR__ . '/api/mobile/main.php';
+	require __DIR__ . '/api/mobile/auth.php';
+});
+
 Route::get('/health', function () {
   return response()->json([
     'status'    => 'ok',
