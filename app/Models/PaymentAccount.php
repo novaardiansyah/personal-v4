@@ -35,7 +35,15 @@ class PaymentAccount extends Model
 
   public function getLogoUrlAttribute(): string|null
   {
-    return $this->logo ? Storage::disk('public')->url($this->logo) : null;
+    if (!$this->logo) {
+      return null;
+    }
+
+    if (str_starts_with($this->logo, 'http://') || str_starts_with($this->logo, 'https://')) {
+      return $this->logo;
+    }
+
+    return Storage::disk('rustfs')->url($this->logo);
   }
 
   public function payments(): HasMany

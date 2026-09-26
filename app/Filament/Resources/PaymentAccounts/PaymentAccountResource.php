@@ -60,7 +60,7 @@ class PaymentAccountResource extends Resource
         TextInput::make('name')
           ->required(),
         FileUpload::make('logo')
-          ->disk('public')
+          ->disk('rustfs')
           ->directory('images/payment_account')
           ->image()
           ->imageEditor()

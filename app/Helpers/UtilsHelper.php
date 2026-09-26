@@ -322,33 +322,38 @@ function getIpInfo(?string $ipAddress = null): array
 	];
 }
 
-function copyFileWithRandomName(string $defaultPath): string
+function copyFileWithRandomName(string $defaultPath, string $disk = 'public'): string
 {
-	$sourcePath = storage_path('app/public/' . $defaultPath);
+  $sourcePath = storage_path('app/public/' . $defaultPath);
 
-	if (!file_exists($sourcePath)) {
-		return $defaultPath;
-	}
+  if (!file_exists($sourcePath)) {
+    return $defaultPath;
+  }
 
-	$pathInfo = pathinfo($defaultPath);
-	$extension = $pathInfo['extension'] ?? 'png';
-	$directory = $pathInfo['dirname'];
+  $pathInfo  = pathinfo($defaultPath);
+  $extension = $pathInfo['extension'] ?? 'png';
+  $directory = $pathInfo['dirname'];
 
-	$randomName = Carbon::now()->format('YmdHis') . '_' . str()->random(12) . '.' . $extension;
-	$newPath = $directory . '/' . $randomName;
+  $randomName = Carbon::now()->format('YmdHis') . '_' . str()->random(12) . '.' . $extension;
+  $newPath    = $directory . '/' . $randomName;
 
-	$targetPath = storage_path('app/public/' . $newPath);
-	$targetDirectory = storage_path('app/public/' . $directory);
+  if ($disk === 'public') {
+    $targetPath      = storage_path('app/public/' . $newPath);
+    $targetDirectory = storage_path('app/public/' . $directory);
 
-	if (!is_dir($targetDirectory)) {
-		mkdir($targetDirectory, 0755, true);
-	}
+    if (!is_dir($targetDirectory)) {
+      mkdir($targetDirectory, 0755, true);
+    }
 
-	if (copy($sourcePath, $targetPath)) {
-		return $newPath;
-	}
+    if (copy($sourcePath, $targetPath)) {
+      return $newPath;
+    }
+  } else {
+    Storage::disk($disk)->put($newPath, file_get_contents($sourcePath));
+    return $newPath;
+  }
 
-	return $defaultPath;
+  return $defaultPath;
 }
 
 function sendPushNotification(User $user, PushNotification $record): array

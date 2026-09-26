@@ -16,12 +16,19 @@ class PaymentAccountResource extends JsonResource
    */
   public function toArray(Request $request): array
   {
+    $logo = null;
+    if ($this->logo) {
+      $logo = str_starts_with($this->logo, 'http://') || str_starts_with($this->logo, 'https://')
+        ? $this->logo
+        : Storage::disk('rustfs')->url($this->logo);
+    }
+
     $array = [
       'id'                => $this->id,
       'name'              => $this->name,
       'deposit'           => $this->deposit,
       'formatted_deposit' => toIndonesianCurrency($this->deposit),
-      'logo'              => Storage::disk('public')->url($this->logo),
+      'logo'              => $logo,
       'is_default'        => false,
     ];
 

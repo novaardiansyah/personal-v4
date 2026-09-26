@@ -24,7 +24,7 @@ class PaymentAccountController extends Controller
         'user_id' => auth()->user()->id,
         'name'    => 'Tunai',
         'deposit' => 0,
-        'logo'    => copyFileWithRandomName('images/payment_account/default-tunai.png')
+        'logo'    => copyFileWithRandomName('images/payment_account/default-tunai.png', 'rustfs')
       ]);
 
       $accounts = PaymentAccount::orderBy('name')
@@ -68,7 +68,7 @@ class PaymentAccountController extends Controller
       'user_id' => auth()->user()->id
     ];
 
-    $logoPath = processBase64Image($request->logo_base64, 'images/payment_account');
+    $logoPath = processBase64Image($request->logo_base64, 'images/payment_account', 'rustfs');
     if ($logoPath) {
       $accountData['logo'] = $logoPath;
     }
@@ -130,8 +130,8 @@ class PaymentAccountController extends Controller
       ], 422);
     }
 
-    if ($paymentAccount->logo) {
-      Storage::disk('public')->delete($paymentAccount->logo);
+    if ($paymentAccount->logo && !str_starts_with($paymentAccount->logo, 'http')) {
+      Storage::disk('rustfs')->delete($paymentAccount->logo);
     }
 
     $paymentAccount->delete();

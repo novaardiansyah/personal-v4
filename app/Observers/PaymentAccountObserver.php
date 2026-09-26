@@ -85,8 +85,8 @@ class PaymentAccountObserver
 
 	private function _delete_local_image(PaymentAccount $paymentAccount): void
 	{
-		if ($paymentAccount->logo) {
-			Storage::disk('public')->delete($paymentAccount->logo);
+		if ($paymentAccount->logo && !str_starts_with($paymentAccount->logo, 'http')) {
+			Storage::disk('rustfs')->delete($paymentAccount->logo);
 		}
 	}
 
