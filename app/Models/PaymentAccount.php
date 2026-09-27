@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Enums\GallerySize;
 use App\Observers\PaymentAccountObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
