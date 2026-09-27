@@ -43,17 +43,17 @@ class File extends Model
     if (empty($this->file_path))
       return;
 
-    foreach (['app', 'local', 'public'] as $disk) {
+    foreach (['app', 'local', 'public', 'rustfs'] as $disk) {
       if (Storage::disk($disk)->exists($this->file_path)) {
         Storage::disk($disk)->delete($this->file_path);
       }
     }
 
-    $this->update([
-      'has_been_deleted' => true
-    ]);
-
-    $this->delete();
+    if (!$this->has_been_deleted) {
+      $this->updateQuietly([
+        'has_been_deleted' => true
+      ]);
+    }
   }
 
   public function subject(): MorphTo

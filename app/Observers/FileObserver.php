@@ -30,24 +30,28 @@ class FileObserver
 
     $file->code = getCode('file');
 
-    if (($file->type_id == FileType::LocalFile->value) && $file->file_path) {
+    if (in_array((int) $file->type_id, [FileType::LocalFile->value, FileType::CloudFile->value]) && $file->file_path) {
       if (empty($file->file_name)) {
         $file->file_name = pathinfo($file->file_path, PATHINFO_BASENAME);
       }
 
       if (empty($file->download_url)) {
-        $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
-        $extension                = pathinfo($file->file_name, PATHINFO_EXTENSION);
-        $expirationCarbon         = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
+        if ((int) $file->type_id === FileType::CloudFile->value) {
+          $file->download_url = Storage::disk('rustfs')->url($file->file_path);
+        } else {
+          $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
+          $extension                = pathinfo($file->file_name, PATHINFO_EXTENSION);
+          $expirationCarbon         = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
 
-        $file->download_url = URL::temporarySignedRoute(
-          'download',
-          $expirationCarbon,
-          ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
-        );
+          $file->download_url = URL::temporarySignedRoute(
+            'download',
+            $expirationCarbon,
+            ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+          );
+        }
       }
 
-      foreach (['public', 'local', 'app'] as $disk) {
+      foreach (['rustfs', 'public', 'local', 'app'] as $disk) {
         if (Storage::disk($disk)->exists($file->file_path)) {
           $file->file_size = Storage::disk($disk)->size($file->file_path);
           break;
@@ -62,22 +66,26 @@ class FileObserver
       $file->uid = uuid7();
     }
 
-    if (($file->type_id == FileType::LocalFile->value) && $file->isDirty('file_path') && $file->file_path) {
+    if (in_array((int) $file->type_id, [FileType::LocalFile->value, FileType::CloudFile->value]) && $file->isDirty('file_path') && $file->file_path) {
       if (empty($file->file_name) || $file->isDirty('file_name')) {
         $file->file_name = pathinfo($file->file_path, PATHINFO_BASENAME);
       }
 
-      $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
-      $extension                = pathinfo($file->file_name, PATHINFO_EXTENSION);
-      $expirationCarbon         = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
+      if ((int) $file->type_id === FileType::CloudFile->value) {
+        $file->download_url = Storage::disk('rustfs')->url($file->file_path);
+      } else {
+        $filenameWithoutExtension = pathinfo($file->file_name, PATHINFO_FILENAME);
+        $extension                = pathinfo($file->file_name, PATHINFO_EXTENSION);
+        $expirationCarbon         = Carbon::parse($file->scheduled_deletion_time ?? now()->addMonth())->endOfDay();
 
-      $file->download_url = URL::temporarySignedRoute(
-        'download',
-        $expirationCarbon,
-        ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
-      );
+        $file->download_url = URL::temporarySignedRoute(
+          'download',
+          $expirationCarbon,
+          ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+        );
+      }
 
-      foreach (['public', 'local', 'app'] as $disk) {
+      foreach (['rustfs', 'public', 'local', 'app'] as $disk) {
         if (Storage::disk($disk)->exists($file->file_path)) {
           $file->file_size = Storage::disk($disk)->size($file->file_path);
           break;
@@ -107,6 +115,7 @@ class FileObserver
 	 */
 	public function deleted(File $file): void
 	{
+		$file->removeFile();
 		$this->_log('Deleted', $file);
 	}
 

@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Files\Pages;
 
 use App\Filament\Resources\Files\FileResource;
+use Filament\Actions\DeleteAction;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
@@ -13,6 +14,7 @@ class ViewFile extends ViewRecord
 	protected function getHeaderActions(): array
 	{
 		return [
+			DeleteAction::make(),
 			EditAction::make(),
 		];
 	}

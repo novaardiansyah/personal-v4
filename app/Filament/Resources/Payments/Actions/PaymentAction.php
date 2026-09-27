@@ -26,6 +26,7 @@ use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentResource\PaymentService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\Action;
@@ -525,8 +526,8 @@ class PaymentAction
           ->label('Files')
           ->required()
           ->multiple()
-          ->disk('public')
-          ->directory('attachments')
+          ->disk('rustfs')
+          ->directory('images/payments')
           ->maxSize(1024 * 20)
           ->maxFiles(10)
           ->getUploadedFileNameForStorageUsing(
@@ -541,21 +542,15 @@ class PaymentAction
         foreach ($files as $file) {
           $filename                 = pathinfo($file, PATHINFO_BASENAME);
           $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
-          $extension                = pathinfo($filename, PATHINFO_EXTENSION);
-
-          $fileUrl = URL::temporarySignedRoute(
-            'download',
-            now()->addMonth(),
-            ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
-          );
+          $downloadUrl              = Storage::disk('rustfs')->url($file);
 
           File::create([
             'uid'                     => $filenameWithoutExtension,
-            'type_id'                 => FileType::LocalFile->value,
+            'type_id'                 => FileType::CloudFile->value,
             'user_id'                 => $user?->id,
             'file_name'               => $filename,
             'file_path'               => $file,
-            'download_url'            => $fileUrl,
+            'download_url'            => $downloadUrl,
             'scheduled_deletion_time' => null,
             'subject_type'            => get_class($ownerRecord),
             'subject_id'              => $ownerRecord->id,

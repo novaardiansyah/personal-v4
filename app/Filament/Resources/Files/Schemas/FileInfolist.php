@@ -25,7 +25,7 @@ class FileInfolist
           ->components([
             ImageEntry::make('file_path')
               ->label('')
-              ->disk('public')
+              ->disk(fn(?File $record): string => (int) $record?->type_id === FileType::CloudFile->value ? 'rustfs' : 'public')
               ->imageHeight('220px')
               ->columnSpanFull(),
           ]),

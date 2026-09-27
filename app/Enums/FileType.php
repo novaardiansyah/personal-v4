@@ -10,12 +10,14 @@ enum FileType: int implements HasLabel, HasColor, HasIcon
 {
   case LocalFile  = 1;
   case DeviceFile = 2;
+  case CloudFile  = 3;
 
   public function getLabel(): ?string
   {
     return match ($this) {
       self::LocalFile  => 'Local File',
       self::DeviceFile => 'Device File',
+      self::CloudFile  => 'Cloud File',
     };
   }
 
@@ -24,6 +26,7 @@ enum FileType: int implements HasLabel, HasColor, HasIcon
     return match ($this) {
       self::LocalFile  => 'info',
       self::DeviceFile => 'success',
+      self::CloudFile  => 'warning',
     };
   }
 
@@ -32,6 +35,7 @@ enum FileType: int implements HasLabel, HasColor, HasIcon
     return match ($this) {
       self::LocalFile  => 'heroicon-o-document',
       self::DeviceFile => 'heroicon-o-device-phone-mobile',
+      self::CloudFile  => 'heroicon-o-cloud',
     };
   }
 }
