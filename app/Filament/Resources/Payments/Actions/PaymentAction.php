@@ -24,9 +24,11 @@ use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentResource\PaymentService;
 use Illuminate\Support\Carbon;
+use App\Filament\Resources\Files\Schemas\FileAction;
 use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
+use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
@@ -503,5 +505,10 @@ class PaymentAction
         $ids = $records->pluck('id')->implode(',');
         $livewire->redirect(PaymentResource::getUrl('details', ['ids' => $ids]), navigate: true);
       });
+  }
+
+  public static function uploadAttachment(): CreateAction
+  {
+    return FileAction::uploadForMorph('subject');
   }
 }

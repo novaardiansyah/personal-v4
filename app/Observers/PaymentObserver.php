@@ -17,7 +17,6 @@ namespace App\Observers;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentType;
-use App\Services\AttachmentService;
 use App\Services\CalendarIntegrationService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -365,7 +364,6 @@ class PaymentObserver
 	 */
 	private function _handleDeleteLogic(Payment $payment): void
 	{
-		$attachments = $payment->attachments;
 		$is_draft = $payment->is_draft;
 		$is_scheduled = $payment->is_scheduled;
 
@@ -388,10 +386,6 @@ class PaymentObserver
 					'deposit' => $payment->payment_account_to->deposit - $amount
 				]);
 			}
-		}
-
-		if (!empty($attachments)) {
-			AttachmentService::deleteAttachmentFiles($attachments);
 		}
 
 		foreach ($payment->installments as $installment) {

@@ -129,7 +129,6 @@ class ManagePaymentAccounts extends ManageRecords
           'payment_account_id' => $account->id,
           'amount'             => abs($diffDeposit),
           'has_items'          => false,
-          'attachments'        => [],
           'date'               => $endOfMonthDate,
         ]);
       }

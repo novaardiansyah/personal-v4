@@ -325,7 +325,6 @@ class PaymentGoalController extends Controller
       'has_items'          => false,
       'has_charge'         => false,
       'is_scheduled'       => false,
-      'attachments'        => []
     ];
 
     $mutate  = PaymentService::mutateDataPayment($paymentData);

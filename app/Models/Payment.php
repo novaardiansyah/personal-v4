@@ -23,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([PaymentObserver::class])]
@@ -30,16 +31,20 @@ class Payment extends Model
 {
   use SoftDeletes;
 
-  protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'category_id', 'attachments', 'created_at', 'updated_at', 'deleted_at'];
+  protected $fillable = ['type_id', 'user_id', 'payment_account_id', 'payment_account_to_id', 'code', 'name', 'amount', 'has_items', 'date', 'is_scheduled', 'is_draft', 'category_id', 'created_at', 'updated_at', 'deleted_at'];
 
   protected $casts = [
-    'attachments'  => 'array',
     'has_items'    => 'boolean',
     'is_scheduled' => 'boolean',
     'is_draft'     => 'boolean'
   ];
 
   protected $with = ['payment_account', 'payment_account_to'];
+
+  public function files(): MorphMany
+  {
+    return $this->morphMany(File::class, 'subject');
+  }
 
   public function payment_account(): BelongsTo
   {
@@ -213,13 +218,9 @@ class Payment extends Model
     ];
   }
 
-  /**
-   * Get count of attachments for this payment
-   */
   public function getAttachmentsCount(): int
   {
-    $attachments = $this->attachments ?? [];
-    return count($attachments);
+    return $this->files_count ?? $this->files()->count();
   }
 
   /**

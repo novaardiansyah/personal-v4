@@ -17,7 +17,6 @@ namespace App\Filament\Resources\Payments\Schemas;
 use App\Models\PaymentAccount;
 use App\Models\PaymentCategory;
 use App\Models\PaymentType;
-use Filament\Forms\Components\FileUpload;
 use Illuminate\Support\Carbon;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -86,18 +85,6 @@ class PaymentForm
             ->columnSpanFull()
             ->required(fn(Get $get) => !$get('has_items'))
             ->rows(3),
-
-          FileUpload::make('attachments')
-            ->label('Attachments')
-            ->disk('public')
-            ->directory('payments/attachments')
-            ->multiple()
-            ->reorderable()
-            ->maxSize(10240)
-            ->maxFiles(10)
-            ->columnSpanFull()
-            ->nullable()
-            ->visibleOn('edit'),
         ])
           ->description('Transaction information')
           ->columns(2)

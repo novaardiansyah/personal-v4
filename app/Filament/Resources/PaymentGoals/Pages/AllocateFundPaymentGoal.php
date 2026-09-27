@@ -182,7 +182,6 @@ class AllocateFundPaymentGoal extends EditRecord
       'has_items'          => false,
       'has_charge'         => false,
       'is_scheduled'       => false,
-      'attachments'        => [],
     ];
 
     DB::beginTransaction();

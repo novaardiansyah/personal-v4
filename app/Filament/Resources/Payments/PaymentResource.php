@@ -16,6 +16,7 @@ namespace App\Filament\Resources\Payments;
 
 use BackedEnum;
 use UnitEnum;
+use App\Filament\Resources\Payments\RelationManagers\FilesRelationManager;
 use App\Filament\Resources\Payments\RelationManagers\ItemsRelationManager;
 use App\Filament\Resources\Payments\Pages\CreatePayment;
 use App\Filament\Resources\Payments\Pages\EditPayment;
@@ -63,6 +64,7 @@ class PaymentResource extends Resource
   {
     return [
       ItemsRelationManager::class,
+      FilesRelationManager::class,
     ];
   }
 
