@@ -18,6 +18,7 @@ use App\Models\Payment;
 use App\Models\PaymentType;
 use App\Models\Setting;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -105,6 +106,19 @@ class PaymentInfolist
                   ->dateTime(),
               ])
               ->columns(3),
+
+            Section::make('')
+              ->description('Attachments')
+              ->schema([
+                ImageEntry::make('attachments')
+                  ->label('')
+                  ->disk('public')
+                  ->columnSpanFull()
+                  ->height(200)
+                  ->placeholder('No attachments'),
+              ])
+              ->visible(fn(Payment $record): bool => !empty($record->attachments))
+              ->collapsible(),
           ]),
       ])
       ->columns(2);

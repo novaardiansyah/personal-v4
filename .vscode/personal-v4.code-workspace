@@ -9,9 +9,9 @@
 			"statusBar.background": "#038159"
 		},
 		"editor.tabSize": 2,
-		"editor.lineHeight": 22,
+		"editor.lineHeight": 24,
 		"editor.fontFamily": "Hack",
-		"editor.fontSize": 10,
+		"editor.fontSize": 11,
 		"window.zoomLevel": 0.2,
 	},
 	"extensions": {

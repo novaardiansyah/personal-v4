@@ -23,7 +23,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([PaymentObserver::class])]
@@ -66,11 +65,6 @@ class Payment extends Model
   public function items(): BelongsToMany
   {
     return $this->belongsToMany(Item::class, 'payment_item')->using(PaymentItem::class)->withPivot(['id', 'item_code', 'quantity', 'price', 'total'])->withTimestamps();
-  }
-
-  public function galleries(): MorphMany
-  {
-    return $this->morphMany(Gallery::class, 'subject');
   }
 
   public function category(): BelongsTo
