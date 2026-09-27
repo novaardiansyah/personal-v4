@@ -15,7 +15,7 @@ class FilesRelationManager extends RelationManager
 
   public function table(Table $table): Table
   {
-    return $table
+    return FileResource::table($table)
       ->headerActions([
         PaymentAction::uploadAttachment(),
       ]);

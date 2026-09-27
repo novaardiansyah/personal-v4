@@ -14,17 +14,19 @@
 
 namespace App\Filament\Resources\Payments\Actions;
 
+use App\Enums\FileType;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\PaymentReportExcelJob;
 use App\Jobs\PaymentResource\PaymentReportPdf;
+use App\Models\File;
 use App\Models\Payment;
 use App\Models\PaymentAccount;
 use App\Models\PaymentItem;
 use App\Models\PaymentType;
 use App\Services\PaymentResource\PaymentService;
 use Illuminate\Support\Carbon;
-use App\Filament\Resources\Files\Schemas\FileAction;
+use Illuminate\Support\Facades\URL;
 use App\Filament\Resources\Payments\PaymentResource;
 use Filament\Actions\Action;
 use Filament\Actions\BulkAction;
@@ -32,6 +34,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DetachAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -45,6 +48,7 @@ use Filament\Support\Enums\Width;
 use Filament\Support\Icons\Heroicon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
 class PaymentAction
 {
@@ -507,8 +511,63 @@ class PaymentAction
       });
   }
 
-  public static function uploadAttachment(): CreateAction
+  public static function uploadAttachment(): Action
   {
-    return FileAction::uploadForMorph('subject');
+    return Action::make('upload_attachment')
+      ->label('Upload files')
+      ->icon('heroicon-o-arrow-up-tray')
+      ->color('primary')
+      ->modalHeading('Upload attachment')
+      ->modalDescription('Upload files to attach to this payment.')
+      ->modalWidth(Width::Large)
+      ->schema([
+        FileUpload::make('files')
+          ->label('Files')
+          ->required()
+          ->multiple()
+          ->disk('public')
+          ->directory('attachments')
+          ->maxSize(1024 * 20)
+          ->maxFiles(10)
+          ->getUploadedFileNameForStorageUsing(
+            fn(TemporaryUploadedFile $file): string => uuid7() . '.' . $file->getClientOriginalExtension()
+          ),
+      ])
+      ->action(function (array $data, Action $action, RelationManager $livewire) {
+        $ownerRecord = $livewire->getOwnerRecord();
+        $user        = getUser();
+        $files       = $data['files'] ?? [];
+
+        foreach ($files as $file) {
+          $filename                 = pathinfo($file, PATHINFO_BASENAME);
+          $filenameWithoutExtension = pathinfo($filename, PATHINFO_FILENAME);
+          $extension                = pathinfo($filename, PATHINFO_EXTENSION);
+
+          $fileUrl = URL::temporarySignedRoute(
+            'download',
+            now()->addMonth(),
+            ['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => 'public/attachments']
+          );
+
+          File::create([
+            'uid'                     => $filenameWithoutExtension,
+            'type_id'                 => FileType::LocalFile->value,
+            'user_id'                 => $user?->id,
+            'file_name'               => $filename,
+            'file_path'               => $file,
+            'download_url'            => $fileUrl,
+            'scheduled_deletion_time' => null,
+            'subject_type'            => get_class($ownerRecord),
+            'subject_id'              => $ownerRecord->id,
+          ]);
+        }
+
+        $action->successNotification(
+          Notification::make()
+            ->success()
+            ->title('Files Attached')
+            ->body(count($files) . ' file(s) uploaded successfully.')
+        );
+      });
   }
 }
