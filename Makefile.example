@@ -1,0 +1,19 @@
+CONTAINER   = YOUR_CONTAINER_NAME
+WORK_DIR    = YOUR_WORK_DIR
+EXEC        = docker exec -w $(WORK_DIR) $(CONTAINER)
+APACHE_PORT = 80
+
+serve:
+	@rm -f public/hot
+	@$(EXEC) php artisan optimize:clear
+	@$(EXEC) npm run build
+	@echo "Server running on http://localhost:$(APACHE_PORT)/personal-v4/public/"
+	@$(EXEC) php artisan queue:listen --tries=1
+
+artisan:
+	@$(EXEC) php artisan $(cmd)
+
+composer:
+	@$(EXEC) composer $(cmd)
+
+.PHONY: serve artisan composer
