@@ -70,4 +70,15 @@ class File extends Model
 	{
 		return $this->belongsTo(FileType::class, 'type_id');
 	}
+
+  public function isImage(): bool
+  {
+    if (empty($this->file_name) && empty($this->file_path)) {
+      return false;
+    }
+
+    $extension = strtolower(pathinfo($this->file_name ?: $this->file_path, PATHINFO_EXTENSION));
+
+    return in_array($extension, ['jpg', 'jpeg', 'png', 'gif', 'webp', 'svg', 'bmp', 'ico', 'avif']);
+  }
 }

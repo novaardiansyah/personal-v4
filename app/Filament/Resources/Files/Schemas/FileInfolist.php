@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Files\Schemas;
 use App\Enums\FileType;
 use App\Models\File;
 use Filament\Infolists\Components\IconEntry;
+use Filament\Infolists\Components\ImageEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -18,6 +19,19 @@ class FileInfolist
     return $schema
       ->components([
         Section::make('')
+          ->description('Image Preview')
+          ->visible(fn(?File $record): bool => (bool) $record?->isImage() && !(bool) $record?->has_been_deleted)
+          ->collapsible()
+          ->components([
+            ImageEntry::make('file_path')
+              ->label('')
+              ->disk('public')
+              ->imageHeight('220px')
+              ->columnSpanFull(),
+          ]),
+          
+        Section::make('')
+          ->collapsible()
           ->description('File Information')
           ->components([
             TextEntry::make('file_name')
@@ -51,6 +65,7 @@ class FileInfolist
               ->columnSpanFull(),
           ])
           ->columns(3),
+
         Section::make('')
           ->description('Subject Information')
           ->visible(fn(?File $record): bool => (int) $record?->type_id !== FileType::DeviceFile->value)
