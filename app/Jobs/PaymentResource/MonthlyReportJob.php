@@ -20,7 +20,7 @@ class MonthlyReportJob implements ShouldQueue
   /**
    * Create a new job instance.
    */
-  public function __construct(public array $data)
+  public function __construct(public array $data = [])
   {
     //
   }
@@ -32,7 +32,7 @@ class MonthlyReportJob implements ShouldQueue
   {
     Log::info('6753 --> MonthlyReportJob: Started.');
 
-    $periode = $this->data['periode'];
+    $periode = $this->data['periode'] ?? Carbon::now()->format('Y-m');
     $year    = Carbon::parse($periode)->format('Y');
     $month   = Carbon::parse($periode)->format('m');
 
