@@ -6,6 +6,7 @@ use App\Jobs\DiscordResource\SendPendingDiscordMessagesJob;
 use App\Jobs\FileResource\RemoveFileJob;
 use App\Jobs\PaymentResource\DailyReportJob;
 use App\Jobs\PaymentResource\DraftPaymentReminderJob;
+use App\Jobs\PaymentResource\MonthlyReportJob;
 use App\Jobs\PaymentResource\ScheduledPaymentJob;
 use App\Jobs\SubscriptionReminderJob;
 use Illuminate\Foundation\Inspiring;
@@ -23,6 +24,13 @@ Schedule::job(new ScheduledPaymentJob())
 
 // ! Daily Payment Report
 Schedule::job(new DailyReportJob([
+  'notification'  => false,
+  'send_to_email' => true,
+  'user'          => getUser(userCode: getSetting('default_user_payment_report'))
+]))
+  ->dailyAt('23:59');
+
+Schedule::job(new MonthlyReportJob([
   'notification'  => false,
   'send_to_email' => true,
   'user'          => getUser(userCode: getSetting('default_user_payment_report'))
