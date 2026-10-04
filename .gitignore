@@ -27,7 +27,6 @@ Thumbs.db
 .factory/
 docker-compose.override.yml
 /deploy/supervisor/*.conf
-setup.sh
 AGENTS.md
 .opencode/
 CLAUDE.md
