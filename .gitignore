@@ -26,10 +26,12 @@ Homestead.yaml
 Thumbs.db
 .factory/
 docker-compose.override.yml
-/deploy
+/deploy/supervisor/*.conf
 setup.sh
-Makefile
 AGENTS.md
 .opencode/
 CLAUDE.md
 /obsidian
+
+Makefile
+Makefile.production
