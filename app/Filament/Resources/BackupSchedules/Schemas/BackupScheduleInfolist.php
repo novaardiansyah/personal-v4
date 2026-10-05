@@ -29,6 +29,11 @@ class BackupScheduleInfolist
               TextEntry::make('name')
                 ->label('Name')
                 ->placeholder('N/A'),
+              TextEntry::make('server.name')
+                ->label('Server')
+                ->copyable()
+                ->badge()
+                ->placeholder('N/A'),
               TextEntry::make('type')
                 ->label('Type')
                 ->badge(),

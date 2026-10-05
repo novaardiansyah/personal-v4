@@ -52,6 +52,18 @@ class BackupsTable
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(),
+        TextColumn::make('schedule.name')
+          ->label('Schedule')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
+        TextColumn::make('server.name')
+          ->label('Server')
+          ->searchable()
+          ->badge()
+          ->copyable()
+          ->toggleable(),
         TextColumn::make('storage.name')
           ->label('Storage')
           ->searchable()
@@ -123,6 +135,18 @@ class BackupsTable
           ->label('Type')
           ->options(BackupType::class)
           ->native(false),
+        SelectFilter::make('schedule_id')
+          ->label('Schedule')
+          ->relationship('schedule', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
+        SelectFilter::make('server_id')
+          ->label('Server')
+          ->relationship('server', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
         SelectFilter::make('storage_id')
           ->label('Storage')
           ->relationship('storage', 'name')

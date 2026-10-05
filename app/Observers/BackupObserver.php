@@ -72,7 +72,7 @@ class BackupObserver
       return;
     }
 
-    $scheduleName = '-';
+    $scheduleName = $backup->schedule?->name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';

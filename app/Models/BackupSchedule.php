@@ -10,6 +10,7 @@ use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupScheduleObserver::class])]
@@ -22,6 +23,7 @@ class BackupSchedule extends Model
   protected $fillable = [
     'uid',
     'storage_id',
+    'server_id',
     'name',
     'type',
     'drivers',
@@ -48,6 +50,7 @@ class BackupSchedule extends Model
   protected $casts = [
     'uid'                    => 'string',
     'storage_id'             => 'integer',
+    'server_id'              => 'integer',
     'name'                   => 'string',
     'type'                   => BackupType::class,
     'drivers'                => 'string',
@@ -80,6 +83,16 @@ class BackupSchedule extends Model
   public function storage(): BelongsTo
   {
     return $this->belongsTo(BackupStorage::class, 'storage_id');
+  }
+
+  public function server(): BelongsTo
+  {
+    return $this->belongsTo(BackupStorage::class, 'server_id');
+  }
+
+  public function backups(): HasMany
+  {
+    return $this->hasMany(Backup::class, 'schedule_id');
   }
 
   public static function parsePattern(?string $pattern): ?string

@@ -74,13 +74,13 @@ class DiscordWebhookService
   public function buildBackupReportPayload(Backup $backup): array
   {
     $statusVal    = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
-    $scheduleName = '-';
+    $scheduleName = $backup->schedule?->name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
-    $serverName   = gethostname() ?: config('app.name', 'laravel');
+    $serverName   = $backup->server?->name ?: (gethostname() ?: config('app.name', 'laravel'));
 
     $fields = [
       [

@@ -42,6 +42,12 @@ class BackupSchedulesTable
 					->label('Name')
 					->searchable()
 					->toggleable(),
+				TextColumn::make('server.name')
+					->label('Server')
+					->searchable()
+					->badge()
+					->copyable()
+					->toggleable(),
 				TextColumn::make('type')
 					->label('Type')
 					->badge()
@@ -147,6 +153,12 @@ class BackupSchedulesTable
           ->toggleable(isToggledHiddenByDefault: true),
       ])
       ->filters([
+        SelectFilter::make('server_id')
+          ->label('Server')
+          ->relationship('server', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
         SelectFilter::make('type')
           ->label('Type')
           ->options(BackupType::class)

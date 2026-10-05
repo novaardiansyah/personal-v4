@@ -34,6 +34,13 @@ class BackupScheduleForm
 								TextInput::make('name')
 									->label('Name')
 									->required(),
+								Select::make('server_id')
+									->label('Server')
+									->relationship('server', 'name')
+									->searchable()
+									->preload()
+									->native(false)
+									->nullable(),
 								Select::make('type')
 									->label('Type')
 									->options([

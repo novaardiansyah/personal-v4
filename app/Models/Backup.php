@@ -19,6 +19,8 @@ class Backup extends Model
 
   protected $fillable = [
     'storage_id',
+    'server_id',
+    'schedule_id',
     'uid',
     'file_name',
     'file_path',
@@ -35,6 +37,8 @@ class Backup extends Model
 
   protected $casts = [
     'storage_id'      => 'integer',
+    'server_id'       => 'integer',
+    'schedule_id'     => 'integer',
     'uid'             => 'string',
     'file_name'       => 'string',
     'file_path'       => 'string',
@@ -53,5 +57,15 @@ class Backup extends Model
   public function storage(): BelongsTo
   {
     return $this->belongsTo(BackupStorage::class, 'storage_id');
+  }
+
+  public function server(): BelongsTo
+  {
+    return $this->belongsTo(BackupStorage::class, 'server_id');
+  }
+
+  public function schedule(): BelongsTo
+  {
+    return $this->belongsTo(BackupSchedule::class, 'schedule_id');
   }
 }
