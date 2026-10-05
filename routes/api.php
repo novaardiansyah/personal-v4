@@ -24,6 +24,7 @@ Route::prefix('mobile')->group(function () {
 
 Route::prefix('system-backup')->group(function () {
 	require __DIR__ . '/api/system-backup/auth.php';
+	require __DIR__ . '/api/system-backup/schedule.php';
 });
 
 Route::get('/health', function () {
