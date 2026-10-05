@@ -22,6 +22,10 @@ Route::prefix('mobile')->group(function () {
 	require __DIR__ . '/api/mobile/auth.php';
 });
 
+Route::prefix('system-backup')->group(function () {
+	require __DIR__ . '/api/system-backup/auth.php';
+});
+
 Route::get('/health', function () {
   return response()->json([
     'status'    => 'ok',
