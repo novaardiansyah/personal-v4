@@ -30,6 +30,8 @@ docker-compose.override.yml
 AGENTS.md
 .opencode/
 CLAUDE.md
+
+/.vscode
 /obsidian
 
 Makefile
