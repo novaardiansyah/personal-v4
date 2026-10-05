@@ -47,7 +47,6 @@ class BackupScheduleController extends Controller
       ->where('server_id', $server->id)
       ->whereNotNull('next_backup_at')
       ->where('next_backup_at', '<=', now())
-      ->with(['server', 'storage.provider'])
       ->orderBy('next_backup_at', 'asc');
 
     if (! $request->boolean('include_disabled')) {
@@ -56,10 +55,22 @@ class BackupScheduleController extends Controller
 
     $schedules = $query->paginate($perPage);
 
+    $items = collect($schedules->items())->map(function (BackupSchedule $schedule): array {
+      $data = $schedule->toArray();
+
+      $data['filename']               = BackupSchedule::parsePattern($schedule->filename_pattern);
+      $data['cloud_destination_path'] = BackupSchedule::parsePattern($schedule->r2_destination_path);
+      $data['local_destination_path'] = BackupSchedule::parsePattern($schedule->local_destination_path);
+
+      unset($data['filename_pattern'], $data['r2_destination_path']);
+
+      return $data;
+    });
+
     return response()->json([
       'success'    => true,
       'message'    => 'Backup schedules retrieved successfully',
-      'data'       => $schedules->items(),
+      'data'       => $items,
       'pagination' => [
         'current_page' => $schedules->currentPage(),
         'from'         => $schedules->firstItem(),
