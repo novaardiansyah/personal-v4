@@ -18,7 +18,6 @@ class Backup extends Model
   protected $table = 'backups';
 
   protected $fillable = [
-    'backup_job_id',
     'storage_id',
     'uid',
     'file_name',
@@ -36,7 +35,6 @@ class Backup extends Model
   ];
 
   protected $casts = [
-    'backup_job_id'   => 'integer',
     'storage_id'      => 'integer',
     'uid'             => 'string',
     'file_name'       => 'string',
@@ -53,11 +51,6 @@ class Backup extends Model
     'server_name'     => 'string',
     'deleted_at'      => 'datetime',
   ];
-
-  public function backupJob(): BelongsTo
-  {
-    return $this->belongsTo(BackupJob::class);
-  }
 
   public function storage(): BelongsTo
   {

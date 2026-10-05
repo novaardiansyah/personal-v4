@@ -1,6 +1,5 @@
 <?php
 
-use App\Jobs\BackupResource\CleanExcessBackupsJob;
 use App\Jobs\CleanExpiredTokens;
 use App\Jobs\DiscordResource\SendPendingDiscordMessagesJob;
 use App\Jobs\FileResource\RemoveFileJob;
@@ -61,10 +60,6 @@ Schedule::command('calendar:process-reminders')
 // ! Subscription Reminder Job
 Schedule::job(new SubscriptionReminderJob())
   ->dailyAt('05:00');
-
-// ! Clean Excess Backups
-Schedule::job(new CleanExcessBackupsJob())
-  ->everyFifteenMinutes();
 
 // ! Send Pending Discord Messages
 Schedule::job(new SendPendingDiscordMessagesJob())

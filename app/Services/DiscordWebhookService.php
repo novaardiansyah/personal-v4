@@ -73,10 +73,8 @@ class DiscordWebhookService
 
   public function buildBackupReportPayload(Backup $backup): array
   {
-    $backup->loadMissing('backupJob.backupSchedule');
-
     $statusVal    = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
-    $scheduleName = $backup->backupJob?->backupSchedule?->name ?? '-';
+    $scheduleName = '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';

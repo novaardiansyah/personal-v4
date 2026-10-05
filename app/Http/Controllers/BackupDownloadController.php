@@ -23,7 +23,7 @@ class BackupDownloadController extends Controller
 
     $fileName = $backup->file_name ?: "{$backup->uid}.zip";
 
-    $storage = $backup->storage ?? $backup->backupJob?->storage;
+    $storage = $backup->storage;
     $storage?->loadMissing('provider');
     $providerSlug = strtolower((string) $storage?->provider?->slug);
 

@@ -10,8 +10,6 @@ use App\Observers\BackupScheduleObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 #[ObservedBy([BackupScheduleObserver::class])]
@@ -82,16 +80,6 @@ class BackupSchedule extends Model
   public function storage(): BelongsTo
   {
     return $this->belongsTo(BackupStorage::class, 'storage_id');
-  }
-
-  public function backupJobs(): HasMany
-  {
-    return $this->hasMany(BackupJob::class);
-  }
-
-  public function backups(): HasManyThrough
-  {
-    return $this->hasManyThrough(Backup::class, BackupJob::class);
   }
 
   public static function parsePattern(?string $pattern): ?string

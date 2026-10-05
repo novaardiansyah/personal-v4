@@ -6,7 +6,6 @@ use App\Filament\Resources\BackupSchedules\Pages\CreateBackupSchedule;
 use App\Filament\Resources\BackupSchedules\Pages\EditBackupSchedule;
 use App\Filament\Resources\BackupSchedules\Pages\ListBackupSchedules;
 use App\Filament\Resources\BackupSchedules\Pages\ViewBackupSchedule;
-use App\Filament\Resources\BackupSchedules\RelationManagers\JobsRelationManager;
 use App\Filament\Resources\BackupSchedules\Schemas\BackupScheduleForm;
 use App\Filament\Resources\BackupSchedules\Schemas\BackupScheduleInfolist;
 use App\Filament\Resources\BackupSchedules\Tables\BackupSchedulesTable;
@@ -51,9 +50,7 @@ class BackupScheduleResource extends Resource
 
   public static function getRelations(): array
   {
-    return [
-      JobsRelationManager::class,
-    ];
+    return [];
   }
 
   public static function getPages(): array

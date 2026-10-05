@@ -2,7 +2,6 @@
 
 namespace App\Filament\Resources\BackupSchedules\Pages;
 
-use App\Filament\Resources\BackupSchedules\Actions\SyncAllBackupsAction;
 use App\Filament\Resources\BackupSchedules\BackupScheduleResource;
 use App\Filament\Resources\BackupSchedules\Widgets\BackupOverviewWidget;
 use Filament\Actions\CreateAction;
@@ -15,7 +14,6 @@ class ListBackupSchedules extends ListRecords
   protected function getHeaderActions(): array
   {
     return [
-      SyncAllBackupsAction::make(),
       CreateAction::make(),
     ];
   }

@@ -11,7 +11,6 @@ use App\Jobs\SendTelegramNotificationJob;
 use App\Models\Backup;
 use App\Models\DiscordMessage;
 use App\Services\DiscordWebhookService;
-use Illuminate\Support\Facades\DB;
 
 class BackupObserver
 {
@@ -40,7 +39,6 @@ class BackupObserver
   public function created(Backup $backup): void
   {
     $this->_log('Created', $backup);
-    $this->_syncScheduleCount($backup);
     $this->_sendTelegramNotification($backup);
     $this->_sendDiscordNotification($backup);
   }
@@ -48,7 +46,6 @@ class BackupObserver
   public function updated(Backup $backup): void
   {
     $this->_log('Updated', $backup);
-    $this->_syncScheduleCount($backup);
 
     if ($backup->wasChanged('status')) {
       $this->_sendTelegramNotification($backup);
@@ -59,34 +56,16 @@ class BackupObserver
   public function deleted(Backup $backup): void
   {
     $this->_log('Deleted', $backup);
-    $this->_syncScheduleCount($backup);
   }
 
   public function restored(Backup $backup): void
   {
     $this->_log('Restored', $backup);
-    $this->_syncScheduleCount($backup);
   }
 
   public function forceDeleted(Backup $backup): void
   {
     $this->_log('Force Deleted', $backup);
-    $this->_syncScheduleCount($backup);
-  }
-
-  private function _syncScheduleCount(Backup $backup): void
-  {
-    $schedule = $backup->backupJob?->backupSchedule;
-
-    if ($schedule) {
-      $count   = $schedule->backups()->count();
-      $sumSize = (int) $schedule->backups()->sum(DB::raw('CAST(file_size AS BIGINT)'));
-
-      $schedule->update([
-        'count_backup'  => $count,
-        'sum_file_size' => $sumSize,
-      ]);
-    }
   }
 
   private function _sendTelegramNotification(Backup $backup): void
@@ -97,9 +76,7 @@ class BackupObserver
       return;
     }
 
-    $backup->loadMissing('backupJob.backupSchedule');
-
-    $scheduleName = $backup->backupJob?->backupSchedule?->name ?? '-';
+    $scheduleName = '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
