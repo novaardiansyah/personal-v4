@@ -2,8 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Jobs\SendCalendarReminderJob;
-use App\Models\CalendarReminder;
+use App\Jobs\ProcessCalendarRemindersJob;
 use Illuminate\Console\Command;
 
 class ProcessCalendarReminders extends Command
@@ -13,21 +12,10 @@ class ProcessCalendarReminders extends Command
 
   public function handle(): int
   {
-    $reminders = CalendarReminder::where('remind_at', '<=', now())
-      ->whereNull('reminded_at')
-      ->get();
+    ProcessCalendarRemindersJob::dispatchSync();
 
-    if ($reminders->isEmpty()) {
-      $this->info('No pending reminders to process.');
-      return self::SUCCESS;
-    }
+    $this->info('Calendar reminders processed.');
 
-    foreach ($reminders as $reminder) {
-      SendCalendarReminderJob::dispatch($reminder);
-      $this->info("Dispatched reminder ID: {$reminder->id}");
-    }
-
-    $this->info("Processed {$reminders->count()} reminder(s).");
     return self::SUCCESS;
   }
 }
