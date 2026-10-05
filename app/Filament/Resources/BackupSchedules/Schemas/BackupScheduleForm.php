@@ -34,13 +34,6 @@ class BackupScheduleForm
 								TextInput::make('name')
 									->label('Name')
 									->required(),
-								Select::make('server_id')
-									->label('Server')
-									->relationship('server', 'name')
-									->searchable()
-									->preload()
-									->native(false)
-									->nullable(),
 								Select::make('type')
 									->label('Type')
 									->options([
@@ -111,14 +104,28 @@ class BackupScheduleForm
 												}
 											}),
 									]),
-								Select::make('storage_id')
-									->label('Storage')
-									->relationship('storage', 'name')
-									->searchable()
-									->preload()
-									->native(false)
-									->required(fn(Get $get): bool => (bool) $get('is_sync_cloud'))
-									->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
+								Grid::make([
+									'sm' => 2,
+									'xs' => 1,
+								])
+									->schema([
+										Select::make('server_id')
+											->label('Server')
+											->relationship('server', 'name')
+											->searchable()
+											->preload()
+											->native(false)
+											->nullable()
+											->columnSpan(fn(Get $get): int => (bool) $get('is_sync_cloud') ? 1 : 2),
+										Select::make('storage_id')
+											->label('Storage')
+											->relationship('storage', 'name')
+											->searchable()
+											->preload()
+											->native(false)
+											->required(fn(Get $get): bool => (bool) $get('is_sync_cloud'))
+											->visible(fn(Get $get): bool => (bool) $get('is_sync_cloud')),
+									]),
 								TextInput::make('r2_destination_path')
 									->label('Cloud Destination Path')
 									->placeholder('/backups/others')
