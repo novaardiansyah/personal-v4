@@ -41,9 +41,6 @@ class BackupInfolist
               ->label('Checksum')
               ->copyable()
               ->placeholder('N/A'),
-            TextEntry::make('server_name')
-              ->label('Server Name')
-              ->placeholder('N/A'),
             TextEntry::make('storage.name')
               ->label('Storage')
               ->copyable()

@@ -80,7 +80,7 @@ class DiscordWebhookService
     $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
-    $serverName   = $backup->server_name ?: (gethostname() ?: config('app.name', 'laravel'));
+    $serverName   = gethostname() ?: config('app.name', 'laravel');
 
     $fields = [
       [

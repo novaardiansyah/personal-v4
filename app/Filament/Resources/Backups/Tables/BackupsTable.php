@@ -87,10 +87,6 @@ class BackupsTable
           ->copyable()
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('server_name')
-          ->label('Server Name')
-          ->searchable()
-          ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('started_at')
           ->label('Started At')
           ->dateTime('M d, Y H:i')

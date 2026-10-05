@@ -31,7 +31,6 @@ class Backup extends Model
     'duration',
     'status',
     'message',
-    'server_name',
   ];
 
   protected $casts = [
@@ -48,7 +47,6 @@ class Backup extends Model
     'duration'        => 'integer',
     'status'          => BackupStatus::class,
     'message'         => 'string',
-    'server_name'     => 'string',
     'deleted_at'      => 'datetime',
   ];
 
