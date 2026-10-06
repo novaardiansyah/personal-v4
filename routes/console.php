@@ -1,5 +1,6 @@
 <?php
 
+use App\Jobs\BackupResource\PruneBackupsJob;
 use App\Jobs\CleanExpiredTokens;
 use App\Jobs\DiscordResource\SendPendingDiscordMessagesJob;
 use App\Jobs\FileResource\RemoveFileJob;
@@ -23,6 +24,7 @@ Schedule::job(new DailyReportJob([
 ]))
   ->dailyAt('23:59');
 
+// ! Monthly Payment Report
 Schedule::job(new MonthlyReportJob([
   'notification'  => false,
   'send_to_email' => true,
@@ -38,6 +40,7 @@ Schedule::job(new RemoveFileJob())
 Schedule::job(new CleanExpiredTokens())
   ->dailyAt('23:59');
 
+// ! Draft Payment Reminder
 Schedule::job(new DraftPaymentReminderJob())
   ->dailyAt('00:05');
 
@@ -52,3 +55,7 @@ Schedule::job(new SubscriptionReminderJob())
 // ! Send Pending Discord Messages
 Schedule::job(new SendPendingDiscordMessagesJob())
   ->everyMinute();
+
+// ! Prune Backups Job
+Schedule::job(new PruneBackupsJob())
+  ->hourly();
