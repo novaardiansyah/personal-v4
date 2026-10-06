@@ -62,7 +62,21 @@ class BackupScheduleController extends Controller
       $data['cloud_destination_path'] = BackupSchedule::parsePattern($schedule->r2_destination_path);
       $data['local_destination_path'] = BackupSchedule::parsePattern($schedule->local_destination_path);
 
-      unset($data['filename_pattern'], $data['r2_destination_path']);
+      unset(
+        $data['filename_pattern'],
+        $data['r2_destination_path'],
+        $data['uid'],
+        $data['interval_value'],
+        $data['interval_unit'],
+        $data['deleted_at'],
+        $data['created_at'],
+        $data['updated_at'],
+        $data['next_backup_at'],
+        $data['last_backup_at'],
+        $data['count_backup'],
+        $data['max_count_backup'],
+        $data['sum_file_size'],
+      );
 
       return $data;
     });
