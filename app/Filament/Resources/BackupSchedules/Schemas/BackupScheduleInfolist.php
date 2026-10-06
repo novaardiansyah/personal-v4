@@ -63,6 +63,7 @@ class BackupScheduleInfolist
               ->placeholder('None'),
             TextEntry::make('local_destination_path')
               ->label('Local Destination Path')
+              ->formatStateUsing(fn(?string $state) => $state ? BackupSchedule::generateDestinationPath($state) : 'N/A')
               ->copyable()
               ->placeholder('N/A'),
             TextEntry::make('r2_destination_path')
