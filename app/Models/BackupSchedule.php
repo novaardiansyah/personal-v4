@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 
 #[ObservedBy([BackupScheduleObserver::class])]
 class BackupSchedule extends Model
@@ -93,6 +94,24 @@ class BackupSchedule extends Model
   public function backups(): HasMany
   {
     return $this->hasMany(Backup::class, 'schedule_id');
+  }
+
+  public function calculateNextBackupAt(?Carbon $baseDate = null): Carbon
+  {
+    $base     = $baseDate ? $baseDate->copy() : now();
+    $value    = (int) ($this->interval_value ?: 1);
+    $unitEnum = $this->interval_unit instanceof BackupScheduleIntervalUnit
+      ? $this->interval_unit
+      : BackupScheduleIntervalUnit::tryFrom((string) $this->interval_unit);
+
+    return match ($unitEnum) {
+      BackupScheduleIntervalUnit::Minutes => $base->addMinutes($value),
+      BackupScheduleIntervalUnit::Hours   => $base->addHours($value),
+      BackupScheduleIntervalUnit::Days    => $base->addDays($value),
+      BackupScheduleIntervalUnit::Weeks   => $base->addWeeks($value),
+      BackupScheduleIntervalUnit::Months  => $base->addMonths($value),
+      default                             => $base->addDays($value ?: 3),
+    };
   }
 
   public static function parsePattern(?string $pattern): ?string
