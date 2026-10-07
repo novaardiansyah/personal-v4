@@ -64,10 +64,6 @@ class BackupController extends Controller
       ? Carbon::parse($validated['last_backup_at'])
       : $completedAt;
 
-    $nextBackupAt = isset($validated['next_backup_at'])
-      ? Carbon::parse($validated['next_backup_at'])
-      : $schedule->calculateNextBackupAt($lastBackupAt);
-
     $backupData = [
       'schedule_id'     => $schedule->id,
       'storage_id'      => $storageId,
@@ -85,13 +81,15 @@ class BackupController extends Controller
       'message'         => $validated['message'] ?? null,
     ];
 
-    $backup = DB::transaction(function () use ($backupData, $schedule, $lastBackupAt, $nextBackupAt, $fileSize) {
+    $backup = DB::transaction(function () use ($backupData, $schedule, $lastBackupAt, $validated, $fileSize) {
       $backup = Backup::create($backupData);
 
       $schedule->count_backup   = (int) ($schedule->count_backup ?? 0) + 1;
       $schedule->sum_file_size  = (int) ($schedule->sum_file_size ?? 0) + $fileSize;
       $schedule->last_backup_at = $lastBackupAt;
-      $schedule->next_backup_at = $nextBackupAt;
+      if (isset($validated['next_backup_at'])) {
+        $schedule->next_backup_at = Carbon::parse($validated['next_backup_at']);
+      }
       $schedule->save();
 
       return $backup;

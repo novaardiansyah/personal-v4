@@ -95,4 +95,30 @@ class BackupScheduleController extends Controller
       ],
     ]);
   }
+
+  public function start(int|string $id): JsonResponse
+  {
+    $schedule = BackupSchedule::find($id);
+
+    if (! $schedule) {
+      return response()->json([
+        'success' => false,
+        'message' => 'Backup schedule not found',
+      ], 404);
+    }
+
+    $schedule->next_backup_at = $schedule->calculateNextBackupAt(now());
+    $schedule->updated_at     = now();
+    $schedule->save();
+
+    return response()->json([
+      'success' => true,
+      'message' => 'Backup schedule started and next_backup_at updated successfully',
+      'data'    => [
+        'id'             => $schedule->id,
+        'next_backup_at' => $schedule->next_backup_at,
+        'updated_at'     => $schedule->updated_at,
+      ],
+    ]);
+  }
 }
