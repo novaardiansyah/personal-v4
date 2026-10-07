@@ -20,10 +20,13 @@ class ReplicateAction
       ->modalHeading('Replicate Backup Schedule')
       ->modalDescription('Are you sure you want to replicate this backup schedule?')
       ->action(function (BackupSchedule $record, Action $action): void {
-        $replica             = $record->replicate();
-        $replica->name       = "{$record->name} (copy)";
-        $replica->is_enabled = false;
-        $replica->uid        = null;
+        $replica                 = $record->replicate();
+        $replica->name           = "{$record->name} (copy)";
+        $replica->is_enabled     = false;
+        $replica->uid            = null;
+        $replica->count_backup   = 0;
+        $replica->sum_file_size  = 0;
+        $replica->last_backup_at = null;
         $replica->save();
 
         Notification::make()
