@@ -89,7 +89,7 @@ class BackupsTable
           ->toggleable(),
         TextColumn::make('duration')
           ->label('Duration')
-          ->formatStateUsing(fn($state) => "{$state}s")
+          ->formatStateUsing(fn($state) => $state !== null ? (secondsToHumanReadable((int) $state) ?: '0s') : 'N/A')
           ->sortable()
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('checksum')

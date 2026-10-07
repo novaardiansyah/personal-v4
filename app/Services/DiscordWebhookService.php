@@ -75,17 +75,23 @@ class DiscordWebhookService
   {
     $statusVal    = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
     $scheduleName = $backup->schedule?->name ?? '-';
+    $serverName   = $backup->server?->name ?: (gethostname() ?: config('app.name', 'laravel'));
+    $fileName     = $backup->file_name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
-    $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
+    $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration) ?: '0s') : '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
-    $serverName   = $backup->server?->name ?: (gethostname() ?: config('app.name', 'laravel'));
 
     $fields = [
       [
         'name'   => 'Schedule',
         'value'  => (string) $scheduleName,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'File Name',
+        'value'  => (string) $fileName,
         'inline' => true,
       ],
       [

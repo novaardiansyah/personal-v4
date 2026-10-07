@@ -51,6 +51,7 @@ class BackupObserver
 
   public function deleted(Backup $backup): void
   {
+    $backup->deleteFiles();
     $this->_log('Deleted', $backup);
   }
 
@@ -61,6 +62,7 @@ class BackupObserver
 
   public function forceDeleted(Backup $backup): void
   {
+    $backup->deleteFiles();
     $this->_log('Force Deleted', $backup);
   }
 
@@ -73,9 +75,11 @@ class BackupObserver
     }
 
     $scheduleName = $backup->schedule?->name ?? '-';
+    $serverName   = $backup->server?->name ?? '-';
+    $fileName     = $backup->file_name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
-    $duration     = $backup->duration !== null ? "{$backup->duration}s" : '-';
+    $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration) ?: '0s') : '-';
     $status       = $statusVal;
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
@@ -83,6 +87,8 @@ class BackupObserver
 
     $text = "Schedule Backup Report\n\n"
       . "name: {$scheduleName}\n"
+      . "server: {$serverName}\n"
+      . "file name: {$fileName}\n"
       . "size: {$fileSize}\n"
       . "type: {$type}\n"
       . "duration: {$duration}\n"

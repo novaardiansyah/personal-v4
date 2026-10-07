@@ -36,7 +36,7 @@ class BackupInfolist
               ->formatStateUsing(fn($state) => $state ? sizeFormat(floatval($state)) : 'N/A'),
             TextEntry::make('duration')
               ->label('Duration')
-              ->formatStateUsing(fn($state) => "{$state}s"),
+              ->formatStateUsing(fn($state) => $state !== null ? (secondsToHumanReadable((int) $state) ?: '0s') : 'N/A'),
             TextEntry::make('checksum')
               ->label('Checksum')
               ->copyable()
