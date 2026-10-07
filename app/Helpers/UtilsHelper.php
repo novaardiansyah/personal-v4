@@ -399,15 +399,20 @@ function sendPushNotification(User $user, PushNotification $record): array
 
 function sendTelegramNotification(string $message, array $options = []): void
 {
-	$user = (object) ['telegram_id' => config('services.telegram-bot-api.chat_id')];
+	$user            = (object) ['telegram_id' => config('services.telegram-bot-api.chat_id')];
 	$telegramService = app(TelegramService::class);
 
 	$defaultOptions = ['disable_web_page_preview' => true];
-	$options = array_merge($defaultOptions, $options);
+	$options        = array_merge($defaultOptions, $options);
 
 	try {
-		$response = $telegramService->toTelegram($user)->content($message)->options($options)->send();
-		$body = [];
+		$telegramMessage = $telegramService->toTelegram($user)->content($message);
+		if (array_key_exists('parse_mode', $options) && empty($options['parse_mode'])) {
+			$telegramMessage->normal();
+			unset($options['parse_mode']);
+		}
+		$response = $telegramMessage->options($options)->send();
+		$body     = [];
 		if ($response instanceof Response) {
 			$body = json_decode($response->getBody()->getContents(), true) ?? [];
 		}
@@ -554,18 +559,35 @@ function parseSizeToBytes(string|int|float|null $input): int
 	return (int) round((float) $input);
 }
 
-function secondsToHumanReadable(?int $seconds): string
+function secondsToHumanReadable(?int $seconds, bool $short = false): string
 {
 	if (!$seconds) {
 		return '';
 	}
 
-	$days = (int) ($seconds / 86400);
-	$hours = (int) (($seconds % 86400) / 3600);
+	$days    = (int) ($seconds / 86400);
+	$hours   = (int) (($seconds % 86400) / 3600);
 	$minutes = (int) (($seconds % 3600) / 60);
-	$secs = $seconds % 60;
+	$secs    = $seconds % 60;
 
 	$parts = [];
+
+	if ($short) {
+		if ($days >= 1) {
+			$parts[] = "{$days}d";
+		}
+		if ($hours >= 1) {
+			$parts[] = "{$hours}h";
+		}
+		if ($minutes >= 1) {
+			$parts[] = "{$minutes}m";
+		}
+		if ($secs > 0) {
+			$parts[] = "{$secs}s";
+		}
+
+		return implode(' ', $parts);
+	}
 
 	if ($days >= 1) {
 		$parts[] = "{$days} " . ($days === 1 ? 'day' : 'days');

@@ -51,6 +51,7 @@ class BackupsTable
           ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
+          ->copyable()
           ->toggleable(),
         TextColumn::make('schedule.name')
           ->label('Schedule')

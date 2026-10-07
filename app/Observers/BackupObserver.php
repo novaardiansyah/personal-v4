@@ -79,11 +79,11 @@ class BackupObserver
     $fileName     = $backup->file_name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
-    $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration) ?: '0s') : '-';
+    $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration, true) ?: '0s') : '-';
     $status       = $statusVal;
+    $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
-    $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
 
     $text = "Schedule Backup Report\n\n"
       . "name: {$scheduleName}\n"
@@ -93,11 +93,11 @@ class BackupObserver
       . "type: {$type}\n"
       . "duration: {$duration}\n"
       . "status: {$status}\n"
+      . "message: {$message}\n"
       . "started at: {$startedAt}\n"
-      . "completed at: {$completedAt}\n"
-      . "message: {$message}";
+      . "completed at: {$completedAt}";
 
-    SendTelegramNotificationJob::dispatch($text);
+    SendTelegramNotificationJob::dispatch($text, ['parse_mode' => '']);
   }
 
   private function _sendDiscordNotification(Backup $backup): void
