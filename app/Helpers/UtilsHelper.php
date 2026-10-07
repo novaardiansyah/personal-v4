@@ -586,6 +586,75 @@ function secondsToHumanReadable(?int $seconds): string
 	return implode(', ', $parts);
 }
 
+function parseIntervalToMinutes(string|int|float|null $input, int $default = 0): int
+{
+  if (empty($input)) {
+    return $default;
+  }
+
+  $input = trim((string) $input);
+
+  if (is_numeric($input)) {
+    return (int) round((float) $input);
+  }
+
+  if (preg_match('/^([\d\.,]+)\s*([a-zA-Z]+)?$/i', $input, $matches)) {
+    $value = (float) str_replace(',', '', $matches[1]);
+    $unit  = strtolower(trim($matches[2] ?? 'm'));
+
+    switch ($unit) {
+      case 's':
+      case 'sec':
+      case 'secs':
+      case 'second':
+      case 'seconds':
+      case 'detik':
+        return (int) max(1, round($value / 60));
+      case 'm':
+      case 'min':
+      case 'mins':
+      case 'minute':
+      case 'minutes':
+      case 'menit':
+        return (int) round($value);
+      case 'h':
+      case 'hr':
+      case 'hrs':
+      case 'hour':
+      case 'hours':
+      case 'jam':
+        return (int) round($value * 60);
+      case 'd':
+      case 'day':
+      case 'days':
+      case 'hari':
+        return (int) round($value * 1440);
+      case 'w':
+      case 'week':
+      case 'weeks':
+      case 'minggu':
+        return (int) round($value * 10080);
+      case 'mo':
+      case 'mon':
+      case 'month':
+      case 'months':
+      case 'bulan':
+        return (int) round($value * 43200);
+      case 'y':
+      case 'yr':
+      case 'yrs':
+      case 'year':
+      case 'years':
+      case 'tahun':
+        return (int) round($value * 525600);
+      default:
+        return (int) round($value);
+    }
+  }
+
+  return $default;
+}
+
 function uuid7(): string
 {
 	$string = Str::uuid7()->toString();

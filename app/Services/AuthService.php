@@ -23,7 +23,7 @@ class AuthService
 		if (!$enableTelegram) return;
 
 		$interval = getSetting('interval_login_telegram_notification', '60 Minutes', User::class);
-		$interval = (int) preg_replace('/\D/', '', $interval);
+		$interval = parseIntervalToMinutes($interval, 60);
 
 		$existingLog = ActivityLog::where('ip_address', $ip_address)
 			->where('event', 'Telegram Login Notification')
@@ -67,7 +67,7 @@ class AuthService
 		if (!$enableEmail) return;
 
 		$interval = getSetting('interval_login_email_notification', '60 Minutes', User::class);
-		$interval = (int) preg_replace('/\D/', '', $interval);
+		$interval = parseIntervalToMinutes($interval, 60);
 
 		$existingLog = ActivityLog::where('ip_address', $ip_address)
 			->where('event', 'Mail Login Notification')
@@ -145,7 +145,7 @@ class AuthService
 		if (!$enableDiscord) return;
 
 		$interval = getSetting('interval_login_discord_notification', '60 Minutes', User::class);
-		$interval = (int) preg_replace('/\D/', '', $interval);
+		$interval = parseIntervalToMinutes($interval, 60);
 
 		$existingLog = ActivityLog::where('ip_address', $ip_address)
 			->where('event', 'Discord Login Notification')
