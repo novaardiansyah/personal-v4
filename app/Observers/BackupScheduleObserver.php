@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Models\Backup;
+use App\Jobs\BackupResource\DeleteScheduleBackupsJob;
 use App\Models\BackupSchedule;
 
 class BackupScheduleObserver
@@ -46,7 +46,7 @@ class BackupScheduleObserver
 
   public function deleted(BackupSchedule $backupSchedule): void
   {
-    $backupSchedule->backups()->each(fn(Backup $backup) => $backup->delete());
+    DeleteScheduleBackupsJob::dispatch($backupSchedule->id);
     $this->_log('Deleted', $backupSchedule);
   }
 
@@ -57,7 +57,7 @@ class BackupScheduleObserver
 
   public function forceDeleted(BackupSchedule $backupSchedule): void
   {
-    $backupSchedule->backups()->withTrashed()->each(fn(Backup $backup) => $backup->forceDelete());
+    DeleteScheduleBackupsJob::dispatch($backupSchedule->id, true);
     $this->_log('Force Deleted', $backupSchedule);
   }
 
