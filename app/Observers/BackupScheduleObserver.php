@@ -4,9 +4,8 @@ declare(strict_types=1);
 
 namespace App\Observers;
 
-use App\Enums\BackupScheduleIntervalUnit;
+use App\Models\Backup;
 use App\Models\BackupSchedule;
-use Illuminate\Support\Str;
 
 class BackupScheduleObserver
 {
@@ -47,6 +46,7 @@ class BackupScheduleObserver
 
   public function deleted(BackupSchedule $backupSchedule): void
   {
+    $backupSchedule->backups()->each(fn(Backup $backup) => $backup->delete());
     $this->_log('Deleted', $backupSchedule);
   }
 
@@ -57,6 +57,7 @@ class BackupScheduleObserver
 
   public function forceDeleted(BackupSchedule $backupSchedule): void
   {
+    $backupSchedule->backups()->withTrashed()->each(fn(Backup $backup) => $backup->forceDelete());
     $this->_log('Force Deleted', $backupSchedule);
   }
 
