@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Backups\Tables;
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
 use App\Filament\Resources\Backups\Actions\DownloadCloudBackupAction;
+use App\Models\Backup;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -38,22 +39,25 @@ class BackupsTable
           ->label('File Name')
           ->searchable()
           ->limit(30)
-          ->tooltip(fn($state) => $state)
-          ->copyable(fn($state) => $state)
+          ->tooltip(fn(Backup $record) => $record->file_name)
+          ->copyable()
+          ->copyableState(fn(Backup $record) => $record->file_name)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_path')
           ->label('File Path')
           ->searchable()
           ->limit(35)
-          ->tooltip(fn($state) => $state)
-          ->copyable(fn($state) => $state)
+          ->tooltip(fn(Backup $record) => $record->file_path)
+          ->copyable()
+          ->copyableState(fn(Backup $record) => $record->file_path)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('cloud_file_path')
           ->label('Cloud File Path')
           ->searchable()
           ->limit(35)
-          ->tooltip(fn($state) => $state)
-          ->copyable(fn($state) => $state)
+          ->tooltip(fn(Backup $record) => $record->cloud_file_path)
+          ->copyable()
+          ->copyableState(fn(Backup $record) => $record->cloud_file_path)
           ->toggleable(),
         TextColumn::make('schedule.name')
           ->label('Schedule')
@@ -99,8 +103,9 @@ class BackupsTable
           ->label('Checksum')
           ->searchable()
           ->limit(15)
+          ->tooltip(fn(Backup $record) => $record->checksum)
           ->copyable()
-          ->tooltip(fn($state) => $state)
+          ->copyableState(fn(Backup $record) => $record->checksum)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('started_at')
           ->label('Started At')

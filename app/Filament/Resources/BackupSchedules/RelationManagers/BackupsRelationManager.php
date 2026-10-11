@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Resources\BackupSchedules\RelationManagers;
 
+use App\Filament\Resources\Backups\BackupResource;
 use App\Filament\Resources\Backups\Tables\BackupsTable;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
@@ -11,6 +12,8 @@ use Filament\Tables\Table;
 class BackupsRelationManager extends RelationManager
 {
   protected static string $relationship = 'backups';
+
+  protected static ?string $relatedResource = BackupResource::class;
 
   public function table(Table $table): Table
   {
