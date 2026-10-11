@@ -15,6 +15,11 @@ class BackupsRelationManager extends RelationManager
 
   protected static ?string $relatedResource = BackupResource::class;
 
+  public function isReadOnly(): bool
+  {
+    return false;
+  }
+
   public function table(Table $table): Table
   {
     $table = BackupsTable::configure($table);
