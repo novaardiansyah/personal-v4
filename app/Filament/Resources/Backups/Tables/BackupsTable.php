@@ -39,19 +39,21 @@ class BackupsTable
           ->searchable()
           ->limit(30)
           ->tooltip(fn($state) => $state)
+          ->copyable(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_path')
           ->label('File Path')
           ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
+          ->copyable(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('cloud_file_path')
           ->label('Cloud File Path')
           ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
-          ->copyable()
+          ->copyable(fn($state) => $state)
           ->toggleable(),
         TextColumn::make('schedule.name')
           ->label('Schedule')
