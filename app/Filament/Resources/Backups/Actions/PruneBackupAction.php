@@ -43,7 +43,7 @@ class PruneBackupAction
         PruneBackupsByDateRangeJob::dispatch(
           $data['start_date'],
           $data['end_date'],
-          getUser(),
+          getUser()->id,
         );
 
         Notification::make()
