@@ -43,6 +43,11 @@ class ScheduledPaymentJob implements ShouldQueue
    */
   public function handle(): void
   {
+    if (config('app.env') !== 'production') {
+      logger()->info('ScheduledPaymentJob() Skipped by ' . config('app.env') . ' environment.');
+      return;
+    }
+
     $now      = now()->toDateTimeString();
     $today    = Carbon::now()->format('Y-m-d');
     $tomorrow = Carbon::now()->addDay()->format('Y-m-d');

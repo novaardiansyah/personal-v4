@@ -21,6 +21,11 @@ class SubscriptionReminderJob implements ShouldQueue
 
   public function handle(): void
   {
+    if (config('app.env') !== 'production') {
+      logger()->info('SubscriptionReminderJob() Skipped by ' . config('app.env') . ' environment.');
+      return;
+    }
+
     $today = Carbon::now()->startOfDay();
 
     $subscriptions = Subscription::query()

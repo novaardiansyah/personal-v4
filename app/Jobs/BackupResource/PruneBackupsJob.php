@@ -17,6 +17,11 @@ class PruneBackupsJob implements ShouldQueue
 
   public function handle(): void
   {
+    if (config('app.env') !== 'production') {
+      logger()->info('PruneBackupsJob() Skipped by ' . config('app.env') . ' environment.');
+      return;
+    }
+
     $schedules = BackupSchedule::where('is_enabled', true)->get();
 
     foreach ($schedules as $schedule) {

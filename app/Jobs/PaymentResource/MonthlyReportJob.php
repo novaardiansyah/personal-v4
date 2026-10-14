@@ -30,6 +30,11 @@ class MonthlyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
+    if (config('app.env') !== 'production') {
+      logger()->info('MonthlyReportJob() Skipped by ' . config('app.env') . ' environment.');
+      return;
+    }
+
     Log::info('6753 --> MonthlyReportJob: Started.');
 
     $periode = $this->data['periode'] ?? Carbon::now()->format('Y-m');
