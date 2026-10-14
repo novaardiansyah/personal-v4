@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\BackupStatus;
-use App\Enums\BackupType;
 use App\Models\Backup;
 use App\Models\DiscordWebhook;
 use App\Models\User;
@@ -76,17 +75,28 @@ class DiscordWebhookService
     $statusVal    = $backup->status instanceof BackupStatus ? $backup->status->value : strtolower((string) ($backup->status ?? ''));
     $scheduleName = $backup->schedule?->name ?? '-';
     $serverName   = $backup->server?->name ?: (gethostname() ?: config('app.name', 'laravel'));
+    $cloudName    = $backup->storage?->name ?? '-';
     $fileName     = $backup->file_name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
-    $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration) ?: '0s') : '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
+    $previewUrl   = url("admin/backups/{$backup->id}");
 
     $fields = [
       [
-        'name'   => 'Schedule',
+        'name'   => 'Name',
         'value'  => (string) $scheduleName,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Server',
+        'value'  => (string) $serverName,
+        'inline' => true,
+      ],
+      [
+        'name'   => 'Cloud',
+        'value'  => (string) $cloudName,
         'inline' => true,
       ],
       [
@@ -95,28 +105,13 @@ class DiscordWebhookService
         'inline' => true,
       ],
       [
-        'name'   => 'Status',
-        'value'  => $statusVal === 'success' ? '✅ Success' : '❌ Failed',
-        'inline' => true,
-      ],
-      [
-        'name'   => 'Type',
-        'value'  => ucfirst((string) $type),
-        'inline' => true,
-      ],
-      [
-        'name'   => 'File Size',
+        'name'   => 'Size',
         'value'  => (string) $fileSize,
         'inline' => true,
       ],
       [
         'name'   => 'Duration',
         'value'  => (string) $duration,
-        'inline' => true,
-      ],
-      [
-        'name'   => 'Server',
-        'value'  => (string) $serverName,
         'inline' => true,
       ],
       [
@@ -129,20 +124,23 @@ class DiscordWebhookService
         'value'  => (string) $completedAt,
         'inline' => true,
       ],
-    ];
-
-    if ($statusVal === 'failed' && !empty($backup->message)) {
-      $fields[] = [
+      [
         'name'   => 'Message',
-        'value'  => "```\n" . Str::limit($backup->message, 1000) . "\n```",
+        'value'  => !empty($backup->message) ? "```\n" . Str::limit($backup->message, 1000) . "\n```" : '-',
         'inline' => false,
-      ];
-    }
+      ],
+      [
+        'name'   => 'Preview',
+        'value'  => (string) $previewUrl,
+        'inline' => false,
+      ],
+    ];
 
     return [
       'embeds' => [
         [
           'title'     => '📦 Schedule Backup Report',
+          'url'       => $previewUrl,
           'color'     => $statusVal === 'success' ? 0x22C55E : 0xEF4444,
           'fields'    => $fields,
           'footer'    => [

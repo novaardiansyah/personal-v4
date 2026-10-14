@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Observers;
 
 use App\Enums\BackupStatus;
-use App\Enums\BackupType;
 use App\Enums\DiscordMessageStatus;
 use App\Jobs\SendTelegramNotificationJob;
 use App\Models\Backup;
@@ -76,26 +75,26 @@ class BackupObserver
 
     $scheduleName = $backup->schedule?->name ?? '-';
     $serverName   = $backup->server?->name ?? '-';
+    $cloudName    = $backup->storage?->name ?? '-';
     $fileName     = $backup->file_name ?? '-';
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
-    $type         = $backup->type instanceof BackupType ? $backup->type->value : ($backup->type ?? '-');
     $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration, true) ?: '0s') : '-';
-    $status       = $statusVal;
-    $message      = ($statusVal === 'failed') ? ($backup->message ?: '-') : '-';
+    $message      = $backup->message ?: '-';
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
+    $previewUrl   = url("admin/backups/{$backup->id}");
 
     $text = "Schedule Backup Report\n\n"
-      . "name: {$scheduleName}\n"
-      . "server: {$serverName}\n"
-      . "file name: {$fileName}\n"
-      . "size: {$fileSize}\n"
-      . "type: {$type}\n"
-      . "duration: {$duration}\n"
-      . "status: {$status}\n"
-      . "message: {$message}\n"
-      . "started at: {$startedAt}\n"
-      . "completed at: {$completedAt}";
+      . "Name: {$scheduleName}\n"
+      . "Server: {$serverName}\n"
+      . "Cloud: {$cloudName}\n"
+      . "File Name: {$fileName}\n"
+      . "Size: {$fileSize}\n"
+      . "Duration: {$duration}\n"
+      . "Message: {$message}\n"
+      . "Started At: {$startedAt}\n"
+      . "Completed At: {$completedAt}\n"
+      . "Preview: {$previewUrl}";
 
     SendTelegramNotificationJob::dispatch($text, ['parse_mode' => '']);
   }
