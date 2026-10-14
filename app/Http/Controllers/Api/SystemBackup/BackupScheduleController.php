@@ -47,6 +47,7 @@ class BackupScheduleController extends Controller
       ->where('server_id', $server->id)
       ->whereNotNull('next_backup_at')
       ->where('next_backup_at', '<=', now())
+      ->with('storage.provider')
       ->orderBy('next_backup_at', 'asc');
 
     if (! $request->boolean('include_disabled')) {
@@ -58,11 +59,25 @@ class BackupScheduleController extends Controller
     $items = collect($schedules->items())->map(function (BackupSchedule $schedule): array {
       $data = $schedule->toArray();
 
+      $storage = $schedule->storage;
+      $keys    = $storage?->keys;
+
+      if ((int) $storage?->provider_id === 1 && $storage?->provider) {
+        $providerKeys = $storage->provider->keys ?? [];
+        $keys         = is_array($keys) ? $keys : [];
+
+        $keys['oauth_client_id']     = $providerKeys['oauth_client_id'] ?? null;
+        $keys['oauth_client_secret'] = $providerKeys['oauth_client_secret'] ?? null;
+      }
+
       $data['filename']               = BackupSchedule::parsePattern($schedule->filename_pattern);
       $data['cloud_destination_path'] = BackupSchedule::parsePattern($schedule->r2_destination_path);
       $data['local_destination_path'] = BackupSchedule::parsePattern($schedule->local_destination_path);
+      $data['keys']                   = $keys;
 
       unset(
+        $data['server_id'],
+        $data['storage'],
         $data['filename_pattern'],
         $data['r2_destination_path'],
         $data['uid'],
@@ -78,7 +93,15 @@ class BackupScheduleController extends Controller
         $data['sum_file_size'],
       );
 
-      return $data;
+      $ordered = [];
+      foreach ($data as $key => $value) {
+        $ordered[$key] = $value;
+        if ($key === 'storage_id') {
+          $ordered['provider_id'] = $storage?->provider_id !== null ? (int) $storage->provider_id : null;
+        }
+      }
+
+      return $ordered;
     });
 
     return response()->json([
