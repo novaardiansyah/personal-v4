@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\BackupStorageProviders\Schemas;
 
 use App\Models\BackupStorageProvider;
+use Filament\Infolists\Components\KeyValueEntry;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -32,6 +33,11 @@ class BackupStorageProviderInfolist
                 ->badge()
                 ->copyable()
                 ->placeholder('N/A'),
+              KeyValueEntry::make('keys')
+                ->label('Provider Keys')
+                ->keyLabel('Key')
+                ->valueLabel('Value')
+                ->columnSpanFull(),
             ])
             ->columns(2),
         ])

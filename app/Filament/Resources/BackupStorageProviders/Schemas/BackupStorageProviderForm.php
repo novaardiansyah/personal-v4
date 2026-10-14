@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupStorageProviders\Schemas;
 
+use Filament\Forms\Components\KeyValue;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
@@ -32,6 +33,11 @@ class BackupStorageProviderForm
                   ->label('Slug')
                   ->required()
                   ->unique('backup_storage_providers', 'slug', ignoreRecord: true),
+                KeyValue::make('keys')
+                  ->label('Provider Keys')
+                  ->keyLabel('Key')
+                  ->valueLabel('Value')
+                  ->columnSpanFull(),
               ]),
           ]),
 

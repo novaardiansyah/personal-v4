@@ -21,12 +21,14 @@ class BackupStorageProvider extends Model
     'uid',
     'name',
     'slug',
+    'keys',
   ];
 
   protected $casts = [
     'uid'  => 'string',
     'name' => 'string',
     'slug' => 'string',
+    'keys' => 'array',
   ];
 
   public function storages(): HasMany
