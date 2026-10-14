@@ -4,6 +4,7 @@ namespace App\Filament\Resources\BackupSchedules\Tables;
 
 use App\Enums\BackupScheduleIntervalUnit;
 use App\Enums\BackupType;
+use App\Filament\Resources\BackupSchedules\Actions\BackupNowAction;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
 use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
 use App\Filament\Resources\BackupSchedules\Actions\SyncBackupAction;
@@ -170,13 +171,14 @@ class BackupSchedulesTable
         TrashedFilter::make()
           ->native(false),
       ])
-      ->defaultSort('next_backup_at', 'asc')
+      ->defaultSort('updated_at', 'desc')
       ->recordAction(null)
       ->recordUrl(null)
       ->recordActions([
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
+          BackupNowAction::make(),
           SyncBackupAction::make(),
           EnableDisableAction::make(),
           ReplicateAction::make(),
