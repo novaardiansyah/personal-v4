@@ -22,11 +22,6 @@ class DraftPaymentReminderJob implements ShouldQueue
 
   public function handle(): void
   {
-    if (config('app.env') !== 'production') {
-      logger()->info('DraftPaymentReminderJob() Skipped by ' . config('app.env') . ' environment.');
-      return;
-    }
-
     $now    = now()->toDateTimeString();
     $today  = Carbon::now()->format('Y-m-d');
     $causer = getUser(userCode: getSetting('default_user_payment_report'));

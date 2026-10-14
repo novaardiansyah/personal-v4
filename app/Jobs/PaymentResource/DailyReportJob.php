@@ -31,11 +31,6 @@ class DailyReportJob implements ShouldQueue
    */
   public function handle(): void
   {
-    if (config('app.env') !== 'production') {
-      logger()->info('DailyReportJob() Skipped by ' . config('app.env') . ' environment.');
-      return;
-    }
-    
     $startDate          = Carbon::now()->startOfWeek();
     $endDate            = Carbon::now()->endOfWeek();
     $now                = Carbon::now()->toDateTimeString();

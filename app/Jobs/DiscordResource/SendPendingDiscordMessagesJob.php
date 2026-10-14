@@ -19,11 +19,6 @@ class SendPendingDiscordMessagesJob implements ShouldQueue
 
   public function handle(DiscordWebhookService $service): void
   {
-    if (config('app.env') !== 'production') {
-      logger()->info('SendPendingDiscordMessagesJob() Skipped by ' . config('app.env') . ' environment.');
-      return;
-    }
-    
     DiscordMessage::query()
       ->whereNotNull('webhook_id')
       ->where(function ($query) {

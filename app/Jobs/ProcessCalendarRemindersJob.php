@@ -13,11 +13,6 @@ class ProcessCalendarRemindersJob implements ShouldQueue
 
   public function handle(): void
   {
-    if (config('app.env') !== 'production') {
-      logger()->info('ProcessCalendarRemindersJob() Skipped by ' . config('app.env') . ' environment.');
-      return;
-    }
-    
     $reminders = CalendarReminder::where('remind_at', '<=', now())
       ->whereNull('reminded_at')
       ->get();

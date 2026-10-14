@@ -12,25 +12,47 @@ use App\Jobs\ProcessCalendarRemindersJob;
 use App\Jobs\SubscriptionReminderJob;
 use Illuminate\Support\Facades\Schedule;
 
-// ! Scheduled Payment
-Schedule::job(new ScheduledPaymentJob())
-  ->dailyAt('23:59');
+if (config('app.env') === 'production') {
+  // ! Scheduled Payment
+  Schedule::job(new ScheduledPaymentJob())
+    ->dailyAt('23:59');
 
-// ! Daily Payment Report
-Schedule::job(new DailyReportJob([
-  'notification'  => false,
-  'send_to_email' => true,
-  'user'          => getUser(userCode: getSetting('default_user_payment_report'))
-]))
-  ->dailyAt('23:59');
+  // ! Daily Payment Report
+  Schedule::job(new DailyReportJob([
+    'notification'  => false,
+    'send_to_email' => true,
+    'user'          => getUser(userCode: getSetting('default_user_payment_report'))
+  ]))
+    ->dailyAt('23:59');
+  
+  // ! Monthly Payment Report
+  Schedule::job(new MonthlyReportJob([
+    'notification'  => false,
+    'send_to_email' => true,
+    'user'          => getUser(userCode: getSetting('default_user_payment_report'))
+  ]))
+    ->dailyAt('23:59');
 
-// ! Monthly Payment Report
-Schedule::job(new MonthlyReportJob([
-  'notification'  => false,
-  'send_to_email' => true,
-  'user'          => getUser(userCode: getSetting('default_user_payment_report'))
-]))
-  ->dailyAt('23:59');
+  // ! Draft Payment Reminder
+  Schedule::job(new DraftPaymentReminderJob())
+    ->dailyAt('00:05');
+
+  // ! Process Calendar Reminders
+  Schedule::job(new ProcessCalendarRemindersJob())
+    ->everyFiveMinutes();
+
+  // ! Subscription Reminder Job
+  Schedule::job(new SubscriptionReminderJob())
+    ->dailyAt('05:00');
+
+  // ! Send Pending Discord Messages
+  Schedule::job(new SendPendingDiscordMessagesJob())
+    ->everyMinute();
+
+  // ! Prune Backups Job
+  Schedule::job(new PruneBackupsJob())
+    ->hourly();
+}
 
 // ! Scheduled File Deletion
 Schedule::job(new RemoveFileJob())
@@ -39,23 +61,3 @@ Schedule::job(new RemoveFileJob())
 // ! Clean Expired Tokens
 Schedule::job(new CleanExpiredTokens())
   ->dailyAt('23:59');
-
-// ! Draft Payment Reminder
-Schedule::job(new DraftPaymentReminderJob())
-  ->dailyAt('00:05');
-
-// ! Process Calendar Reminders
-Schedule::job(new ProcessCalendarRemindersJob())
-  ->everyFiveMinutes();
-
-// ! Subscription Reminder Job
-Schedule::job(new SubscriptionReminderJob())
-  ->dailyAt('05:00');
-
-// ! Send Pending Discord Messages
-Schedule::job(new SendPendingDiscordMessagesJob())
-  ->everyMinute();
-
-// ! Prune Backups Job
-Schedule::job(new PruneBackupsJob())
-  ->hourly();
