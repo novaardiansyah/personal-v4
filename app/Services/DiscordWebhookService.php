@@ -101,7 +101,7 @@ class DiscordWebhookService
       ],
       [
         'name'   => 'File Name',
-        'value'  => (string) $fileName,
+        'value'  => "[{$fileName}]({$previewUrl})",
         'inline' => true,
       ],
       [
@@ -127,11 +127,6 @@ class DiscordWebhookService
       [
         'name'   => 'Message',
         'value'  => !empty($backup->message) ? "```\n" . Str::limit($backup->message, 1000) . "\n```" : '-',
-        'inline' => false,
-      ],
-      [
-        'name'   => 'Preview',
-        'value'  => (string) $previewUrl,
         'inline' => false,
       ],
     ];

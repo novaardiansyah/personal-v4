@@ -73,13 +73,13 @@ class BackupObserver
       return;
     }
 
-    $scheduleName = $backup->schedule?->name ?? '-';
-    $serverName   = $backup->server?->name ?? '-';
-    $cloudName    = $backup->storage?->name ?? '-';
-    $fileName     = $backup->file_name ?? '-';
+    $scheduleName = htmlspecialchars($backup->schedule?->name ?? '-');
+    $serverName   = htmlspecialchars($backup->server?->name ?? '-');
+    $cloudName    = htmlspecialchars($backup->storage?->name ?? '-');
+    $fileName     = htmlspecialchars($backup->file_name ?? '-');
     $fileSize     = $backup->file_size !== null ? sizeFormat((float) $backup->file_size) : '-';
     $duration     = $backup->duration !== null ? (secondsToHumanReadable((int) $backup->duration, true) ?: '0s') : '-';
-    $message      = $backup->message ?: '-';
+    $message      = htmlspecialchars($backup->message ?: '-');
     $startedAt    = $backup->started_at ? $backup->started_at->format('Y-m-d H:i:s') : '-';
     $completedAt  = $backup->completed_at ? $backup->completed_at->format('Y-m-d H:i:s') : '-';
     $previewUrl   = url("admin/backups/{$backup->id}");
@@ -88,15 +88,14 @@ class BackupObserver
       . "Name: {$scheduleName}\n"
       . "Server: {$serverName}\n"
       . "Cloud: {$cloudName}\n"
-      . "File Name: {$fileName}\n"
+      . "File Name: <a href=\"{$previewUrl}\">{$fileName}</a>\n"
       . "Size: {$fileSize}\n"
       . "Duration: {$duration}\n"
       . "Message: {$message}\n"
       . "Started At: {$startedAt}\n"
-      . "Completed At: {$completedAt}\n"
-      . "Preview: {$previewUrl}";
+      . "Completed At: {$completedAt}";
 
-    SendTelegramNotificationJob::dispatch($text, ['parse_mode' => '']);
+    SendTelegramNotificationJob::dispatch($text, ['parse_mode' => 'HTML']);
   }
 
   private function _sendDiscordNotification(Backup $backup): void
