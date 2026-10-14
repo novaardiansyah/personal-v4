@@ -160,6 +160,12 @@ class BackupSchedulesTable
           ->native(false)
           ->searchable()
           ->preload(),
+        SelectFilter::make('storage_id')
+          ->label('Storage')
+          ->relationship('storage', 'name')
+          ->native(false)
+          ->searchable()
+          ->preload(),
         SelectFilter::make('type')
           ->label('Type')
           ->options(BackupType::class)
