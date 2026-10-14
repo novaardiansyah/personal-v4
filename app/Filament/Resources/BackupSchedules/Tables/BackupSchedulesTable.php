@@ -189,6 +189,7 @@ class BackupSchedulesTable
       ])
       ->toolbarActions([
         BulkActionGroup::make([
+          BackupNowAction::makeBulk(),
           DeleteBulkAction::make(),
           ForceDeleteBulkAction::make(),
           RestoreBulkAction::make(),
