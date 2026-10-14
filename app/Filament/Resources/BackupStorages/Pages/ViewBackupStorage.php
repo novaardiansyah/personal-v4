@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupStorages\Pages;
 
+use App\Filament\Resources\BackupStorages\Actions\GenerateRefreshTokenAction;
 use App\Filament\Resources\BackupStorages\BackupStorageResource;
 use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
@@ -14,6 +15,7 @@ class ViewBackupStorage extends ViewRecord
   {
     return [
       EditAction::make(),
+      GenerateRefreshTokenAction::make(),
     ];
   }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupStorages\Tables;
 
+use App\Filament\Resources\BackupStorages\Actions\GenerateRefreshTokenAction;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
@@ -90,6 +91,7 @@ class BackupStoragesTable
         ActionGroup::make([
           ViewAction::make(),
           EditAction::make(),
+          GenerateRefreshTokenAction::make(),
           DeleteAction::make(),
           ForceDeleteAction::make(),
           RestoreAction::make(),

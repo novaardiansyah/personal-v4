@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupStorages\Pages;
 
+use App\Filament\Resources\BackupStorages\Actions\GenerateRefreshTokenAction;
 use App\Filament\Resources\BackupStorages\BackupStorageResource;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\ForceDeleteAction;
@@ -17,6 +18,7 @@ class EditBackupStorage extends EditRecord
   {
     return [
       ViewAction::make(),
+      GenerateRefreshTokenAction::make(),
       DeleteAction::make(),
       ForceDeleteAction::make(),
       RestoreAction::make(),
