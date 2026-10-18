@@ -23,7 +23,7 @@ class DebtObserver
   public function creating(Debt $debt): void
   {
     $debt->code    = getCode('debt');
-    $debt->user_id = auth()->id() ?? getUser()?->id;
+    $debt->user_id = auth()->id() ?? getUser()?->id ?? $debt->user_id;
   }
 
   public function created(Debt $debt): void
@@ -51,7 +51,7 @@ class DebtObserver
       'payment_account_id' => $debt->payment_account_id,
       'code'               => getCode('payment'),
       'name'               => $debt->platform_name . ' - ' . $debt->name . ' (' . $debt->code . ')',
-      'amount'             => $debt->disbursement_amount,
+      'amount'             => $debt->principal_amount,
       'date'               => $debt->start_date,
       'is_draft'           => true,
       'is_scheduled'       => false,

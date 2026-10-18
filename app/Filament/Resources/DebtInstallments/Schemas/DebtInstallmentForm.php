@@ -48,16 +48,6 @@ class DebtInstallmentForm
           ->numeric()
           ->default(0)
           ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-        TextInput::make('service_fee')
-          ->required()
-          ->numeric()
-          ->default(0)
-          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
-        TextInput::make('vat_amount')
-          ->required()
-          ->numeric()
-          ->default(0)
-          ->hint(fn(?string $state) => toIndonesianCurrency($state ?? 0)),
         TextInput::make('penalty_amount')
           ->required()
           ->numeric()

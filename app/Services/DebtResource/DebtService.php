@@ -12,20 +12,12 @@ class DebtService
 {
   public static function generateInstallments(Debt $debt): void
   {
-    $principal      = $debt->principal_amount;
-    $tenor          = $debt->tenor;
-    $interestRate   = $debt->interest_rate / 100;
-    $serviceFeeRate = $debt->service_fee_rate / 100;
+    $principal    = (int) $debt->principal_amount;
+    $totalPayable = (int) $debt->total_payable_amount;
+    $tenor        = max(1, (int) $debt->tenor);
 
-    $totalServiceFee       = round($principal * $serviceFeeRate);
-    $monthlyServiceFeeBase = floor($totalServiceFee / $tenor);
-    $totalVat              = round($totalServiceFee * 0.11);
-    $monthlyVatBase        = floor($totalVat / $tenor);
-
-    $totalPaymentEstimate    = self::calculateAnnuityPayment($principal, $interestRate, $tenor, $totalServiceFee + $totalVat);
-    $totalMonthlyInstallment = round($totalPaymentEstimate);
-
-    $remainingPrincipal = $principal;
+    $monthlyPrincipal = intdiv($principal, $tenor);
+    $monthlyTotal     = intdiv($totalPayable, $tenor);
 
     $paidTenor = 0;
     if ($debt->status === 'paid') {
@@ -37,20 +29,12 @@ class DebtService
     for ($i = 1; $i <= $tenor; $i++) {
       $isLast = ($i === $tenor);
 
-      $serviceFee = $isLast ? ($totalServiceFee - ($monthlyServiceFeeBase * ($tenor - 1))) : $monthlyServiceFeeBase;
-      $vat        = $isLast ? ($totalVat - ($monthlyVatBase * ($tenor - 1))) : $monthlyVatBase;
+      $installmentPrincipal = $isLast ? ($principal - ($monthlyPrincipal * ($tenor - 1))) : $monthlyPrincipal;
+      $installmentTotal     = $isLast ? ($totalPayable - ($monthlyTotal * ($tenor - 1))) : $monthlyTotal;
+      $installmentInterest  = $installmentTotal - $installmentPrincipal;
 
-      if ($isLast) {
-        $installmentPrincipal = $remainingPrincipal;
-        $interest             = $totalMonthlyInstallment - ($installmentPrincipal + $serviceFee + $vat);
-      } else {
-        $interest              = round($remainingPrincipal * $interestRate);
-        $installmentPrincipal  = $totalMonthlyInstallment - ($interest + $serviceFee + $vat);
-        $remainingPrincipal   -= $installmentPrincipal;
-      }
-
-      $dueDate = Carbon::parse($debt->start_date)->addMonths($i - 1);
-      $isPaid = ($i <= $paidTenor);
+      $dueDate   = Carbon::parse($debt->start_date)->addMonths($i - 1);
+      $isPaid    = ($i <= $paidTenor);
       $paymentId = null;
 
       if ($isPaid) {
@@ -59,7 +43,7 @@ class DebtService
           'user_id'            => $debt->user_id,
           'payment_account_id' => $debt->payment_account_id,
           'name'               => $debt->platform_name . ' - ' . $debt->name . ' (' . $debt->code . ')',
-          'amount'             => $totalMonthlyInstallment,
+          'amount'             => $installmentTotal,
           'date'               => $dueDate->format('Y-m-d'),
           'is_draft'           => true,
           'is_scheduled'       => false,
@@ -73,23 +57,13 @@ class DebtService
         'installment_number' => $i,
         'due_date'           => $dueDate,
         'principal_amount'   => $installmentPrincipal,
-        'interest_amount'    => $interest,
-        'service_fee'        => $serviceFee,
-        'vat_amount'         => $vat,
-        'total_amount'       => $totalMonthlyInstallment,
+        'interest_amount'    => $installmentInterest,
+        'penalty_amount'     => 0,
+        'total_amount'       => $installmentTotal,
         'status'             => $isPaid ? 'paid' : 'unpaid',
         'paid_at'            => $isPaid ? $dueDate : null,
       ]);
     }
-  }
-
-  public static function calculateAnnuityPayment(float $p, float $r, int $n, float $extraFees): float
-  {
-    if ($r == 0) {
-      return ($p + $extraFees) / $n;
-    }
-    $monthlyAnnuity = ($p * $r * pow(1 + $r, $n)) / (pow(1 + $r, $n) - 1);
-    return $monthlyAnnuity + ($extraFees / $n);
   }
 
   public static function calculateStatus(Debt $debt): string

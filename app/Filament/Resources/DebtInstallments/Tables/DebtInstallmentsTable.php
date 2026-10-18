@@ -36,7 +36,7 @@ class DebtInstallmentsTable
           ->numeric()
           ->sortable()
           ->toggleable()
-					->prefix('#'),
+          ->prefix('#'),
         TextColumn::make('principal_amount')
           ->label('Principal')
           ->sortable()
@@ -44,16 +44,6 @@ class DebtInstallmentsTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('interest_amount')
           ->label('Interest')
-          ->sortable()
-          ->formatStateUsing(fn($state) => toIndonesianCurrency($state))
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('service_fee')
-          ->label('Service Fee')
-          ->sortable()
-          ->formatStateUsing(fn($state) => toIndonesianCurrency($state))
-          ->toggleable(isToggledHiddenByDefault: true),
-        TextColumn::make('vat_amount')
-          ->label('VAT')
           ->sortable()
           ->formatStateUsing(fn($state) => toIndonesianCurrency($state))
           ->toggleable(isToggledHiddenByDefault: true),
@@ -75,20 +65,20 @@ class DebtInstallmentsTable
             'unpaid' => 'warning',
             default  => 'primary'
           }),
-				TextColumn::make('due_date')
+        TextColumn::make('due_date')
           ->label('Due Date')
           ->date('M d, Y')
           ->sortable()
           ->toggleable()
-					->sinceTooltip(),
+          ->sinceTooltip(),
         TextColumn::make('paid_at')
           ->label('Paid At')
           ->dateTime('M d, Y H:i')
           ->sortable()
           ->toggleable(),
       ])
-			->recordAction(null)
-			->recordUrl(null)
+      ->recordAction(null)
+      ->recordUrl(null)
       ->filters([
       ])
       ->recordActions([

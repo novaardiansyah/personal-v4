@@ -35,7 +35,7 @@ class DebtInstallmentInfolist
               ->placeholder('-'),
             TextEntry::make('installment_number')
               ->label('Installment')
-							->prefix('#')
+              ->prefix('#')
               ->numeric(),
             TextEntry::make('due_date')
               ->label('Due Date')
@@ -58,12 +58,6 @@ class DebtInstallmentInfolist
             TextEntry::make('interest_amount')
               ->label('Interest')
               ->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
-            TextEntry::make('service_fee')
-              ->label('Service Fee')
-              ->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
-            TextEntry::make('vat_amount')
-              ->label('VAT')
-              ->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
             TextEntry::make('penalty_amount')
               ->label('Penalty')
               ->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
@@ -80,16 +74,16 @@ class DebtInstallmentInfolist
             TextEntry::make('created_at')
               ->label('Created At')
               ->dateTime()
-							->sinceTooltip(),
+              ->sinceTooltip(),
             TextEntry::make('updated_at')
               ->label('Last Updated')
               ->dateTime()
               ->sinceTooltip(),
-						TextEntry::make('deleted_at')
-							->label('Deleted At')
-							->dateTime()
-							->sinceTooltip()
-							->placeholder('N/A'),
+            TextEntry::make('deleted_at')
+              ->label('Deleted At')
+              ->dateTime()
+              ->sinceTooltip()
+              ->placeholder('N/A'),
           ])
           ->columns(1)
           ->columnSpan(['sm' => 3, 'md' => 1]),

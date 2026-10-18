@@ -50,18 +50,12 @@ class DebtInfolist
 						TextEntry::make('principal_amount')
 							->label('Principal Amount')
 							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
-						TextEntry::make('admin_fee')
-							->label('Admin Fee')
-							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
-						TextEntry::make('disbursement_amount')
-							->label('Net Disbursement')
+						TextEntry::make('total_payable_amount')
+							->label('Total Payable')
 							->formatStateUsing(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
 						TextEntry::make('interest_rate')
 							->label('Interest Rate')
-							->suffix('%'),
-						TextEntry::make('service_fee_rate')
-							->label('Service Fee Rate')
-							->suffix('%'),
+							->formatStateUsing(fn(?string $state) => number_format((float) ($state ?? 0), 2) . '%'),
 						TextEntry::make('tenor')
 							->label('Tenor')
 							->formatStateUsing(fn($state) => $state . ' Months'),

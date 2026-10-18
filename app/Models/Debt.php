@@ -25,10 +25,8 @@ class Debt extends Model
     'platform_name',
     'name',
     'principal_amount',
-    'admin_fee',
-    'disbursement_amount',
+    'total_payable_amount',
     'interest_rate',
-    'service_fee_rate',
     'tenor',
     'start_date',
     'status',
@@ -39,7 +37,6 @@ class Debt extends Model
   protected $casts = [
     'start_date' => 'date',
     'interest_rate' => 'decimal:5',
-    'service_fee_rate' => 'decimal:5',
   ];
 
   public function user(): BelongsTo

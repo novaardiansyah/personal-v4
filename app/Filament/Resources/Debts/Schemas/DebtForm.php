@@ -48,35 +48,33 @@ class DebtForm
 								->live(onBlur: true)
 								->hint(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0)))
 								->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-									$principal = (float) $state;
-									$adminFee = (float) $get('admin_fee');
-									$set('disbursement_amount', $principal - $adminFee);
+									$principal = (float) ($state ?? 0);
+									$totalPayable = (float) ($get('total_payable_amount') ?? 0);
+									if ($principal > 0 && $totalPayable >= $principal) {
+										$rate = (($totalPayable - $principal) / $principal) * 100;
+										$set('interest_rate', round($rate, 2));
+									}
 								}),
-							TextInput::make('admin_fee')
+							TextInput::make('total_payable_amount')
+								->label('Total Payable')
 								->required()
 								->numeric()
-								->default(0)
 								->live(onBlur: true)
 								->hint(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0)))
 								->afterStateUpdated(function (Get $get, Set $set, ?string $state) {
-									$principal = (float) $get('principal_amount');
-									$adminFee = (float) $state;
-									$set('disbursement_amount', $principal - $adminFee);
+									$totalPayable = (float) ($state ?? 0);
+									$principal = (float) ($get('principal_amount') ?? 0);
+									if ($principal > 0 && $totalPayable >= $principal) {
+										$rate = (($totalPayable - $principal) / $principal) * 100;
+										$set('interest_rate', round($rate, 2));
+									}
 								}),
-							TextInput::make('disbursement_amount')
-								->required()
-								->numeric()
-								->readOnly()
-								->hint(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0))),
 							TextInput::make('interest_rate')
+								->label('Interest Rate')
 								->required()
 								->numeric()
 								->default(0)
-								->suffix('%'),
-							TextInput::make('service_fee_rate')
-								->required()
-								->numeric()
-								->default(0)
+								->readOnly()
 								->suffix('%'),
 							TextInput::make('tenor')
 								->required()

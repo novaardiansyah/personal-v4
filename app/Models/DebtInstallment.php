@@ -19,8 +19,6 @@ class DebtInstallment extends Model
     'due_date',
     'principal_amount',
     'interest_amount',
-    'service_fee',
-    'vat_amount',
     'penalty_amount',
     'total_amount',
     'status',

@@ -54,25 +54,15 @@ class DebtsTable
 					->sortable()
 					->toggleable()
 					->formatStateUsing(fn($state) => toIndonesianCurrency($state)),
-				TextColumn::make('admin_fee')
-					->label('Admin Fee')
+				TextColumn::make('total_payable_amount')
+					->label('Total Payable')
 					->sortable()
-					->toggleable(isToggledHiddenByDefault: true)
-					->formatStateUsing(fn($state) => toIndonesianCurrency($state)),
-				TextColumn::make('disbursement_amount')
-					->label('Net Disbursement')
-					->sortable()
-					->toggleable(isToggledHiddenByDefault: true)
+					->toggleable()
 					->formatStateUsing(fn($state) => toIndonesianCurrency($state)),
 				TextColumn::make('interest_rate')
 					->label('Interest Rate')
 					->sortable()
-					->toggleable(isToggledHiddenByDefault: true)
-					->formatStateUsing(fn($state) => number_format($state, 2) . '%'),
-				TextColumn::make('service_fee_rate')
-					->label('Service Fee Rate')
-					->sortable()
-					->toggleable(isToggledHiddenByDefault: true)
+					->toggleable(isToggledHiddenByDefault: false)
 					->formatStateUsing(fn($state) => number_format($state, 2) . '%'),
 				TextColumn::make('tenor')
 					->label('Tenor')
@@ -118,11 +108,7 @@ class DebtsTable
 				TrashedFilter::make()
 					->searchable()
 					->preload(true)
-					->native(false),
 			])
-			->recordAction(null)
-			->recordUrl(null)
-			->defaultSort('updated_at', 'desc')
 			->recordActions([
 				ActionGroup::make([
 					ViewAction::make(),
