@@ -50,7 +50,7 @@ class DebtObserver
       'user_id'            => $debt->user_id,
       'payment_account_id' => $debt->payment_account_id,
       'code'               => getCode('payment'),
-      'name'               => $debt->platform_name . ' - ' . $debt->name . ' (' . $debt->code . ')',
+      'name'               => $debt->name . ' (' . $debt->code . ')',
       'amount'             => $debt->principal_amount,
       'date'               => $debt->start_date,
       'is_draft'           => true,

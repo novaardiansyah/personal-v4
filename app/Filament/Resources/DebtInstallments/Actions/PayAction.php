@@ -68,7 +68,7 @@ class PayAction
             'type_id'            => PaymentType::EXPENSE,
             'user_id'            => auth()->id(),
             'payment_account_id' => $data['payment_account_id'],
-            'name'               => 'Bayar Cicilan ke-' . $record->installment_number . ': ' . $record->debt->platform_name . ' - ' . $record->debt->name,
+            'name'               => 'Bayar Cicilan ke-' . $record->installment_number . ': ' . $record->debt->name,
             'amount'             => $record->total_amount,
             'date'               => Carbon::now(),
             'is_draft'           => false,

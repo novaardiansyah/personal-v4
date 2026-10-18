@@ -22,7 +22,6 @@ class Debt extends Model
     'user_id',
     'payment_account_id',
     'code',
-    'platform_name',
     'name',
     'principal_amount',
     'total_payable_amount',
@@ -30,7 +29,6 @@ class Debt extends Model
     'tenor',
     'start_date',
     'status',
-    'description',
     'paid_tenor',
   ];
 

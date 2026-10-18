@@ -1,6 +1,6 @@
 # Debt Resource Documentation
 
-*Version: v2.0*  
+*Version: v2.1*  
 *Last Updated: October 19, 2026*
 
 ## 1. Introduction
@@ -95,13 +95,12 @@ On debt creation, a **draft** Payment (type_id = 2 / EXPENSE) is created with am
 ```php
 // Debt.php - fillable (key fields)
 "user_id", "payment_account_id", "code",
-"platform_name",         // e.g. "Bank BCA", "Akhir Pegadaian"
-"name",                  // e.g. "KTA 2026"
+"name",                  // e.g. "KTA BCA 2026"
 "principal_amount",      // Pokok pinjaman
 "total_payable_amount",  // Nilai yang harus dibayar
 "interest_rate",         // Bunga otomatis (%)
 "tenor", "start_date",
-"status", "description", "paid_tenor",
+"status", "paid_tenor",
 ```
 
 **Casts**:
@@ -123,30 +122,28 @@ On debt creation, a **draft** Payment (type_id = 2 / EXPENSE) is created with am
 ### 4.2 Form Schema (`DebtForm.php`)
 
 **Section 1: Debt Information** (2-col grid, full width)
-- `platform_name` *required* -> lender/platform
-- `name` *required* -> debt label
+- `name` *required* -> debt label (full width)
 - `principal_amount` *required, numeric* -> live; auto-computes `interest_rate`
 - `total_payable_amount` *required, numeric* -> live; auto-computes `interest_rate`
 - `interest_rate` *required, numeric, readOnly, suffix %* -> computed: `((total - principal) / principal) * 100`
 - `tenor` *required, numeric, default 1* -> number of months
-- `start_date` *required, date, default now()*
+- `start_date` *required, date, default now()* (full width)
 
 **Section 2: Details** (1-col, narrower)
 - `code` -> auto-generated, disabled, visible only on edit
 - `payment_account_id` -> Disbursement Account (relationship, user-scoped), live balance hint
 - `status` -> ongoing / partial_payment / paid, default ongoing, live
 - `paid_tenor` -> visible only when status = `partial_payment` OR on create; required then; validated `< tenor`
-- `description` -> textarea, 3 rows
 
 ### 4.3 Infolist (`DebtInfolist.php`)
 
 Two-column layout (2 : 1):
-- **Debt Information** section: code, platform, name, status (badge), principal, total payable, interest rate, tenor, start date, disbursement account, `payment_progress` (full width), description (full width).
+- **Debt Information** section: code, name, status (badge), principal, total payable, interest rate, tenor, start date, disbursement account, `payment_progress` (full width).
 - **System Information** section: created_at, updated_at (since tooltip), deleted_at.
 
 ### 4.4 Table Configuration (`DebtsTable.php`)
 
-**Columns**: `#`, code (sortable, copyable, badge), platform (hidden default), name, principal, total payable, interest rate, tenor, start date (since tooltip), status (badge), **progress** (`paid/total` badge), deleted_at, created_at, updated_at.
+**Columns**: `#`, code (sortable, copyable, badge), name, principal, total payable, interest rate, tenor, start date (since tooltip), status (badge), **progress** (`paid/total` badge), deleted_at, created_at, updated_at.
 
 **Filters**: TrashedFilter only.
 
@@ -186,7 +183,7 @@ On submit:
 - `created` -> `DebtService::generateInstallments($debt)` then `recordDisbursementPayment()` then logs activity.
 - `updated` / `deleted` -> log activity only.
 
-`recordDisbursementPayment()` creates the draft Payment (type_id = 2, amount = principal_amount, date = start_date, is_draft = true).
+`recordDisbursementPayment()` creates the draft Payment (type_id = 2, amount = principal_amount, date = start_date, is_draft = true, name = `name (code)`).
 
 #### DebtService
 - `generateInstallments()` - builds N installments dividing principal and total payable equally.
@@ -218,7 +215,7 @@ The last installment absorbs any remainder from rounding/integer division so tot
 ## 6. Data Flow Examples
 
 ### 6.1 Creating a Debt
-1. Fill form: platform "BCA", name "KTA", principal 100,000, total payable 110,000 (interest rate auto = 10%), tenor 10, start_date today.
+1. Fill form: name "KTA BCA", principal 100,000, total payable 110,000 (interest rate auto = 10%), tenor 10, start_date today.
 2. Observer creates code `LDB-YYYYMMDD-####`, generates 10 installments of Rp11,000 each (Rp10,000 principal + Rp1,000 interest), creates draft disbursement Payment (Rp100,000).
 3. Debt status = `ongoing`, progress `0 / 10`.
 
@@ -230,28 +227,6 @@ The last installment absorbs any remainder from rounding/integer division so tot
 
 ### 6.3 Fully Paying Off
 When the last unpaid installment is paid, `calculateStatus()` returns `paid` and the debt badge turns green.
-
-## 7. Key Patterns and Tips
-
-### 7.1 Code Generation
-```php
-// DebtObserver::creating
-$debt->code = getCode("debt");   // LDB-YYYYMMDD-####
-```
-
-### 7.2 Disbursement is a Draft
-The auto Payment uses `is_draft = true`. Approve it in the Payment Resource to mutate the account balance.
-
-### 7.3 Status is Derived, Not Stored Intentionally
-`status` is stored on the debt but always reconciled by `DebtInstallmentObserver` after any installment change. Do not trust manual edits without the observer running.
-
-### 7.4 Relation Manager Reuse
-`InstallmentsRelationManager` calls `DebtInstallmentsTable::configure()` then unsets two columns - the canonical pattern for reusing a table class inside a relation manager (per project AGENTS.md).
-
-### 7.5 Indonesian Currency
-```php
-->hint(fn(?string $state) => toIndonesianCurrency((float) ($state ?? 0)))
-```
 
 ---
 

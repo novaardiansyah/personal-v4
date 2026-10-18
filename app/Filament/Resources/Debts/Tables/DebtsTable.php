@@ -40,10 +40,6 @@ class DebtsTable
 					->sortable()
 					->copyable()
 					->badge(),
-				TextColumn::make('platform_name')
-					->label('Platform')
-					->sortable()
-					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('name')
 					->label('Name')
 					->searchable()

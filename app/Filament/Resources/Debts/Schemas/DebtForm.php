@@ -18,7 +18,6 @@ use App\Models\PaymentAccount;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -38,10 +37,9 @@ class DebtForm
 					])
 						->columnSpanFull()
 						->schema([
-							TextInput::make('platform_name')
-								->required(),
 							TextInput::make('name')
-								->required(),
+								->required()
+								->columnSpanFull(),
 							TextInput::make('principal_amount')
 								->required()
 								->numeric()
@@ -79,11 +77,13 @@ class DebtForm
 							TextInput::make('tenor')
 								->required()
 								->numeric()
-								->default(1),
+								->default(1)
+								->suffix('Months'),
 							DatePicker::make('start_date')
 								->required()
 								->default(now())
-								->native(false),
+								->native(false)
+								->columnSpanFull(),
 						])
 				])
 					->description('Debt Information')
@@ -130,8 +130,6 @@ class DebtForm
 								}
 							},
 						]),
-					Textarea::make('description')
-						->rows(3),
 				])
 					->description('Details')
 					->columns(1)

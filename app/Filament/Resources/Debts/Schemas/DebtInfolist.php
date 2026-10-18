@@ -32,9 +32,6 @@ class DebtInfolist
 							->copyable()
 							->badge()
 							->color('info'),
-						TextEntry::make('platform_name')
-							->label('Platform')
-							->placeholder('N/A'),
 						TextEntry::make('name')
 							->label('Name')
 							->placeholder('N/A'),
@@ -68,10 +65,6 @@ class DebtInfolist
 						TextEntry::make('payment_progress')
 							->label('Payment Progress')
 							->getStateUsing(fn($record) => $record->payment_progress)
-							->columnSpanFull(),
-						TextEntry::make('description')
-							->label('Description')
-							->placeholder('No description available')
 							->columnSpanFull(),
 					])
 					->columns(['xl' => 3, '2xl' => 4])

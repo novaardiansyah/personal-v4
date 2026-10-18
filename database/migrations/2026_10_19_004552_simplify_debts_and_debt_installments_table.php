@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('debts', function (Blueprint $table) {
             $table->bigInteger('total_payable_amount')->default(0)->after('principal_amount');
-            $table->dropColumn(['admin_fee', 'disbursement_amount', 'service_fee_rate']);
+            $table->dropColumn(['admin_fee', 'disbursement_amount', 'service_fee_rate', 'platform_name', 'description']);
         });
 
         Schema::table('debt_installments', function (Blueprint $table) {
@@ -32,6 +32,8 @@ return new class extends Migration
         });
 
         Schema::table('debts', function (Blueprint $table) {
+            $table->string('platform_name')->after('code');
+            $table->text('description')->nullable()->after('status');
             $table->bigInteger('admin_fee')->default(0)->after('principal_amount');
             $table->bigInteger('disbursement_amount')->default(0)->after('admin_fee');
             $table->decimal('service_fee_rate', 25, 5)->default(0.00)->after('interest_rate');
