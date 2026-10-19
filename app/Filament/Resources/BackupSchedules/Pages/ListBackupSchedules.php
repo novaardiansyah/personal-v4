@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\BackupSchedules\Pages;
 
+use App\Filament\Resources\BackupSchedules\Actions\BackupNowAction;
 use App\Filament\Resources\BackupSchedules\BackupScheduleResource;
 use App\Filament\Resources\BackupSchedules\Widgets\BackupOverviewWidget;
 use Filament\Actions\CreateAction;
@@ -15,6 +16,7 @@ class ListBackupSchedules extends ListRecords
   {
     return [
       CreateAction::make(),
+      BackupNowAction::makeHeader(),
     ];
   }
 
