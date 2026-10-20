@@ -212,6 +212,7 @@ class PaymentGoalService
       'user_id'                 => $user->id,
       'file_name'               => $fileMeta['filename'],
       'file_path'               => $fileMeta['filepath'],
+      'file_size'               => file_exists($fullPath) ? (int) filesize($fullPath) : 0,
       'download_url'            => $fileUrl,
       'scheduled_deletion_time' => $expiration,
     ]);

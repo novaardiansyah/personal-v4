@@ -120,6 +120,7 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
       'user_id'                 => $user->id,
       'file_name'               => $filename,
       'file_path'               => $filepath,
+      'file_size'               => file_exists($fullpath) ? (int) filesize($fullpath) : 0,
       'download_url'            => $fileUrl,
       'scheduled_deletion_time' => $expiration,
     ]);

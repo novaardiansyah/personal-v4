@@ -49,8 +49,14 @@ class File extends Model
       : ['app', 'local', 'public'];
 
     foreach ($disks as $disk) {
-      if (Storage::disk($disk)->exists($this->file_path)) {
-        Storage::disk($disk)->delete($this->file_path);
+      try {
+        if ($disk === 'rustfs') {
+          Storage::disk($disk)->delete($this->file_path);
+        } elseif (Storage::disk($disk)->exists($this->file_path)) {
+          Storage::disk($disk)->delete($this->file_path);
+        }
+      } catch (\Throwable) {
+        continue;
       }
     }
 
