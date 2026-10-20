@@ -20,10 +20,12 @@ use App\Models\PaymentGoal;
 use App\Models\Email;
 use App\Models\EmailTemplate;
 use App\Models\File;
+use App\Enums\FileType;
 use App\Enums\EmailStatus;
 use App\Services\EmailResource\EmailService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
 use Mpdf\Mpdf;
@@ -178,46 +180,41 @@ class PaymentGoalService
 		]);
 	}
 
-	protected function saveFile(string $fullPath, $user, array $data, array $fileMeta): array
-	{
-		$expiration = now()->addMonth();
-		$fileUrl = URL::temporarySignedRoute(
-			'download',
-			$expiration,
-			[
-				'path'      => $fileMeta['filenameWithoutExtension'],
-				'extension' => $fileMeta['extension'],
-				'directory' => $fileMeta['directory']
-			]
-		);
+  protected function saveFile(string $fullPath, $user, array $data, array $fileMeta): array
+  {
+    $expiration = now()->addYear();
 
-		$notification = $data['notification'] ?? false;
+    Storage::disk('rustfs')->put($fileMeta['filepath'], file_get_contents($fullPath));
+    $fileUrl = Storage::disk('rustfs')->url($fileMeta['filepath']);
 
-		if ($notification) {
-			FilamentNotification::make()
-				->title("{$fileMeta['type']} file ready")
-				->body('Your payment goal report is ready to download')
-				->icon('heroicon-o-arrow-down-tray')
-				->iconColor('success')
-				->actions([
-					FilamentAction::make('download')
-						->label('Download')
-						->url($fileUrl)
-						->openUrlInNewTab()
-						->markAsRead()
-						->button()
-				])
-				->sendToDatabase($user);
-		}
+    $notification = $data['notification'] ?? false;
 
-		File::create([
-			'uid'                     => pathinfo($fileMeta['filename'], PATHINFO_FILENAME),
-			'user_id'                 => $user->id,
-			'file_name'               => $fileMeta['filename'],
-			'file_path'               => $fileMeta['filepath'],
-			'download_url'            => $fileUrl,
-			'scheduled_deletion_time' => $expiration,
-		]);
+    if ($notification) {
+      FilamentNotification::make()
+        ->title("{$fileMeta['type']} file ready")
+        ->body('Your payment goal report is ready to download')
+        ->icon('heroicon-o-arrow-down-tray')
+        ->iconColor('success')
+        ->actions([
+          FilamentAction::make('download')
+            ->label('Download')
+            ->url($fileUrl)
+            ->openUrlInNewTab()
+            ->markAsRead()
+            ->button()
+        ])
+        ->sendToDatabase($user);
+    }
+
+    File::create([
+      'uid'                     => pathinfo($fileMeta['filename'], PATHINFO_FILENAME),
+      'type_id'                 => FileType::CloudFile->value,
+      'user_id'                 => $user->id,
+      'file_name'               => $fileMeta['filename'],
+      'file_path'               => $fileMeta['filepath'],
+      'download_url'            => $fileUrl,
+      'scheduled_deletion_time' => $expiration,
+    ]);
 
 		$send_to_email = $data['send_to_email'] ?? false;
 

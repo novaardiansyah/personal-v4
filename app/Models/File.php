@@ -45,7 +45,7 @@ class File extends Model
       return;
 
     $disks = (int) $this->type_id === FileType::CloudFile->value
-      ? ['rustfs']
+      ? ['rustfs', 'app', 'local', 'public']
       : ['app', 'local', 'public'];
 
     foreach ($disks as $disk) {

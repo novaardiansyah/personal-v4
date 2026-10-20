@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\FileType;
 use App\Models\ActivityLog;
 use App\Models\File;
 use App\Models\Generate;
@@ -89,51 +90,49 @@ function makePdf(Mpdf $mpdf, ?Model $user = null, bool $preview = false, bool $n
 		];
 	}
 
-	$mpdf->Output($fullpath, 'F');
+    $mpdf->Output($fullpath, 'F');
 
-	$expiration = now()->addMonth();
+    $expiration = now()->addYear();
 
-	$fileUrl = URL::temporarySignedRoute(
-		'download',
-		$expiration,
-		['path' => $filenameWithoutExtension, 'extension' => $extension, 'directory' => $directory]
-	);
+    Storage::disk('rustfs')->put($filepath, file_get_contents($fullpath));
+    $fileUrl = Storage::disk('rustfs')->url($filepath);
 
-	if ($notification) {
-		Notification::make()
-			->title('PDF file ready')
-			->body('Your file is ready to download')
-			->icon('heroicon-o-arrow-down-tray')
-			->iconColor('success')
-			->actions([
-				Action::make('download')
-					->label('Download')
-					->url($fileUrl)
-					->openUrlInNewTab()
-					->markAsRead()
-					->button()
-			])
-			->sendToDatabase($user);
-	}
+    if ($notification) {
+      Notification::make()
+        ->title('PDF file ready')
+        ->body('Your file is ready to download')
+        ->icon('heroicon-o-arrow-down-tray')
+        ->iconColor('success')
+        ->actions([
+          Action::make('download')
+            ->label('Download')
+            ->url($fileUrl)
+            ->openUrlInNewTab()
+            ->markAsRead()
+            ->button()
+        ])
+        ->sendToDatabase($user);
+    }
 
-	File::create([
-		'uid'                     => $filenameWithoutExtension,
-		'user_id'                 => $user->id,
-		'file_name'               => $filename,
-		'file_path'               => $filepath,
-		'download_url'            => $fileUrl,
-		'scheduled_deletion_time' => $expiration,
-	]);
+    File::create([
+      'uid'                     => $filenameWithoutExtension,
+      'type_id'                 => FileType::CloudFile->value,
+      'user_id'                 => $user->id,
+      'file_name'               => $filename,
+      'file_path'               => $filepath,
+      'download_url'            => $fileUrl,
+      'scheduled_deletion_time' => $expiration,
+    ]);
 
-	$properties = [
-		'filename'   => $filename,
-		'filepath'   => $filepath,
-		'signed_url' => $fileUrl,
-		'fullpath'   => $fullpath,
-	];
+    $properties = [
+      'filename'   => $filename,
+      'filepath'   => $filepath,
+      'signed_url' => $fileUrl,
+      'fullpath'   => $fullpath,
+    ];
 
-	return $properties;
-}
+    return $properties;
+  }
 
 function getCode(string $alias, bool $isNotPreview = true)
 {
