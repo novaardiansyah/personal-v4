@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\FileType;
 use App\Observers\FileObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -43,7 +44,11 @@ class File extends Model
     if (empty($this->file_path))
       return;
 
-    foreach (['app', 'local', 'public', 'rustfs'] as $disk) {
+    $disks = (int) $this->type_id === FileType::CloudFile->value
+      ? ['rustfs']
+      : ['app', 'local', 'public'];
+
+    foreach ($disks as $disk) {
       if (Storage::disk($disk)->exists($this->file_path)) {
         Storage::disk($disk)->delete($this->file_path);
       }

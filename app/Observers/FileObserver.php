@@ -51,7 +51,11 @@ class FileObserver
         }
       }
 
-      foreach (['rustfs', 'public', 'local', 'app'] as $disk) {
+      $disks = (int) $file->type_id === FileType::CloudFile->value
+        ? ['rustfs']
+        : ['app', 'public', 'local'];
+
+      foreach ($disks as $disk) {
         if (Storage::disk($disk)->exists($file->file_path)) {
           $file->file_size = Storage::disk($disk)->size($file->file_path);
           break;
@@ -85,7 +89,11 @@ class FileObserver
         );
       }
 
-      foreach (['rustfs', 'public', 'local', 'app'] as $disk) {
+      $disks = (int) $file->type_id === FileType::CloudFile->value
+        ? ['rustfs']
+        : ['app', 'public', 'local'];
+
+      foreach ($disks as $disk) {
         if (Storage::disk($disk)->exists($file->file_path)) {
           $file->file_size = Storage::disk($disk)->size($file->file_path);
           break;
