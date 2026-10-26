@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\FileType;
+use App\Enums\FileType as FileTypeEnum;
 use App\Observers\FileObserver;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
@@ -44,7 +44,7 @@ class File extends Model
     if (empty($this->file_path))
       return;
 
-    $disks = (int) $this->type_id === FileType::CloudFile->value
+    $disks = (int) $this->type_id === FileTypeEnum::CloudFile->value
       ? ['rustfs', 'app', 'local', 'public']
       : ['app', 'local', 'public'];
 
@@ -77,10 +77,10 @@ class File extends Model
     return $this->belongsTo(FileDownload::class, 'file_download_id', 'id');
   }
 
-	public function type(): BelongsTo
-	{
-		return $this->belongsTo(FileType::class, 'type_id');
-	}
+  public function type(): BelongsTo
+  {
+    return $this->belongsTo(FileType::class, 'type_id');
+  }
 
   public function isImage(): bool
   {
