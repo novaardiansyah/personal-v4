@@ -25,8 +25,7 @@ class AuthService
 		$interval = getSetting('interval_login_telegram_notification', '60 Minutes', User::class);
 		$interval = parseIntervalToMinutes($interval, 60);
 
-		$existingLog = ActivityLog::where('ip_address', $ip_address)
-			->where('event', 'Telegram Login Notification')
+		$existingLog = ActivityLog::where('event', 'Telegram Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
 			->where('causer_type', User::class)
@@ -69,8 +68,7 @@ class AuthService
 		$interval = getSetting('interval_login_email_notification', '60 Minutes', User::class);
 		$interval = parseIntervalToMinutes($interval, 60);
 
-		$existingLog = ActivityLog::where('ip_address', $ip_address)
-			->where('event', 'Mail Login Notification')
+		$existingLog = ActivityLog::where('event', 'Mail Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
 			->where('causer_type', User::class)
@@ -147,8 +145,7 @@ class AuthService
 		$interval = getSetting('interval_login_discord_notification', '60 Minutes', User::class);
 		$interval = parseIntervalToMinutes($interval, 60);
 
-		$existingLog = ActivityLog::where('ip_address', $ip_address)
-			->where('event', 'Discord Login Notification')
+		$existingLog = ActivityLog::where('event', 'Discord Login Notification')
 			->where('log_name', 'Notification')
 			->where('causer_id', $user->id)
 			->where('causer_type', User::class)
