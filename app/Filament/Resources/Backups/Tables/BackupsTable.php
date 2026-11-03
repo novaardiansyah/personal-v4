@@ -49,7 +49,6 @@ class BackupsTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_name')
           ->label('File Name')
-          ->searchable()
           ->limit(30)
           ->tooltip(fn(Backup $record) => $record->file_name)
           ->copyable()
@@ -57,7 +56,6 @@ class BackupsTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('file_path')
           ->label('File Path')
-          ->searchable()
           ->limit(35)
           ->tooltip(fn(Backup $record) => $record->file_path)
           ->copyable()
@@ -73,19 +71,16 @@ class BackupsTable
           ->toggleable(),
         TextColumn::make('schedule.name')
           ->label('Schedule')
-          ->searchable()
           ->badge()
           ->copyable()
           ->toggleable(),
         TextColumn::make('server.name')
           ->label('Server')
-          ->searchable()
           ->badge()
           ->copyable()
           ->toggleable(),
         TextColumn::make('storage.name')
           ->label('Storage')
-          ->searchable()
           ->badge()
           ->copyable()
           ->toggleable(),
@@ -98,7 +93,6 @@ class BackupsTable
         TextColumn::make('status')
           ->label('Status')
           ->badge()
-          ->searchable()
           ->sortable()
           ->toggleable(),
         TextColumn::make('file_size')
@@ -113,7 +107,6 @@ class BackupsTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('checksum')
           ->label('Checksum')
-          ->searchable()
           ->limit(15)
           ->tooltip(fn(Backup $record) => $record->checksum)
           ->copyable()

@@ -1,5 +1,17 @@
 <?php
 
+/*
+ * Project Name: personal-v4
+ * File: BackupSchedulesTable.php
+ * Created Date: 08 Sep 2025, 10:49
+ *
+ * Author: Nova Ardiansyah admin@novaardiansyah.id
+ * Website: https://novaardiansyah.id
+ * MIT License: https://github.com/novaardiansyah/personal-v4/blob/main/LICENSE
+ *
+ * Copyright (c) 2026 Nova Ardiansyah, Org
+ */
+
 namespace App\Filament\Resources\BackupSchedules\Tables;
 
 use App\Enums\BackupScheduleIntervalUnit;
@@ -45,26 +57,21 @@ class BackupSchedulesTable
 					->toggleable(),
 				TextColumn::make('server.name')
 					->label('Server')
-					->searchable()
 					->badge()
 					->copyable()
 					->toggleable(),
 				TextColumn::make('type')
 					->label('Type')
 					->badge()
-					->searchable()
 					->toggleable(),
 				TextColumn::make('drivers')
 					->label('Drivers')
-					->searchable()
 					->toggleable(isToggledHiddenByDefault: true),
 				TextColumn::make('database_name')
 					->label('Database Name')
-					->searchable()
 					->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('source_path')
           ->label('Source Path')
-          ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
@@ -80,19 +87,16 @@ class BackupSchedulesTable
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('local_destination_path')
           ->label('Local Path')
-          ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('r2_destination_path')
           ->label('Cloud Destination Path')
-          ->searchable()
           ->limit(35)
           ->tooltip(fn($state) => $state)
           ->toggleable(isToggledHiddenByDefault: true),
         TextColumn::make('storage.name')
           ->label('Storage')
-          ->searchable()
           ->badge()
           ->copyable()
           ->toggleable(),
