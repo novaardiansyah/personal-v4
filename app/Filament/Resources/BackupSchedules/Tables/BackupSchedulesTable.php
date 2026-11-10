@@ -17,6 +17,7 @@ namespace App\Filament\Resources\BackupSchedules\Tables;
 use App\Enums\BackupScheduleIntervalUnit;
 use App\Enums\BackupType;
 use App\Filament\Resources\BackupSchedules\Actions\BackupNowAction;
+use App\Filament\Resources\BackupSchedules\Actions\DisableBulkAction;
 use App\Filament\Resources\BackupSchedules\Actions\EnableDisableAction;
 use App\Filament\Resources\BackupSchedules\Actions\ReplicateAction;
 use App\Filament\Resources\BackupSchedules\Actions\SyncBackupAction;
@@ -200,6 +201,7 @@ class BackupSchedulesTable
       ->toolbarActions([
         BulkActionGroup::make([
           BackupNowAction::makeBulk(),
+          DisableBulkAction::make(),
           DeleteBulkAction::make(),
           ForceDeleteBulkAction::make(),
           RestoreBulkAction::make(),
