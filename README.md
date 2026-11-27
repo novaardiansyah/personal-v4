@@ -16,14 +16,6 @@ This repository is the public evolution of my previous public admin panel projec
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/) - Database Management
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 
-## User Manual
-
-For a complete guide on how to use the application, you can view the user manual at the following link: [https://novadev.my.id/XWtw16D](https://novadev.my.id/XWtw16D). There is a PDF file that explains the application, usage, and other information in detail.
-
-<img src="public/markdown/preview-8.png" width="200" alt="User Manual QR Code" />
-
-*Scan the QR code above to quickly access the download page.*
-
 ## Feature Review & Documentation
 
 We continuously review and evaluate every feature in this project to ensure quality, consistency, and real-world usability. A comprehensive feature review document is available, covering:
@@ -40,7 +32,7 @@ You can download the full review:
 | English | [`public/docs/pdf/personal-v4 Application Review (EN).pdf`](public/docs/pdf/personal-v4%20Application%20Review%20(EN).pdf) |
 | Indonesia | [`public/docs/pdf/personal-v4 Application Review (ID).pdf`](public/docs/pdf/personal-v4%20Application%20Review%20(ID).pdf) |
 
-This project is actively developed — each feature iteration goes through review to maintain professional standards.
+This project is actively developed - each feature iteration goes through review to maintain professional standards.
 
 ## Module Documentation
 
@@ -119,4 +111,5 @@ Feel free to use, modify, and share it with the world. Just remember to keep the
 ---
 
 **Happy coding and collaborating!**
-— Nova Ardiansyah
+
+- Nova Ardiansyah
