@@ -5,18 +5,20 @@ namespace App\Filament\Pages;
 use App\Models\AiAssistantContext;
 use App\Models\AiAssistantMessage;
 use App\Models\AiAssistantSession;
-use App\Services\AiAssistant\AiPaymentContextService;
-use App\Services\AiAssistant\AiToolRegistry;
-use Filament\Pages\Page;
+use App\Services\AiAssistant\AiAssistantService;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
+use Filament\Pages\Page;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 use Livewire\Attributes\On;
+use Livewire\WithFileUploads;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 use UnitEnum;
 
 class AiAssistant extends Page
 {
+  use WithFileUploads;
+
   protected static \BackedEnum | string | null $navigationIcon  = 'heroicon-o-sparkles';
   protected static string | UnitEnum | null     $navigationGroup = 'Productivity';
   protected static ?int                         $navigationSort  = 1;
@@ -27,15 +29,18 @@ class AiAssistant extends Page
 
   public string  $userMessage       = '';
   public string  $selectedModel     = '';
-  public string  $systemPersona     = 'general';
+  public ?int    $selectedContextId = null;
   public string  $searchQuery       = '';
   public ?string $activeSessionId   = null;
   public array   $sessions          = [];
   public array   $messages          = [];
-  public ?string $editingSessionId = null;
-  public string  $editingTitle       = '';
+  public int     $messageLimit      = 30;
+  public bool    $hasMoreMessages   = false;
+  public ?string $editingSessionId  = null;
+  public string  $editingTitle      = '';
   public bool    $isSidebarOpen     = true;
   public bool    $isGenerating      = false;
+  public         $attachment        = null;
 
   public function mount(): void
   {
@@ -46,24 +51,86 @@ class AiAssistant extends Page
 
     if ($userId) {
       $records = AiAssistantSession::forUser($userId)
+        ->orderByDesc('is_pinned')
         ->latest('last_interacted_at')
         ->latest('updated_at')
         ->get();
 
       if ($records->isEmpty()) {
-        $newSession = AiAssistantSession::create([
+        $defaultContext = app(AiAssistantService::class)->resolveContext();
+        $newSession     = AiAssistantSession::create([
           'user_id'            => $userId,
+          'context_id'         => $defaultContext?->id,
           'uuid'               => uuid7(),
           'title'              => 'New Conversation',
           'last_interacted_at' => now(),
         ]);
         $records = collect([$newSession]);
       }
-    } else {
-      $records = collect();
+
+      $this->loadSessionsFromDatabase($records);
+    }
+  }
+
+  public function getContextsProperty(): array
+  {
+    return AiAssistantContext::active()
+      ->ordered()
+      ->get()
+      ->map(fn ($ctx) => [
+        'id'              => $ctx->id,
+        'name'            => $ctx->name,
+        'description'     => $ctx->description,
+        'default_model'   => $ctx->default_model,
+        'starter_prompts' => $ctx->starter_prompts ?? [],
+      ])
+      ->toArray();
+  }
+
+  public function getActiveContextProperty(): ?array
+  {
+    $contexts = $this->contexts;
+    foreach ($contexts as $ctx) {
+      if ((int) $ctx['id'] === (int) $this->selectedContextId) {
+        return $ctx;
+      }
     }
 
-    $this->loadSessionsFromDatabase($records);
+    return $contexts[0] ?? null;
+  }
+
+  public function updatedSelectedContextId($value): void
+  {
+    $contextId = $value ? (int) $value : null;
+    $user      = getUser();
+    $userId    = $user?->id;
+
+    if ($this->activeSessionId && isset($this->sessions[$this->activeSessionId])) {
+      $this->sessions[$this->activeSessionId]['context_id'] = $contextId;
+
+      if ($userId) {
+        AiAssistantSession::forUser($userId)
+          ->where('uuid', $this->activeSessionId)
+          ->update(['context_id' => $contextId]);
+      }
+    }
+  }
+
+  public function updatedSelectedModel($value): void
+  {
+    $model  = trim((string) $value);
+    $user   = getUser();
+    $userId = $user?->id;
+
+    if ($this->activeSessionId && isset($this->sessions[$this->activeSessionId])) {
+      $this->sessions[$this->activeSessionId]['model_override'] = $model !== '' ? $model : null;
+
+      if ($userId) {
+        AiAssistantSession::forUser($userId)
+          ->where('uuid', $this->activeSessionId)
+          ->update(['model_override' => $model !== '' ? $model : null]);
+      }
+    }
   }
 
   public function createNewSession(): void
@@ -74,46 +141,49 @@ class AiAssistant extends Page
     $title  = "Conversation #{$count}";
 
     if ($userId) {
-      $record = AiAssistantSession::create([
+      $contextId = $this->selectedContextId ?: app(AiAssistantService::class)->resolveContext()?->id;
+      $record    = AiAssistantSession::create([
         'user_id'            => $userId,
+        'context_id'         => $contextId,
         'uuid'               => uuid7(),
         'title'              => $title,
         'last_interacted_at' => now(),
       ]);
 
-      $uuid = $record->uuid;
-      $this->sessions[$uuid] = [
-        'id'                 => $uuid,
-        'db_id'              => $record->id,
-        'title'              => $record->title,
-        'messages'           => [],
-        'total_tokens_used'  => 0,
-        'last_interacted_at' => now()->format('H:i'),
-        'created_at'         => now()->format('H:i'),
-        'updated_at'         => now()->format('H:i'),
-      ];
+      $uuid                  = $record->uuid;
+      $this->sessions        = array_merge([$uuid => $this->formatSessionSummary($record)], $this->sessions);
       $this->activeSessionId = $uuid;
-    } else {
-      $uuid = uuid7();
-      $newSession = [
-        'id'         => $uuid,
-        'title'      => $title,
-        'messages'   => [],
-        'created_at' => now()->format('H:i'),
-        'updated_at' => now()->format('H:i'),
-      ];
-      $this->sessions[$uuid] = $newSession;
-      $this->activeSessionId = $uuid;
+      $this->selectedContextId = $contextId;
     }
 
-    $this->messages    = [];
-    $this->userMessage = '';
+    $this->messages        = [];
+    $this->userMessage     = '';
+    $this->hasMoreMessages = false;
+    $this->messageLimit    = 30;
 
     Notification::make()
       ->title('New conversation started')
       ->success()
       ->duration(2000)
       ->send();
+  }
+
+  public function togglePinSession(string $sessionId): void
+  {
+    if (!isset($this->sessions[$sessionId])) {
+      return;
+    }
+
+    $newPin = !($this->sessions[$sessionId]['is_pinned'] ?? false);
+    $this->sessions[$sessionId]['is_pinned'] = $newPin;
+
+    $user   = getUser();
+    $userId = $user?->id;
+    if ($userId) {
+      AiAssistantSession::forUser($userId)
+        ->where('uuid', $sessionId)
+        ->update(['is_pinned' => $newPin]);
+    }
   }
 
   public function editSession(string $sessionId): void
@@ -158,44 +228,24 @@ class AiAssistant extends Page
 
   public function selectSession(string $sessionId): void
   {
-    if (isset($this->sessions[$sessionId])) {
-      $this->activeSessionId = $sessionId;
-      $dbId = $this->sessions[$sessionId]['db_id'] ?? null;
-
-      if ($dbId) {
-        $messages = AiAssistantMessage::forSession($dbId)
-          ->oldest()
-          ->get()
-          ->filter(function ($msg) {
-            if ($msg->role === 'tool' || $msg->role === 'system') {
-              return false;
-            }
-            if ($msg->role === 'assistant' && (empty($msg->content) || trim((string) $msg->content) === '')) {
-              return false;
-            }
-            return true;
-          })
-          ->map(function ($msg) {
-            return [
-              'id'                => $msg->uuid,
-              'db_id'             => $msg->id,
-              'role'              => $msg->role,
-              'content'           => $msg->content,
-              'reasoning_content' => $msg->reasoning_content,
-              'model_used'        => $msg->model_used,
-              'status'            => $msg->status,
-              'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
-            ];
-          })
-          ->values()
-          ->toArray();
-
-        $this->sessions[$sessionId]['messages'] = $messages;
-      }
-
-      $this->messages    = $this->sessions[$sessionId]['messages'] ?? [];
-      $this->userMessage = '';
+    if (!isset($this->sessions[$sessionId])) {
+      return;
     }
+
+    $this->activeSessionId   = $sessionId;
+    $this->messageLimit      = 30;
+    $this->selectedContextId = $this->sessions[$sessionId]['context_id'] ?? null;
+    $this->selectedModel     = $this->sessions[$sessionId]['model_override'] ?: (string) config('services.ai_assistant.model');
+    $this->userMessage       = '';
+    $this->attachment        = null;
+
+    $this->loadActiveSessionMessages();
+  }
+
+  public function loadOlderMessages(): void
+  {
+    $this->messageLimit += 30;
+    $this->loadActiveSessionMessages();
   }
 
   public function deleteSession(string $sessionId): void
@@ -217,9 +267,8 @@ class AiAssistant extends Page
 
     if ($this->activeSessionId === $sessionId) {
       if (!empty($this->sessions)) {
-        $firstKey              = array_key_first($this->sessions);
-        $this->activeSessionId = $firstKey;
-        $this->messages        = $this->sessions[$firstKey]['messages'] ?? [];
+        $firstKey = array_key_first($this->sessions);
+        $this->selectSession($firstKey);
       } else {
         $this->createNewSession();
         return;
@@ -248,7 +297,6 @@ class AiAssistant extends Page
     $this->activeSessionId = null;
 
     session()->forget('ai_assistant_sessions');
-    session()->forget('chatbot_sessions');
     $this->createNewSession();
   }
 
@@ -258,6 +306,11 @@ class AiAssistant extends Page
     $this->sendMessage();
   }
 
+  public function removeAttachment(): void
+  {
+    $this->attachment = null;
+  }
+
   public function sendMessage(?string $message = null): void
   {
     if ($message !== null && trim($message) !== '') {
@@ -265,7 +318,6 @@ class AiAssistant extends Page
     }
 
     $trimmed = trim($this->userMessage);
-
     if ($trimmed === '') {
       return;
     }
@@ -274,35 +326,35 @@ class AiAssistant extends Page
       $this->createNewSession();
     }
 
-    $activeSession = $this->sessions[$this->activeSessionId];
-    $dbSessionId   = $activeSession['db_id'] ?? null;
-    $user          = getUser();
-    $userId        = $user?->id;
-
-    $userMsgUuid = uuid7();
-    if ($dbSessionId && $userId) {
-      AiAssistantMessage::create([
-        'uuid'       => $userMsgUuid,
-        'session_id' => $dbSessionId,
-        'user_id'    => $userId,
-        'role'       => 'user',
-        'content'    => $trimmed,
-        'model_used' => null,
-        'status'     => 'completed',
+    $attachmentsPayload = [];
+    if ($this->attachment) {
+      $this->validate([
+        'attachment' => 'image|max:5120',
       ]);
+
+      $storedPath = $this->attachment->store('ai-assistant-attachments', 'public');
+      if ($storedPath) {
+        $attachmentsPayload[] = [
+          'path' => $storedPath,
+          'mime' => $this->attachment->getMimeType(),
+          'name' => $this->attachment->getClientOriginalName(),
+        ];
+      }
+      $this->attachment = null;
     }
 
     $userMsg = [
-      'id'         => $userMsgUuid,
-      'role'       => 'user',
-      'content'    => $trimmed,
-      'created_at' => now()->format('H:i'),
+      'id'          => uuid7(),
+      'role'        => 'user',
+      'content'     => $trimmed,
+      'attachments' => $attachmentsPayload,
+      'created_at'  => now()->format('H:i'),
     ];
 
     $botPlaceholderMsg = [
       'id'             => uuid7(),
       'role'           => 'assistant',
-      'content'        => 'Thinking...',
+      'content'        => '',
       'is_placeholder' => true,
       'created_at'     => now()->format('H:i'),
     ];
@@ -313,101 +365,76 @@ class AiAssistant extends Page
     $this->userMessage  = '';
     $this->isGenerating = true;
 
-    $newTitle = null;
-    if (count($this->messages) <= 2 || str_starts_with($activeSession['title'], 'Conversation #') || $activeSession['title'] === 'New Conversation') {
-      $newTitle = Str::limit($trimmed, 30);
+    $activeTitle = $this->sessions[$this->activeSessionId]['title'] ?? '';
+    if (count($this->messages) <= 2 || str_starts_with($activeTitle, 'Conversation #') || $activeTitle === 'New Conversation') {
+      $this->sessions[$this->activeSessionId]['title'] = Str::limit($trimmed, 40);
     }
 
-    $this->persistActiveSessionMessages($newTitle);
-
-    $this->dispatch('fetch-ai-response');
+    $this->dispatch('fetch-ai-response', [
+      'prompt'         => $trimmed,
+      'attachments'    => $attachmentsPayload,
+      'skip_user_save' => false,
+    ]);
   }
 
   #[On('fetch-ai-response')]
-  public function processAiResponse(): void
+  public function processAiResponse(array $eventData = []): void
   {
-    if (empty($this->messages)) {
-      return;
-    }
+    $prompt       = (string) ($eventData['prompt'] ?? '');
+    $attachments  = $eventData['attachments'] ?? [];
+    $skipUserSave = (bool) ($eventData['skip_user_save'] ?? false);
 
-    $userPrompt = '';
-    for ($i = count($this->messages) - 1; $i >= 0; $i--) {
-      if ($this->messages[$i]['role'] === 'user') {
-        $userPrompt = $this->messages[$i]['content'];
-        break;
+    if ($prompt === '') {
+      for ($i = count($this->messages) - 1; $i >= 0; $i--) {
+        if (($this->messages[$i]['role'] ?? '') === 'user') {
+          $prompt = (string) ($this->messages[$i]['content'] ?? '');
+          break;
+        }
       }
     }
 
-    if (empty($userPrompt)) {
+    $user   = getUser();
+    $userId = $user?->id;
+    $dbId   = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+
+    if ($prompt === '' || !$userId || !$dbId) {
       $this->isGenerating = false;
       return;
     }
 
-    $startTime = microtime(true);
-    $reply     = $this->fetchAiResponse($userPrompt);
-    $latencyMs = (int) round((microtime(true) - $startTime) * 1000);
+    $session = AiAssistantSession::forUser($userId)->find($dbId);
+    if (!$session) {
+      $this->isGenerating = false;
+      return;
+    }
 
-    $replyText        = is_array($reply) ? ($reply['content'] ?? '') : $reply;
-    $reasoningContent = is_array($reply) ? ($reply['reasoning_content'] ?? null) : null;
-    $modelUsed        = is_array($reply) ? ($reply['model_used'] ?? $this->selectedModel) : $this->selectedModel;
-    $tokenPrompt      = is_array($reply) ? ($reply['token_prompt'] ?? 0) : 0;
-    $tokenCompletion  = is_array($reply) ? ($reply['token_completion'] ?? 0) : 0;
-    $tokenTotal       = is_array($reply) ? ($reply['token_total'] ?? 0) : 0;
-    $cost             = is_array($reply) ? (float) ($reply['cost'] ?? 0) : 0;
-    $metadata         = is_array($reply) ? ($reply['metadata'] ?? null) : null;
+    $service        = app(AiAssistantService::class);
+    $streamedBuffer = '';
 
-    $activeSession = $this->sessions[$this->activeSessionId] ?? [];
-    $dbSessionId   = $activeSession['db_id'] ?? null;
-    $user          = getUser();
-    $userId        = $user?->id;
-
-    $botMsgUuid = uuid7();
-    if ($dbSessionId && $userId) {
-      AiAssistantMessage::where('session_id', $dbSessionId)
-        ->where('role', 'user')
-        ->whereNull('model_used')
-        ->latest('id')
-        ->first()
-        ?->update(['model_used' => $modelUsed]);
-
-      AiAssistantMessage::create([
-        'uuid'              => $botMsgUuid,
-        'session_id'        => $dbSessionId,
-        'user_id'           => $userId,
-        'role'              => 'assistant',
-        'content'           => $replyText,
-        'reasoning_content' => $reasoningContent,
-        'token_prompt'      => $tokenPrompt,
-        'token_completion'  => $tokenCompletion,
-        'token_total'       => $tokenTotal,
-        'latency_ms'        => $latencyMs,
-        'cost'              => $cost,
-        'model_used'        => $modelUsed,
-        'status'            => 'completed',
-        'metadata'          => $metadata,
-      ]);
-
-      if ($tokenTotal > 0) {
-        AiAssistantSession::where('id', $dbSessionId)->increment('total_tokens_used', $tokenTotal);
+    $result = $service->sendMessage(
+      $session,
+      $userId,
+      $prompt,
+      [
+        'model'          => $this->selectedModel,
+        'context_id'     => $this->selectedContextId,
+        'attachments'    => $attachments,
+        'skip_user_save' => $skipUserSave,
+      ],
+      function (string $contentDelta, string $reasoningDelta) use (&$streamedBuffer): void {
+        if ($contentDelta !== '') {
+          $streamedBuffer .= $contentDelta;
+          $this->stream(to: 'streaming-reply', content: e($streamedBuffer), replace: true);
+        }
+      },
+      function (string $statusText): void {
+        $this->stream(to: 'streaming-status', content: e($statusText), replace: true);
       }
-    }
+    );
 
-    $lastIndex = count($this->messages) - 1;
-    if ($lastIndex >= 0 && $this->messages[$lastIndex]['role'] === 'assistant') {
-      $this->messages[$lastIndex]['id']             = $botMsgUuid;
-      $this->messages[$lastIndex]['content']        = $replyText;
-      $this->messages[$lastIndex]['is_placeholder'] = false;
-    } else {
-      $this->messages[] = [
-        'id'         => $botMsgUuid,
-        'role'       => 'assistant',
-        'content'    => $replyText,
-        'created_at' => now()->format('H:i'),
-      ];
-    }
-
-    $this->isGenerating = false;
-    $this->persistActiveSessionMessages();
+    $this->sessions[$this->activeSessionId] = $this->formatSessionSummary($session->fresh());
+    $this->isGenerating                     = false;
+    $this->loadActiveSessionMessages();
   }
 
   public function regenerateLastMessage(): void
@@ -416,36 +443,106 @@ class AiAssistant extends Page
       return;
     }
 
+    $user   = getUser();
+    $userId = $user?->id;
+    $dbId   = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+
     $lastMsg = end($this->messages);
-    if ($lastMsg['role'] === 'assistant') {
+    if (($lastMsg['role'] ?? '') === 'assistant') {
       $lastMsgId = $lastMsg['id'] ?? null;
-      if ($lastMsgId) {
-        AiAssistantMessage::where('uuid', $lastMsgId)->delete();
+      if ($lastMsgId && $userId && $dbId) {
+        AiAssistantMessage::forSession($dbId)
+          ->forUser($userId)
+          ->where('uuid', $lastMsgId)
+          ->delete();
       }
       array_pop($this->messages);
     }
 
-    if (empty($this->messages)) {
+    $lastUserMsg = end($this->messages);
+    if (($lastUserMsg['role'] ?? '') !== 'user') {
       return;
     }
 
-    $lastUserMsg = end($this->messages);
+    $this->messages[] = [
+      'id'             => uuid7(),
+      'role'           => 'assistant',
+      'content'        => '',
+      'is_placeholder' => true,
+      'created_at'     => now()->format('H:i'),
+    ];
 
-    if ($lastUserMsg['role'] === 'user') {
-      $botPlaceholderMsg = [
-        'id'             => uuid7(),
-        'role'           => 'assistant',
-        'content'        => 'Thinking...',
-        'is_placeholder' => true,
-        'created_at'     => now()->format('H:i'),
-      ];
+    $this->isGenerating = true;
 
-      $this->messages[]   = $botPlaceholderMsg;
-      $this->isGenerating = true;
+    $this->dispatch('fetch-ai-response', [
+      'prompt'         => $lastUserMsg['content'],
+      'attachments'    => $lastUserMsg['attachments'] ?? [],
+      'skip_user_save' => true,
+    ]);
+  }
 
-      $this->persistActiveSessionMessages();
+  public function confirmAction(string $messageUuid, string $actionId): void
+  {
+    $this->resolvePendingAction($messageUuid, $actionId, true);
+  }
 
-      $this->dispatch('fetch-ai-response');
+  public function cancelAction(string $messageUuid, string $actionId): void
+  {
+    $this->resolvePendingAction($messageUuid, $actionId, false);
+  }
+
+  public function exportMarkdown(): ?StreamedResponse
+  {
+    $user   = getUser();
+    $userId = $user?->id;
+    $dbId   = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+
+    if (!$userId || !$dbId) {
+      return null;
+    }
+
+    $session = AiAssistantSession::forUser($userId)->find($dbId);
+    if (!$session) {
+      return null;
+    }
+
+    $markdown = app(AiAssistantService::class)->exportSessionMarkdown($session);
+    $filename = Str::slug($session->title ?: 'conversation') . '.md';
+
+    return response()->streamDownload(function () use ($markdown): void {
+      echo $markdown;
+    }, $filename, ['Content-Type' => 'text/markdown; charset=UTF-8']);
+  }
+
+  public function exportPdf(): void
+  {
+    $user   = getUser();
+    $userId = $user?->id;
+    $dbId   = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+
+    if (!$userId || !$dbId) {
+      return;
+    }
+
+    $session = AiAssistantSession::forUser($userId)->find($dbId);
+    if (!$session) {
+      return;
+    }
+
+    $result = app(AiAssistantService::class)->exportSessionPdf($session, $userId);
+    $url    = $result['signed_url'] ?? null;
+
+    if ($url) {
+      Notification::make()
+        ->title('Conversation PDF ready')
+        ->body("Exported {$result['filename']}")
+        ->success()
+        ->actions([
+          \Filament\Actions\Action::make('download')
+            ->label('Download PDF')
+            ->url($url, shouldOpenInNewTab: true),
+        ])
+        ->send();
     }
   }
 
@@ -465,310 +562,151 @@ class AiAssistant extends Page
     });
   }
 
+  public function getGroupedSessionsProperty(): array
+  {
+    $groups = [
+      'Pinned'          => [],
+      'Today'           => [],
+      'Yesterday'       => [],
+      'Previous 7 Days' => [],
+      'Older'           => [],
+    ];
+
+    foreach ($this->filteredSessions as $session) {
+      if (!empty($session['is_pinned'])) {
+        $groups['Pinned'][] = $session;
+        continue;
+      }
+
+      $rawDate = $session['last_interacted_raw'] ?? null;
+      if (!$rawDate) {
+        $groups['Older'][] = $session;
+        continue;
+      }
+
+      $dt = Carbon::parse($rawDate);
+      if ($dt->isToday()) {
+        $groups['Today'][] = $session;
+      } elseif ($dt->isYesterday()) {
+        $groups['Yesterday'][] = $session;
+      } elseif ($dt->greaterThanOrEqualTo(now()->subDays(7))) {
+        $groups['Previous 7 Days'][] = $session;
+      } else {
+        $groups['Older'][] = $session;
+      }
+    }
+
+    return array_filter($groups, fn ($items) => !empty($items));
+  }
+
+  private function resolvePendingAction(string $messageUuid, string $actionId, bool $approved): void
+  {
+    $user   = getUser();
+    $userId = $user?->id;
+    $dbId   = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+
+    if (!$userId || !$dbId) {
+      return;
+    }
+
+    $session = AiAssistantSession::forUser($userId)->find($dbId);
+    if (!$session) {
+      return;
+    }
+
+    $result = app(AiAssistantService::class)->confirmPendingAction($session, $userId, $messageUuid, $actionId, $approved);
+    $this->loadActiveSessionMessages();
+
+    Notification::make()
+      ->title($result['message'] ?? ($approved ? 'Action executed' : 'Action cancelled'))
+      ->status(($result['status'] ?? false) ? 'success' : 'danger')
+      ->send();
+  }
+
   private function loadSessionsFromDatabase($records): void
   {
     $this->sessions = [];
     foreach ($records as $record) {
-      $uuid = $record->uuid;
-
-      $messages = $record->messages()
-        ->oldest()
-        ->get()
-        ->filter(function ($msg) {
-          if ($msg->role === 'tool' || $msg->role === 'system') {
-            return false;
-          }
-          if ($msg->role === 'assistant' && (empty($msg->content) || trim((string) $msg->content) === '')) {
-            return false;
-          }
-          return true;
-        })
-        ->map(function ($msg) {
-          return [
-            'id'                => $msg->uuid,
-            'db_id'             => $msg->id,
-            'role'              => $msg->role,
-            'content'           => $msg->content,
-            'reasoning_content' => $msg->reasoning_content,
-            'model_used'        => $msg->model_used,
-            'status'            => $msg->status,
-            'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
-          ];
-        })
-        ->values()
-        ->toArray();
-
-      $this->sessions[$uuid] = [
-        'id'                 => $uuid,
-        'db_id'              => $record->id,
-        'title'              => $record->title,
-        'messages'           => $messages,
-        'total_tokens_used'  => $record->total_tokens_used,
-        'last_interacted_at' => $record->last_interacted_at?->format('H:i') ?? $record->updated_at?->format('H:i'),
-        'created_at'         => $record->created_at?->format('H:i'),
-        'updated_at'         => $record->updated_at?->format('H:i'),
-      ];
+      $this->sessions[$record->uuid] = $this->formatSessionSummary($record);
     }
 
     if (!empty($this->sessions)) {
-      $firstKey              = array_key_first($this->sessions);
-      $this->activeSessionId = $firstKey;
-      $this->messages        = $this->sessions[$firstKey]['messages'] ?? [];
+      $firstKey                = array_key_first($this->sessions);
+      $this->activeSessionId   = $firstKey;
+      $this->selectedContextId = $this->sessions[$firstKey]['context_id'] ?? null;
+      $this->selectedModel     = $this->sessions[$firstKey]['model_override'] ?: (string) config('services.ai_assistant.model');
+      $this->loadActiveSessionMessages();
     }
   }
 
-  private function persistActiveSessionMessages(?string $title = null): void
+  private function formatSessionSummary(AiAssistantSession $record): array
   {
-    if (!$this->activeSessionId || !isset($this->sessions[$this->activeSessionId])) {
+    $interactedAt = $record->last_interacted_at ?? $record->updated_at;
+
+    return [
+      'id'                  => $record->uuid,
+      'db_id'               => $record->id,
+      'context_id'          => $record->context_id,
+      'model_override'      => $record->model_override,
+      'is_pinned'           => (bool) $record->is_pinned,
+      'title'               => $record->title,
+      'total_tokens_used'   => (int) $record->total_tokens_used,
+      'total_cost'          => (float) $record->total_cost,
+      'last_interacted_at'  => $interactedAt?->format('H:i'),
+      'last_interacted_raw' => $interactedAt?->toDateTimeString(),
+      'created_at'          => $record->created_at?->format('H:i'),
+      'updated_at'          => $record->updated_at?->format('H:i'),
+    ];
+  }
+
+  private function loadActiveSessionMessages(): void
+  {
+    $dbId = $this->sessions[$this->activeSessionId]['db_id'] ?? null;
+    if (!$dbId) {
+      $this->messages        = [];
+      $this->hasMoreMessages = false;
       return;
     }
 
-    $this->sessions[$this->activeSessionId]['messages']   = $this->messages;
-    $this->sessions[$this->activeSessionId]['updated_at'] = now()->format('H:i');
+    $baseQuery = AiAssistantMessage::forSession($dbId)
+      ->whereIn('role', ['user', 'assistant'])
+      ->whereNotNull('content')
+      ->where('content', '!=', '');
 
-    if ($title !== null) {
-      $this->sessions[$this->activeSessionId]['title'] = $title;
-    }
+    $totalCount            = (clone $baseQuery)->count();
+    $this->hasMoreMessages = $totalCount > $this->messageLimit;
 
-    $user   = getUser();
-    $userId = $user?->id;
+    $records = $baseQuery
+      ->latest('id')
+      ->take($this->messageLimit)
+      ->get()
+      ->reverse()
+      ->values();
 
-    if ($userId) {
-      $updateData = [
-        'last_interacted_at' => now(),
+    $this->messages = $records->map(function ($msg) {
+      $metadata      = $msg->metadata ?? [];
+      $executedTools = collect($metadata['executed_tools'] ?? [])
+        ->pluck('name')
+        ->unique()
+        ->values()
+        ->toArray();
+
+      return [
+        'id'                => $msg->uuid,
+        'db_id'             => $msg->id,
+        'role'              => $msg->role,
+        'content'           => $msg->content,
+        'reasoning_content' => $msg->reasoning_content,
+        'model_used'        => $msg->model_used,
+        'token_total'       => (int) $msg->token_total,
+        'latency_ms'        => (int) $msg->latency_ms,
+        'cost'              => (float) $msg->cost,
+        'status'            => $msg->status,
+        'executed_tools'    => $executedTools,
+        'pending_actions'   => $metadata['pending_actions'] ?? [],
+        'attachments'       => $metadata['attachments'] ?? [],
+        'created_at'        => $msg->created_at?->format('H:i') ?? now()->format('H:i'),
       ];
-
-      if ($title !== null) {
-        $updateData['title'] = $title;
-      }
-
-      AiAssistantSession::forUser($userId)
-        ->where('uuid', $this->activeSessionId)
-        ->update($updateData);
-    }
-  }
-
-  private function fetchAiResponse(string $prompt): array|string
-  {
-    $chatbotUrl         = config('services.ai_assistant.api_url');
-    $chatbotKey         = config('services.ai_assistant.api_key');
-    $chatbotModel       = config('services.ai_assistant.model');
-    $chatbotMaxTokens   = (int) config('services.ai_assistant.max_tokens', 3072);
-    $chatbotTemperature = (float) config('services.ai_assistant.temperature', 0.3);
-
-    if (!empty($chatbotKey) && !empty($chatbotUrl)) {
-      try {
-        $toolRegistry = app(AiToolRegistry::class);
-
-        $contextRecord = AiAssistantContext::active()->where('name', 'Payments Assistant')->first()
-          ?? AiAssistantContext::active()->first();
-
-        $baseSystemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
-        $currentDateTime  = now()->translatedFormat('l, d F Y H:i:s (e)');
-
-        $responseGuidelines = implode("\n", [
-          'Response Guidelines:',
-          '- Always respond in the exact same language as the user\'s latest message (e.g. respond in Indonesian if the user writes in Indonesian, or English if in English).',
-          '- Never include internal reasoning, tool-call planning, or system context instructions in your response.',
-          '- Provide a direct, clear, and concise answer based only on verified tool results.',
-        ]);
-
-        $systemPrompt = "Current Date & Time: {$currentDateTime}\n\n{$baseSystemPrompt}\n\n{$responseGuidelines}";
-
-        $formattedMessages = [
-          [
-            'role'    => 'system',
-            'content' => $systemPrompt,
-          ],
-        ];
-
-        foreach (array_slice($this->messages, -10) as $m) {
-          $formattedMessages[] = [
-            'role'    => $m['role'],
-            'content' => $m['content'],
-          ];
-        }
-
-        $endpoint = rtrim($chatbotUrl, '/') . '/chat/completions';
-        $payload  = [
-          'model'       => $chatbotModel,
-          'max_tokens'  => (int) ($contextRecord?->max_tokens ?? $chatbotMaxTokens),
-          'temperature' => (float) ($contextRecord?->temperature ?? $chatbotTemperature),
-          'messages'    => $formattedMessages,
-          'tools'       => $toolRegistry->getToolsSchema(),
-        ];
-
-        $data              = null;
-        $executedToolsInfo = [];
-        $maxToolIterations = 5;
-
-        for ($iteration = 0; $iteration < $maxToolIterations; $iteration++) {
-          $response = Http::withToken($chatbotKey)
-            ->timeout(30)
-            ->post($endpoint, $payload);
-
-          if (!$response->successful()) {
-            Log::error('AI Assistant request failed', [
-              'status'    => $response->status(),
-              'body'      => $response->body(),
-              'model'     => $chatbotModel,
-              'iteration' => $iteration,
-            ]);
-            break;
-          }
-
-          $rawBody     = $response->body();
-          $cleanedJson = $rawBody;
-
-          if (preg_match('/\{[\s\S]*\}/', $rawBody, $matches)) {
-            $cleanedJson = $matches[0];
-          }
-
-          $decoded = json_decode($cleanedJson, true);
-          if (!is_array($decoded)) {
-            break;
-          }
-
-          $data       = $decoded;
-          $messageObj = $data['choices'][0]['message'] ?? [];
-          $toolCalls  = $messageObj['tool_calls'] ?? null;
-
-          if (empty($toolCalls) || !is_array($toolCalls)) {
-            break;
-          }
-
-          $formattedMessages[] = $messageObj;
-
-          $activeSession = $this->sessions[$this->activeSessionId] ?? [];
-          $dbSessionId   = $activeSession['db_id'] ?? null;
-          $user          = getUser();
-          $userId        = $user?->id;
-
-          if ($dbSessionId && $userId) {
-            AiAssistantMessage::create([
-              'uuid'       => uuid7(),
-              'session_id' => $dbSessionId,
-              'user_id'    => $userId,
-              'role'       => 'assistant',
-              'content'    => $messageObj['content'] ?? null,
-              'model_used' => $data['model'] ?? $chatbotModel,
-              'status'     => 'completed',
-              'metadata'   => [
-                'step'       => 'tool_call_request',
-                'tool_calls' => $toolCalls,
-              ],
-            ]);
-          }
-
-          foreach ($toolCalls as $tc) {
-            $toolCallId   = $tc['id'] ?? null;
-            $functionName = $tc['function']['name'] ?? '';
-            $rawArgs      = $tc['function']['arguments'] ?? '{}';
-
-            $arguments = is_string($rawArgs) ? json_decode($rawArgs, true) : (array) $rawArgs;
-            if (!is_array($arguments)) {
-              $arguments = [];
-            }
-
-            $toolResult          = $toolRegistry->executeTool($functionName, $arguments, $userId);
-            $executedToolsInfo[] = [
-              'name'      => $functionName,
-              'arguments' => $arguments,
-              'result'    => $toolResult,
-            ];
-
-            if ($dbSessionId && $userId) {
-              AiAssistantMessage::create([
-                'uuid'       => uuid7(),
-                'session_id' => $dbSessionId,
-                'user_id'    => $userId,
-                'role'       => 'tool',
-                'content'    => json_encode($toolResult),
-                'model_used' => $data['model'] ?? $chatbotModel,
-                'status'     => 'completed',
-                'metadata'   => [
-                  'step'          => 'tool_call_result',
-                  'tool_call_id'  => $toolCallId,
-                  'function_name' => $functionName,
-                  'arguments'     => $arguments,
-                ],
-              ]);
-            }
-
-            $formattedMessages[] = [
-              'role'         => 'tool',
-              'tool_call_id' => $toolCallId,
-              'content'      => json_encode($toolResult),
-            ];
-          }
-
-          $payload['messages'] = $formattedMessages;
-
-          if ($iteration === $maxToolIterations - 2) {
-            unset($payload['tools']);
-          }
-        }
-
-        if (is_array($data)) {
-          if (!empty($executedToolsInfo)) {
-            $data['executed_tools'] = $executedToolsInfo;
-          }
-
-          $content          = trim((string) ($data['choices'][0]['message']['content'] ?? ''));
-          $reasoningContent = $data['choices'][0]['message']['reasoning'] ?? $data['choices'][0]['message']['reasoning_content'] ?? null;
-
-          if ($content !== '') {
-            $usage         = $data['usage'] ?? [];
-            $returnedModel = $data['model'] ?? $chatbotModel;
-            $cost          = (float) ($data['cost'] ?? 0);
-
-            $metadata = array_filter([
-              'context_name'              => $contextRecord?->name ?? null,
-              'injected_context'          => $systemPrompt,
-              'executed_tools'            => $data['executed_tools'] ?? null,
-              'response_id'               => $data['id'] ?? null,
-              'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
-              'cost'                      => $data['cost'] ?? null,
-              'prompt_tokens_details'     => $usage['prompt_tokens_details'] ?? null,
-              'completion_tokens_details' => $usage['completion_tokens_details'] ?? null,
-            ], fn($val) => $val !== null);
-
-            return [
-              'content'           => $content,
-              'reasoning_content' => $reasoningContent,
-              'model_used'        => $returnedModel,
-              'token_prompt'      => $usage['prompt_tokens'] ?? 0,
-              'token_completion'  => $usage['completion_tokens'] ?? 0,
-              'token_total'       => $usage['total_tokens'] ?? 0,
-              'cost'              => $cost,
-              'metadata'          => !empty($metadata) ? $metadata : null,
-            ];
-          }
-
-          Log::error('AI Assistant empty content response', [
-            'model'         => $chatbotModel,
-            'finish_reason' => $data['choices'][0]['finish_reason'] ?? null,
-            'has_reasoning' => !empty($reasoningContent),
-          ]);
-        }
-      } catch (\Throwable $e) {
-        Log::error('AI Assistant exception', [
-          'message' => $e->getMessage(),
-          'model'   => $chatbotModel,
-        ]);
-      }
-    }
-
-    return $this->generateLocalFallbackResponse($prompt);
-  }
-
-  private function generateLocalFallbackResponse(string $prompt): string
-  {
-    return "### ⚠️ AI Assistant Service Unavailable\n\n" .
-      "We apologize, but the **AI Assistant** system is currently experiencing issues or has not been properly configured.\n\n" .
-      "- Please contact the **Technical Team** to verify and check the server configuration.\n" .
-      "- Please check back periodically.\n\n" .
-      "> If the issue persists, please reach out to your system administrator.";
+    })->toArray();
   }
 }
-

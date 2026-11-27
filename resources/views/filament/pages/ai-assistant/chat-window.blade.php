@@ -2,6 +2,52 @@
   heading="{{ $sessions[$activeSessionId]['title'] ?? 'AI Assistant' }}"
   icon="heroicon-o-sparkles"
 >
+  <x-slot name="headerEnd">
+    <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+      <select
+        wire:model.live="selectedContextId"
+        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(128,128,128,0.3); background: transparent; max-width: 180px;"
+        title="Assistant Persona"
+      >
+        @foreach($this->contexts as $ctx)
+          <option value="{{ $ctx['id'] }}">{{ $ctx['name'] }}</option>
+        @endforeach
+      </select>
+
+      <input
+        type="text"
+        wire:model.lazy="selectedModel"
+        placeholder="Model..."
+        style="font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; border: 1px solid rgba(128,128,128,0.3); background: transparent; width: 130px;"
+        title="Model Override"
+      />
+
+      <x-filament::icon-button
+        wire:click="exportMarkdown"
+        icon="heroicon-o-document-text"
+        color="gray"
+        size="sm"
+        tooltip="Export Markdown"
+      />
+
+      <x-filament::icon-button
+        wire:click="exportPdf"
+        icon="heroicon-o-document-arrow-down"
+        color="gray"
+        size="sm"
+        tooltip="Export PDF"
+      />
+
+      <x-filament::icon-button
+        wire:click="toggleSidebar"
+        icon="{{ $isSidebarOpen ? 'heroicon-o-bars-3-bottom-left' : 'heroicon-o-bars-3' }}"
+        color="gray"
+        size="sm"
+        tooltip="{{ $isSidebarOpen ? 'Hide history sidebar' : 'Show history sidebar' }}"
+      />
+    </div>
+  </x-slot>
+
   <div
     x-data="{
       scrollToBottom() {
@@ -21,15 +67,15 @@
             const button = document.createElement('button');
             button.className = 'copy-code-btn';
             button.type = 'button';
-            button.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' style=\'width:14px;height:14px;\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5\' /></svg><span>Copy</span>';
+            button.innerHTML = '<span>Copy</span>';
 
             button.onclick = () => {
               const code = pre.querySelector('code');
               const text = code ? code.innerText : pre.innerText;
               navigator.clipboard.writeText(text).then(() => {
-                button.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' style=\'width:14px;height:14px;color:#22c55e;\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'m4.5 12.75 6 6 9-13.5\' /></svg><span style=\'color:#22c55e;\'>Copied!</span>';
+                button.innerHTML = '<span style=\'color:#22c55e;\'>Copied!</span>';
                 setTimeout(() => {
-                  button.innerHTML = '<svg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 24 24\' stroke-width=\'1.5\' stroke=\'currentColor\' style=\'width:14px;height:14px;\'><path stroke-linecap=\'round\' stroke-linejoin=\'round\' d=\'M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5\' /></svg><span>Copy</span>';
+                  button.innerHTML = '<span>Copy</span>';
                 }, 2000);
               });
             };
@@ -44,15 +90,45 @@
   >
     <div
       x-ref="chatContainer"
-      style="display: flex; flex-direction: column; max-height: 520px; min-height: 350px; overflow-y: auto; padding: 8px;"
+      style="display: flex; flex-direction: column; max-height: 540px; min-height: 360px; overflow-y: auto; padding: 8px;"
     >
+      @if($hasMoreMessages)
+        <div style="display: flex; justify-content: center; margin-bottom: 12px;">
+          <x-filament::button
+            wire:click="loadOlderMessages"
+            size="xs"
+            color="gray"
+            variant="outlined"
+          >
+            Load older messages
+          </x-filament::button>
+        </div>
+      @endif
+
       @if(empty($messages))
-        <div style="text-align: center; padding: 48px 16px;" class="text-sm text-gray-400">
-          <p>Start a new conversation or select a session from the history.</p>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 40px 16px; text-align: center;">
+          <div style="font-size: 0.95rem; opacity: 0.75;">
+            Start a new conversation or choose a quick prompt below.
+          </div>
+
+          @if(!empty($this->activeContext['starter_prompts']))
+            <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 640px;">
+              @foreach($this->activeContext['starter_prompts'] as $starter)
+                <x-filament::button
+                  wire:click="sendPrompt('{{ addslashes($starter) }}')"
+                  size="xs"
+                  color="gray"
+                  outlined
+                >
+                  {{ $starter }}
+                </x-filament::button>
+              @endforeach
+            </div>
+          @endif
         </div>
       @else
         @foreach($messages as $msg)
-          @include('filament.pages.ai-assistant.message-bubble', ['msg' => $msg])
+          @include('filament.pages.ai-assistant.message-bubble', ['msg' => $msg, 'isLast' => $loop->last])
         @endforeach
       @endif
     </div>
@@ -90,7 +166,21 @@
       @submit.prevent="submitChat()"
       style="width: 100%; padding-top: 12px; border-top: 1px solid rgba(128,128,128,0.2);"
     >
-      <div class="relative flex flex-col w-full rounded-xl border border-gray-300 bg-white dark:border-gray-700 dark:bg-gray-900 shadow-sm focus-within:border-primary-500 focus-within:ring-1 focus-within:ring-primary-500 transition-all">
+      @if($attachment)
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(128,128,128,0.25); font-size: 0.75rem;">
+          <x-filament::icon icon="heroicon-o-photo" style="width: 16px; height: 16px;" />
+          <span>{{ $attachment->getClientOriginalName() }}</span>
+          <x-filament::icon-button
+            wire:click="removeAttachment"
+            icon="heroicon-o-x-mark"
+            color="danger"
+            size="xs"
+            tooltip="Remove attachment"
+          />
+        </div>
+      @endif
+
+      <div style="display: flex; flex-direction: column; width: 100%; border-radius: 12px; border: 1px solid rgba(128,128,128,0.3); padding: 4px;">
         <textarea
           x-ref="userTextarea"
           wire:model="userMessage"
@@ -103,12 +193,19 @@
               submitChat();
             }
           "
-          class="w-full resize-none border-none bg-transparent px-4 pt-3 pb-2 text-sm text-gray-900 dark:text-gray-100 placeholder:text-gray-400 focus:outline-none focus:ring-0"
-          style="max-height: 160px; min-height: 40px; overflow-y: auto; box-shadow: none;"
+          style="width: 100%; resize: none; border: none; background: transparent; padding: 10px 14px 6px 14px; font-size: 0.875rem; max-height: 160px; min-height: 40px; overflow-y: auto; outline: none; box-shadow: none;"
         ></textarea>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 12px 8px 16px;">
-          <span class="text-xs text-gray-400">Shift + Enter for new line</span>
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 10px 6px 14px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <label style="display: inline-flex; align-items: center; gap: 4px; cursor: pointer; font-size: 0.75rem; opacity: 0.75;" title="Attach image (receipt, screenshot)">
+              <input type="file" wire:model="attachment" accept="image/*" style="display: none;" />
+              <x-filament::icon icon="heroicon-o-paper-clip" style="width: 16px; height: 16px;" />
+              <span>Attach Image</span>
+            </label>
+            <span style="font-size: 0.75rem; opacity: 0.55;">Shift + Enter for new line</span>
+          </div>
+
           <x-filament::icon-button
             type="submit"
             icon="heroicon-m-paper-airplane"

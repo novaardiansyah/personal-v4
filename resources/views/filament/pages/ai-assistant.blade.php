@@ -1,10 +1,12 @@
 <x-filament-panels::page>
-  <div class="flex flex-col lg:flex-row gap-6 w-full items-start" style="width: 100%; padding-bottom: 32px">
-    <div class="w-full lg:w-80 shrink-0" style="box-sizing: border-box;">
-      @include('filament.pages.ai-assistant.history-sidebar')
-    </div>
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; width: 100%; align-items: flex-start; padding-bottom: 32px;">
+    @if($isSidebarOpen)
+      <div style="width: 320px; max-width: 100%; flex-shrink: 0; box-sizing: border-box;">
+        @include('filament.pages.ai-assistant.history-sidebar')
+      </div>
+    @endif
 
-    <div class="w-full flex-1 min-w-0" style="box-sizing: border-box;">
+    <div style="flex: 1 1 0%; min-width: 280px; box-sizing: border-box;">
       @include('filament.pages.ai-assistant.chat-window')
     </div>
   </div>
