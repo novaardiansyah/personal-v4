@@ -52,6 +52,7 @@ In-depth developer documentation for individual modules is available under [`pub
 | Subscription Resource | [`public/docs/module/SubscriptionResource.md`](public/docs/module/SubscriptionResource.md) |
 | Debt Resource | [`public/docs/module/DebtResource.md`](public/docs/module/DebtResource.md) |
 | Calendar Resource | [`public/docs/module/CalendarResource.md`](public/docs/module/CalendarResource.md) |
+| AI Assistant | [`public/docs/module/AiAssistant.md`](public/docs/module/AiAssistant.md) |
 
 ## Demo Version
 You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
