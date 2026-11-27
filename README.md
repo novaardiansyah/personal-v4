@@ -12,7 +12,7 @@ This repository is the public evolution of my previous public admin panel projec
 
 - [Laravel 12](https://laravel.com/) - Backend PHP Framework
 - [Filament PHP 5](https://filamentphp.com/) - TALL Stack Admin Panel
-- [PHP 8.2+](https://www.php.net/) - Server-side language
+- [PHP 8.5+](https://www.php.net/) - Server-side language
 - [SQL Server](https://www.microsoft.com/en-us/sql-server/) - Database Management
 - [Tailwind CSS](https://tailwindcss.com/) - CSS Framework
 
@@ -91,7 +91,7 @@ Need to chat? Feel free to drop me a line via [Email](mailto:novaardiansyah78@gm
 ![stages](https://img.shields.io/badge/stages-production-informational)
 ![Laravel](https://img.shields.io/badge/Laravel-12-blue)
 ![Filament](https://img.shields.io/badge/Filament-5-blue)
-![PHP](https://img.shields.io/badge/PHP-^8.2-blue)
+![PHP](https://img.shields.io/badge/PHP-^8.5-blue)
 ![SQL Server](https://img.shields.io/badge/SQL%20Server-^2022-blue)
 [![information](https://img.shields.io/badge/information-references-informational)](references.json)
 ![size](https://img.shields.io/github/repo-size/novaardiansyah/personal-v4?label=size&color=informational)
