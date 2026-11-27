@@ -26,7 +26,7 @@ class AiAssistant extends Page
   protected string $view = 'filament.pages.ai-assistant';
 
   public string  $userMessage       = '';
-  public string  $selectedModel     = 'gpt-4o';
+  public string  $selectedModel     = '';
   public string  $systemPersona     = 'general';
   public string  $searchQuery       = '';
   public ?string $activeSessionId   = null;
@@ -39,6 +39,8 @@ class AiAssistant extends Page
 
   public function mount(): void
   {
+    $this->selectedModel = (string) config('services.ai_assistant.model');
+
     $user   = getUser();
     $userId = $user?->id;
 
@@ -564,7 +566,14 @@ class AiAssistant extends Page
         $baseSystemPrompt = $contextRecord?->system_prompt ?? 'You are a helpful AI assistant.';
         $currentDateTime  = now()->translatedFormat('l, d F Y H:i:s (e)');
 
-        $systemPrompt = "Current Date & Time: {$currentDateTime}\n\n{$baseSystemPrompt}";
+        $responseGuidelines = implode("\n", [
+          'Response Guidelines:',
+          '- Always respond in the exact same language as the user\'s latest message (e.g. respond in Indonesian if the user writes in Indonesian, or English if in English).',
+          '- Never include internal reasoning, tool-call planning, or system context instructions in your response.',
+          '- Provide a direct, clear, and concise answer based only on verified tool results.',
+        ]);
+
+        $systemPrompt = "Current Date & Time: {$currentDateTime}\n\n{$baseSystemPrompt}\n\n{$responseGuidelines}";
 
         $formattedMessages = [
           [
@@ -582,18 +591,32 @@ class AiAssistant extends Page
 
         $endpoint = rtrim($chatbotUrl, '/') . '/chat/completions';
         $payload  = [
-          'model'       => $contextRecord?->default_model ?? $chatbotModel,
+          'model'       => $chatbotModel,
           'max_tokens'  => (int) ($contextRecord?->max_tokens ?? $chatbotMaxTokens),
           'temperature' => (float) ($contextRecord?->temperature ?? $chatbotTemperature),
           'messages'    => $formattedMessages,
           'tools'       => $toolRegistry->getToolsSchema(),
         ];
 
-        $response = Http::withToken($chatbotKey)
-          ->timeout(30)
-          ->post($endpoint, $payload);
+        $data              = null;
+        $executedToolsInfo = [];
+        $maxToolIterations = 5;
 
-        if ($response->successful()) {
+        for ($iteration = 0; $iteration < $maxToolIterations; $iteration++) {
+          $response = Http::withToken($chatbotKey)
+            ->timeout(30)
+            ->post($endpoint, $payload);
+
+          if (!$response->successful()) {
+            Log::error('AI Assistant request failed', [
+              'status'    => $response->status(),
+              'body'      => $response->body(),
+              'model'     => $chatbotModel,
+              'iteration' => $iteration,
+            ]);
+            break;
+          }
+
           $rawBody     = $response->body();
           $cleanedJson = $rawBody;
 
@@ -601,135 +624,138 @@ class AiAssistant extends Page
             $cleanedJson = $matches[0];
           }
 
-          $data = json_decode($cleanedJson, true);
+          $decoded = json_decode($cleanedJson, true);
+          if (!is_array($decoded)) {
+            break;
+          }
 
-          if (is_array($data)) {
-            $messageObj = $data['choices'][0]['message'] ?? [];
-            $toolCalls  = $messageObj['tool_calls'] ?? null;
+          $data       = $decoded;
+          $messageObj = $data['choices'][0]['message'] ?? [];
+          $toolCalls  = $messageObj['tool_calls'] ?? null;
 
-            if (!empty($toolCalls) && is_array($toolCalls)) {
-              $formattedMessages[] = $messageObj;
+          if (empty($toolCalls) || !is_array($toolCalls)) {
+            break;
+          }
 
-              $activeSession = $this->sessions[$this->activeSessionId] ?? [];
-              $dbSessionId   = $activeSession['db_id'] ?? null;
-              $user          = getUser();
-              $userId        = $user?->id;
+          $formattedMessages[] = $messageObj;
 
-              if ($dbSessionId && $userId) {
-                AiAssistantMessage::create([
-                  'uuid'       => uuid7(),
-                  'session_id' => $dbSessionId,
-                  'user_id'    => $userId,
-                  'role'       => 'assistant',
-                  'content'    => $messageObj['content'] ?? null,
-                  'model_used' => $data['model'] ?? $chatbotModel,
-                  'status'     => 'completed',
-                  'metadata'   => [
-                    'step'       => 'tool_call_request',
-                    'tool_calls' => $toolCalls,
-                  ],
-                ]);
-              }
+          $activeSession = $this->sessions[$this->activeSessionId] ?? [];
+          $dbSessionId   = $activeSession['db_id'] ?? null;
+          $user          = getUser();
+          $userId        = $user?->id;
 
-              $executedToolsInfo = [];
-              foreach ($toolCalls as $tc) {
-                $toolCallId   = $tc['id'] ?? null;
-                $functionName = $tc['function']['name'] ?? '';
-                $rawArgs      = $tc['function']['arguments'] ?? '{}';
+          if ($dbSessionId && $userId) {
+            AiAssistantMessage::create([
+              'uuid'       => uuid7(),
+              'session_id' => $dbSessionId,
+              'user_id'    => $userId,
+              'role'       => 'assistant',
+              'content'    => $messageObj['content'] ?? null,
+              'model_used' => $data['model'] ?? $chatbotModel,
+              'status'     => 'completed',
+              'metadata'   => [
+                'step'       => 'tool_call_request',
+                'tool_calls' => $toolCalls,
+              ],
+            ]);
+          }
 
-                $arguments = is_string($rawArgs) ? json_decode($rawArgs, true) : (array) $rawArgs;
-                if (!is_array($arguments)) {
-                  $arguments = [];
-                }
+          foreach ($toolCalls as $tc) {
+            $toolCallId   = $tc['id'] ?? null;
+            $functionName = $tc['function']['name'] ?? '';
+            $rawArgs      = $tc['function']['arguments'] ?? '{}';
 
-                $toolResult = $toolRegistry->executeTool($functionName, $arguments, $userId);
-                $executedToolsInfo[] = [
-                  'name'      => $functionName,
-                  'arguments' => $arguments,
-                  'result'    => $toolResult,
-                ];
-
-                if ($dbSessionId && $userId) {
-                  AiAssistantMessage::create([
-                    'uuid'       => uuid7(),
-                    'session_id' => $dbSessionId,
-                    'user_id'    => $userId,
-                    'role'       => 'tool',
-                    'content'    => json_encode($toolResult),
-                    'model_used' => $data['model'] ?? $chatbotModel,
-                    'status'     => 'completed',
-                    'metadata'   => [
-                      'step'          => 'tool_call_result',
-                      'tool_call_id'  => $toolCallId,
-                      'function_name' => $functionName,
-                      'arguments'     => $arguments,
-                    ],
-                  ]);
-                }
-
-                $formattedMessages[] = [
-                  'role'         => 'tool',
-                  'tool_call_id' => $toolCallId,
-                  'content'      => json_encode($toolResult),
-                ];
-              }
-
-              $payload['messages'] = $formattedMessages;
-              unset($payload['tools']);
-
-              $secondResponse = Http::withToken($chatbotKey)
-                ->timeout(30)
-                ->post($endpoint, $payload);
-
-              if ($secondResponse->successful()) {
-                $secondRaw  = $secondResponse->body();
-                $secondJson = preg_match('/\{[\s\S]*\}/', $secondRaw, $m2) ? $m2[0] : $secondRaw;
-                $secondData = json_decode($secondJson, true);
-
-                if (is_array($secondData)) {
-                  $data                   = $secondData;
-                  $data['executed_tools'] = $executedToolsInfo;
-                }
-              }
+            $arguments = is_string($rawArgs) ? json_decode($rawArgs, true) : (array) $rawArgs;
+            if (!is_array($arguments)) {
+              $arguments = [];
             }
 
-            $content          = $data['choices'][0]['message']['content'] ?? null;
-            $reasoningContent = $data['choices'][0]['message']['reasoning'] ?? $data['choices'][0]['message']['reasoning_content'] ?? null;
+            $toolResult          = $toolRegistry->executeTool($functionName, $arguments, $userId);
+            $executedToolsInfo[] = [
+              'name'      => $functionName,
+              'arguments' => $arguments,
+              'result'    => $toolResult,
+            ];
 
-            if (empty($content) && !empty($reasoningContent)) {
-              $content = $reasoningContent;
+            if ($dbSessionId && $userId) {
+              AiAssistantMessage::create([
+                'uuid'       => uuid7(),
+                'session_id' => $dbSessionId,
+                'user_id'    => $userId,
+                'role'       => 'tool',
+                'content'    => json_encode($toolResult),
+                'model_used' => $data['model'] ?? $chatbotModel,
+                'status'     => 'completed',
+                'metadata'   => [
+                  'step'          => 'tool_call_result',
+                  'tool_call_id'  => $toolCallId,
+                  'function_name' => $functionName,
+                  'arguments'     => $arguments,
+                ],
+              ]);
             }
 
-            if (!empty($content)) {
-              $usage         = $data['usage'] ?? [];
-              $returnedModel = $data['model'] ?? $chatbotModel;
-              $cost          = (float) ($data['cost'] ?? 0);
+            $formattedMessages[] = [
+              'role'         => 'tool',
+              'tool_call_id' => $toolCallId,
+              'content'      => json_encode($toolResult),
+            ];
+          }
 
-              $metadata = array_filter([
-                'context_name'              => $contextRecord?->name ?? null,
-                'injected_context'          => $systemPrompt,
-                'executed_tools'            => $data['executed_tools'] ?? null,
-                'response_id'               => $data['id'] ?? null,
-                'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
-                'cost'                      => $data['cost'] ?? null,
-                'prompt_tokens_details'     => $usage['prompt_tokens_details'] ?? null,
-                'completion_tokens_details' => $usage['completion_tokens_details'] ?? null,
-              ], fn($val) => $val !== null);
+          $payload['messages'] = $formattedMessages;
 
-              return [
-                'content'           => $content,
-                'reasoning_content' => $reasoningContent,
-                'model_used'        => $returnedModel,
-                'token_prompt'      => $usage['prompt_tokens'] ?? 0,
-                'token_completion'  => $usage['completion_tokens'] ?? 0,
-                'token_total'       => $usage['total_tokens'] ?? 0,
-                'cost'              => $cost,
-                'metadata'          => !empty($metadata) ? $metadata : null,
-              ];
-            }
+          if ($iteration === $maxToolIterations - 2) {
+            unset($payload['tools']);
           }
         }
+
+        if (is_array($data)) {
+          if (!empty($executedToolsInfo)) {
+            $data['executed_tools'] = $executedToolsInfo;
+          }
+
+          $content          = trim((string) ($data['choices'][0]['message']['content'] ?? ''));
+          $reasoningContent = $data['choices'][0]['message']['reasoning'] ?? $data['choices'][0]['message']['reasoning_content'] ?? null;
+
+          if ($content !== '') {
+            $usage         = $data['usage'] ?? [];
+            $returnedModel = $data['model'] ?? $chatbotModel;
+            $cost          = (float) ($data['cost'] ?? 0);
+
+            $metadata = array_filter([
+              'context_name'              => $contextRecord?->name ?? null,
+              'injected_context'          => $systemPrompt,
+              'executed_tools'            => $data['executed_tools'] ?? null,
+              'response_id'               => $data['id'] ?? null,
+              'finish_reason'             => $data['choices'][0]['finish_reason'] ?? null,
+              'cost'                      => $data['cost'] ?? null,
+              'prompt_tokens_details'     => $usage['prompt_tokens_details'] ?? null,
+              'completion_tokens_details' => $usage['completion_tokens_details'] ?? null,
+            ], fn($val) => $val !== null);
+
+            return [
+              'content'           => $content,
+              'reasoning_content' => $reasoningContent,
+              'model_used'        => $returnedModel,
+              'token_prompt'      => $usage['prompt_tokens'] ?? 0,
+              'token_completion'  => $usage['completion_tokens'] ?? 0,
+              'token_total'       => $usage['total_tokens'] ?? 0,
+              'cost'              => $cost,
+              'metadata'          => !empty($metadata) ? $metadata : null,
+            ];
+          }
+
+          Log::error('AI Assistant empty content response', [
+            'model'         => $chatbotModel,
+            'finish_reason' => $data['choices'][0]['finish_reason'] ?? null,
+            'has_reasoning' => !empty($reasoningContent),
+          ]);
+        }
       } catch (\Throwable $e) {
+        Log::error('AI Assistant exception', [
+          'message' => $e->getMessage(),
+          'model'   => $chatbotModel,
+        ]);
       }
     }
 
