@@ -55,13 +55,9 @@ In-depth developer documentation for individual modules is available under [`pub
 | AI Assistant | [`public/docs/module/AiAssistant.md`](public/docs/module/AiAssistant.md) |
 
 ## Demo Version
-You can explore the latest features on our demo site: [https://personal-v4-demo.novaardiansyah.id](https://personal-v4-demo.novaardiansyah.id)
+A public demo site is no longer available for this project. However, you can still explore the **API documentation** on the live production link: [https://personal-v4.novaardiansyah.id/docs/api](https://personal-v4.novaardiansyah.id/docs/api)
 
-**Credentials:**
-- **Email:** `admin@novadev.my.id`
-- **Password:** `zWZcWqm$Q8aP45ak`
-
-> Note: Some features are limited in the demo version and may not function as they would in production. If you encounter any bugs or issues, please feel free to [open an issue](https://github.com/novaardiansyah/personal-v4/issues).
+> Note: If you encounter any bugs or issues while running the project locally, please feel free to [open an issue](https://github.com/novaardiansyah/personal-v4/issues).
 
 ## AI Automation Integration
 This project features **AI-powered transaction recording** integrated with Telegram! Simply send a photo of your receipt or bill to the Telegram bot, and the AI will automatically extract transaction data, categorize it, and match payment accounts.
@@ -74,7 +70,7 @@ This project includes **integrated API documentation** automatically generated b
 <img src="public/markdown/preview-6.png" width="600" alt="API Documentation Preview" />
 <img src="public/markdown/preview-7.png" width="600" alt="API Documentation Preview" />
 
-> **Note:** We have migrated from L5-Swagger to Scramble for a more seamless and automated documentation experience. Please note that the API is not available in the demo version; therefore, the API documentation can only be viewed on the production link with restricted access.
+> **Note:** We have migrated from L5-Swagger to Scramble for a more seamless and automated documentation experience. While a public demo site is no longer provided, the API documentation remains open on the production link above.
 
 ## Mobile App Integration
 
@@ -92,7 +88,7 @@ A new feature will be added to manage system backups and perform real-time monit
 
 While this repository is public, please note that all forms of credentials, API keys (including `.env`), and environment configurations are **not provided for the public**. Access to the production database and sensitive configuration remains restricted for security reasons.
 
-If you are interested in using this project for specific purposes or require a demo environment, please contact me directly for **exclusive permission**.
+If you are interested in using this project for specific purposes, please contact me directly for **exclusive permission**.
 
 ## Let's Connect
 
